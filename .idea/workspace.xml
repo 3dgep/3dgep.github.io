@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e63e8e6a-bcb7-4fd1-858c-13e71881b1f8" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/_docs/cfg/buildprofiles.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/_docs/topics/about.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/_docs/topics/index.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/_docs/writerside.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/c.list" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/cfg/buildprofiles.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/cpp-fast-track.tree" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/images/welcome-to-visual-studio.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/learning-dx12.tree" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/math.tree" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/redirection-rules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/software-rasterizer.tree" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/topics/Introduction.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/topics/Part-1-Getting-Started.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/topics/Vectors.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/topics/learning-directx-12.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/topics/software-rasterizer.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/v.list" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Writerside/writerside.cfg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/_config.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images/3dgep-banner-(1000x288).png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.md" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="InstanceColorv3">
+    <option name="map">
+      <map>
+        <entry key="hi.tree">
+          <value>
+            <ColorState>
+              <option name="customOrder" value="1" />
+              <option name="first">
+                <RgbState>
+                  <option name="blue" value="60" />
+                  <option name="darkBlue" value="60" />
+                  <option name="darkGreen" value="68" />
+                  <option name="darkRed" value="206" />
+                  <option name="green" value="68" />
+                  <option name="red" value="206" />
+                </RgbState>
+              </option>
+              <option name="second">
+                <RgbState>
+                  <option name="blue" value="65" />
+                  <option name="darkBlue" value="65" />
+                  <option name="darkGreen" value="126" />
+                  <option name="darkRed" value="231" />
+                  <option name="green" value="126" />
+                  <option name="red" value="231" />
+                </RgbState>
+              </option>
+            </ColorState>
+          </value>
+        </entry>
+        <entry key="home.tree">
+          <value>
+            <ColorState>
+              <option name="customOrder" value="2" />
+              <option name="first">
+                <RgbState>
+                  <option name="blue" value="225" />
+                  <option name="darkBlue" value="225" />
+                  <option name="darkGreen" value="149" />
+                  <option name="darkRed" value="56" />
+                  <option name="green" value="149" />
+                  <option name="red" value="56" />
+                </RgbState>
+              </option>
+              <option name="second">
+                <RgbState>
+                  <option name="blue" value="234" />
+                  <option name="darkBlue" value="234" />
+                  <option name="darkGreen" value="197" />
+                  <option name="darkRed" value="81" />
+                  <option name="green" value="197" />
+                  <option name="red" value="81" />
+                </RgbState>
+              </option>
+            </ColorState>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2bMPoNkjtJbVwTtSML9pDimqDhz" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+</project>

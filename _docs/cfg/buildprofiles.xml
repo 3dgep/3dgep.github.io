@@ -2,11 +2,13 @@
 <buildprofiles xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/build-profiles.xsd"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-    <variables></variables>
-    <build-profile instance="hi">
-        <variables>
-            <noindex-content>false</noindex-content>
-        </variables>
-    </build-profile>
-
+    <variables>
+        <primary-color>dracula</primary-color>
+        <custom-favicons>favicon.png</custom-favicons>
+        <header-logo>favicon.png</header-logo>
+        <product-web-url>%root_url%</product-web-url>
+        <download-title>GitHub</download-title>
+        <download-page>https://github.com/3dgep</download-page>
+        <showDownloadButton>false</showDownloadButton>
+    </variables>
 </buildprofiles>

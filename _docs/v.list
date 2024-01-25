@@ -1,3 +1,4 @@
 <vars>
     <var name="root_url" value="https://3dgep.github.io/" type="string" />
+    <var name="github_repository_name" value="3dgep.github.io" type="string" />
 </vars>

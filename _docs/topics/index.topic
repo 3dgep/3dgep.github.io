@@ -21,8 +21,8 @@
 
         <!--    Add up to 2 topics that you want to promote. Use the "type" attribute to select an icon.    -->
         <spotlight>
-            <a href="" type="learn" summary="Learn how to use Microsoft's DirectX 12">Learn DirectX 12</a>
-            <a href="" type="learn" summary="Learn how to use OpenGL to create a renderer for your game">Learn OpenGL</a>
+            <a href="%root_url%/cpp-fast-track" type="academy" summary="Learn C++ for beginning game programmers.">C++ Fast Track</a>
+            <a href="%root_url%/LearningDirectX12" type="learn" summary="Learn how to use Microsoft's DirectX 12.">Learn DirectX 12</a>
         </spotlight>
 
         <!--    Add several topics that are most important for this section.    -->
@@ -36,11 +36,11 @@
 
         <!--    Add several topics that are less important or are relevant only for advanced/experienced users.    -->
         <secondary>
-            <title>Explore advanced features</title>
-            <a href=""/>
-            <a href="" summary="With a custom card summary"/>
-            <a href="">Custom card title</a>
-            <a href="" summary="With a custom card summary">Custom card title</a>
+            <title>OpenGL</title>
+            <a href="%root_url%/LearnOpenGL" summary="Create a window with an OpenGL context.">OpenGL Context Creation</a>
+            <a href="%root_url%/LearnOpenGL" summary="Render 3D geometry to the screen." >Vertex and Index Buffers</a>
+            <a href="%root_url%/LearnOpenGL" summary="Loading textures in OpenGL.">Textures</a>
+            <a href="%root_url%/LearnOpenGL" summary="Loading and rendering meshes.">Loading Models</a>
         </secondary>
 
         <!--    Optionally add additional cards and links to topics that are not in this section but may be relevant.    -->

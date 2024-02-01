@@ -3,8 +3,9 @@
         SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
 
 <instance-profile id="home" name="3D Game Engine Programming"
-                  start-page="index.md">
+                  start-page="index.topic">
 
-    <toc-element topic="index.md" />
-    <toc-element topic="about.md"/>
+    <toc-element topic="index.topic"/>
+    <toc-element topic="about.md">
+    </toc-element>
 </instance-profile>

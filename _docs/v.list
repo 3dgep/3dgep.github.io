@@ -1,4 +1,7 @@
 <vars>
-    <var name="root_url" value="https://3dgep.github.io/" type="string" />
-    <var name="github_repository_name" value="3dgep.github.io" type="string" />
+    <var name="title" value="3D Game Engine Programming" />
+    <var name="subtitle" value="Helping you build your dream game engine" />
+    <var name="root_url" value="https://3dgep.github.io" />
+    <var name="github_repository_name" value="3dgep.github.io" />
+    <var name="year" value="2024" />
 </vars>

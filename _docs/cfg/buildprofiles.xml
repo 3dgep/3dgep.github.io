@@ -11,4 +11,10 @@
         <download-page>https://github.com/3dgep</download-page>
         <showDownloadButton>false</showDownloadButton>
     </variables>
+    <footer>
+        <copyright>3dgep.com %year%</copyright>
+        <social type="email" href="mailto:jeremiah@3dgep.com?subject=[%github_repository_name%]" />
+        <social type="youtube" href="https://youtube.com/@3dgep" />
+        <social type="facebook" href="https://facebook.com/3DGameEngineProgramming" />
+    </footer>
 </buildprofiles>

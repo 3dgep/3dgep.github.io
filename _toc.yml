@@ -1,6 +1,0 @@
-format: jb-book
-root: intro
-parts:
-  - caption: Graphics Programming
-    chapters:
-    - file: content/placeholder

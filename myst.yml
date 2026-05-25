@@ -1,0 +1,19 @@
+version: 1
+project:
+  title: 3D Game Engine Programming
+  description: Helping you build your dream game engine
+  keywords:
+    - game engine
+    - graphics programming
+    - jupyter-book
+  github: 3dgep/3dgep.github.io
+  toc:
+    - file: intro.md
+    - title: Graphics Programming
+      children:
+        - file: content/placeholder.md
+site:
+  template: book-theme
+  options:
+    favicon: images/favicon.png
+    logo: images/favicon.png

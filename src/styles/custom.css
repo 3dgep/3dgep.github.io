@@ -186,10 +186,6 @@
 	grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr));
 	gap: 1rem;
 }
-/* Closing note (a Starlight Card). */
-.home-coming-soon {
-	margin-top: 3rem;
-}
 /* Feature highlights: three across on wide screens (Starlight's CardGrid has two columns). */
 .home-features .card-grid {
 	grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));

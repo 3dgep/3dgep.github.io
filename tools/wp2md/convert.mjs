@@ -27,7 +27,7 @@ for (const entry of (process.env.PORTED ?? '').split(',').filter(Boolean)) {
 
 const assets = new Map(); // remote url -> local file name
 function localAsset(url) {
-  url = url.replace(/\?.*$/, '');
+  url = url.replace(/\?.*$/, '').replace(/^\/\//, 'https://'); // also protocol-relative //host/... URLs
   const name = decodeURIComponent(path.basename(new URL(url).pathname)).replace(/[^\w.-]+/g, '_');
   assets.set(url, name);
   return `${assetPrefix}${name}`;
@@ -199,7 +199,19 @@ const katexSafe = (tex) =>
     .replace(/\\text\{([^{}]*)\}/g, (_m, t) => `\\text{${t.replace(/(?<!\\)_/g, '\\_')}}`)
     .replace(/[’‘“”–—…×]/g, (c) => TEXTURIZED[c])
     .replace(/\\begin\{array\}\{([1lcr|]+)\}/g, (_m, cols) => `\\begin{array}{${cols.replace(/1/g, 'l')}}`);
+// The older [math]...[/math] shortcode (CUDA articles) is display math written with code identifiers:
+// set multi-letter names (threadIdx.x, matrixRank) upright, use \cdot for *, and single & column separators.
+const shortcodeMath = (tex) => {
+  const keep = [];
+  return tex
+    .replace(/\\(?:begin|end)\{\w+\}|\\[a-zA-Z]+/g, (m) => `\u0000${keep.push(m) - 1}\u0000`)
+    .replace(/[A-Za-z]{2,}(?:\.[xyz])?|[A-Za-z]\.[xyz]/g, (w) => `\\text{${w}}`)
+    .replace(/\u0000(\d+)\u0000/g, (_m, i) => keep[+i])
+    .replace(/&&/g, '&')
+    .replace(/\*/g, '\\cdot ');
+};
 const bodyHtml = document.body.innerHTML
+  .replace(/\[math\]([\s\S]+?)\[\/math\]/g, (_m, tex) => `MATHDISPLAY${math.push(katexSafe(shortcodeMath(decode(tex).trim()))) - 1}END`)
   .replace(/\\\[([\s\S]+?)\\\]/g, (_m, tex) => {
     const clean = decode(tex.replace(/<br\s*\/?>/g, '').replace(/<\/?p>/g, '')).trim();
     return `MATHDISPLAY${math.push(katexSafe(clean)) - 1}END`;
@@ -329,6 +341,25 @@ td.addRule('images', {
     if (!thumb) return `![${alt}](${src})`;
     return `<img src="${thumbSrc(src)}" alt="${alt}" width="${thumb}" class="thumb" />`;
   },
+});
+
+// Reference lists laid out as a one-column table (a book cover floated left of each reference): one paragraph
+// per reference, the cover as a small thumbnail, wrapped in .book-ref so the floated covers don't stack.
+td.addRule('referenceTable', {
+  filter: (n) => n.nodeName === 'TABLE' && !n.querySelector('th')
+    && Array.from(n.querySelectorAll('tr')).every((r) => r.querySelectorAll('td').length === 1),
+  replacement: (_c, n) => Array.from(n.querySelectorAll('td')).map((cell) => {
+    const img = cell.querySelector('img');
+    let cover = '';
+    if (img) {
+      const alt = (img.getAttribute('alt') || img.getAttribute('title') || '').replace(/[[\]"]/g, '');
+      cover = `<img src="${thumbSrc(localAsset(imageUrl(img)))}" alt="${alt}" width="100" class="thumb" />`;
+      (img.closest('.wp-caption') ?? img.closest('a') ?? img).remove();
+      const br = Array.from(cell.childNodes).find((c) => c.nodeName === 'BR'); br?.remove();
+    }
+    const text = td.turndown(cell.innerHTML).trim();
+    return cover ? `<div class="book-ref">\n\n${cover}\n\n${text}\n\n</div>` : text;
+  }).join('\n\n').replace(/^/, '\n\n') + '\n\n',
 });
 
 td.addRule('imageLinks', {

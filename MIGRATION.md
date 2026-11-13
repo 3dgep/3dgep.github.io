@@ -16,19 +16,25 @@ keep every article URL working, then point the 3dgep.com domain here and retire 
 
 ## Inventory (from the WordPress REST API)
 
-45 posts and 6 pages. Done: DirectX 12 lessons 1–4, Introduction to DirectX 11, Texturing and Lighting in
-DirectX 11, Forward+, Volume Tiled Forward Shading, C++ Fast Track (16 parts), C++ Template Programming, the five math articles.
+45 posts and 6 pages. **All posts are migrated or deliberately dropped.** Migrated: DirectX 12 lessons 1–4, Introduction to
+DirectX 11, Texturing and Lighting in DirectX 11, Forward+, Volume Tiled Forward Shading, C++ Fast Track (16 parts), C++
+Template Programming, DLL plug-ins, the five math articles, the three OpenGL articles (GLSL texturing and lighting, MD5
+loading/animation, MD5 GPU skinning), the five GPGPU articles (CUDA thread execution model, memory model, optimization,
+N-body case study, Introduction to OpenCL) and the About page. Dropped as obsolete (old URLs redirect, see below):
+Introduction to DirectX 9, Introduction to Shader Programming with Cg 3.1, Using OpenGL Vertex Buffer Objects,
+Introduction to CUDA using Visual Studio 2008, OpenGL Interoperability with CUDA, C++ Fast Track part 14 (Fixed Point),
+and the Courses, GRP3, GRP4, AGT6 and Privacy and Cookie Policy pages.
 
 | Series / group | Posts | Notes |
 |---|---|---|
 | Learning DirectX 12 | 4 (all done) | Sources at `LearningDirectX12` tags v0.0.1–v0.0.4 |
 | C++ Fast Track for Games Programming | 17 (all done, part 14 removed) | Ported as-is (parts 1–2 already updated for VS 2026); template downloads point to `3dgep/tmpl8` (zip of `main`). A fuller rewrite is still planned (Phase 6) |
-| DirectX 9/11, Forward+, Volume Tiled Forward | 5 (4 done) | Introduction to DirectX 9 remains. Sources: `LearningDirectX11` v1.0.0/v2.0.0, `3dgep/ForwardPlus` @94f71f9 |
-| OpenGL / GLSL / Cg / MD5 models | 5 | Self-hosted WebGL demos via script (like Lesson 2) in 3 posts |
-| CUDA / OpenCL | 7 | Some text in `[brackets]` looks like shortcodes (`[index]`, `[gtid]`) but is code; verify |
+| DirectX 9/11, Forward+, Volume Tiled Forward | 5 (4 done, DirectX 9 dropped) | Sources: `LearningDirectX11` v1.0.0/v2.0.0, `3dgep/ForwardPlus` @94f71f9 |
+| OpenGL / GLSL / Cg / MD5 models | 5 (3 done, 2 dropped) | GLSL article's three.js demo self-hosted (`public/demos/lighting_demo.html`) |
+| CUDA / OpenCL | 7 (5 done, 2 dropped) | `[math]` shortcodes converted to KaTeX |
 | Math (primers, view matrix, quaternions) | 5 (all done) | 593 equations, all render with KaTeX (no errors or warnings) |
-| Misc (DLL plug-ins, C++ templates) | 2 (1 done) | C++ Template Programming done (no tagged sources: snippets kept inline). DLL plug-ins remains |
-| Pages | 6 | About, Courses, GRP3, GRP4, AGT6, Privacy and Cookie Policy: decide which to keep |
+| Misc (DLL plug-ins, C++ templates) | 2 (all done) | No tagged sources: snippets kept inline |
+| Pages | 6 (About kept) | Course pages and the privacy policy dropped (redirect to the home page) |
 
 Totals across all posts: ~1,280 code blocks, ~440 images, ~1,020 equations, 126 alert boxes,
 367 captions, 42 tables, 73 file downloads (zip/exe), 8 script-built embeds.
@@ -82,10 +88,10 @@ For each article:
 1. [x] DirectX 12 lessons 3–4 (sources: `LearningDirectX12` v0.0.3, v0.0.4)
 2. [x] DirectX 11 / Forward+ / Volume Tiled Forward (Introduction to DirectX 9 still to do)
 3. [x] Math articles (3D Math Primer parts 1–3, Understanding the View Matrix, Understanding Quaternions)
-4. [ ] OpenGL / Cg / MD5 (self-host the WebGL demos under `public/demos/`)
-5. [ ] CUDA / OpenCL, DLL plug-ins (C++ templates done)
+4. [x] OpenGL / Cg / MD5 (Cg 3.1 intro and VBOs dropped)
+5. [x] CUDA / OpenCL, DLL plug-ins (CUDA VS2008 intro and OpenGL interop dropped)
 6. [x] C++ Fast Track (part 14 "Fixed Point" removed; see below)
-6. [ ] Pages: About (+ Privacy policy if still needed)
+6. [x] Pages: About (in the sidebar); the others dropped
 
 Site structure as content grows:
 - [ ] Sidebar groups per series (DirectX 12, DirectX 11, OpenGL, GPGPU, Math, C++) and a landing page per series.
@@ -99,6 +105,9 @@ GitHub Pages has no server-side redirects. Astro's `redirects` (in `astro.config
 meta-refresh pages, which handle path-based URLs:
 
 - [ ] Article slugs are unchanged, so most URLs need nothing.
+- [x] Dropped articles and pages redirect to the closest current page (`astro.config.mjs`): DirectX 9 → DirectX 11
+      intro; Cg 3.1 and VBOs → GLSL texturing and lighting; Introduction to CUDA and OpenGL/CUDA interop → CUDA Thread
+      Execution Model; Courses, GRP3, GRP4, AGT6 and the privacy policy → home page.
 - [ ] Old aliases that WordPress redirected (e.g. `learning-directx12-1` → `learning-directx-12-1`, already added).
       Collect the rest from WordPress (Redirection plugin / Yoast) or Search Console before the switch.
 - [ ] Category pages `/category/<slug>/` → series landing pages.
@@ -158,8 +167,10 @@ learn.microsoft.com). Links that needed a judgment call:
 - Old MSDN links to individual enum values now go to the enum page's `#constants` section (Learn has no
   per-value anchors).
 - freeimage.sourceforge.io and blender.org block scripts (HTTP 403) but work in a browser.
-- Links to 3dgep.com articles that aren't ported yet (e.g. CUDA, Cg normal mapping, CMake) still point to WordPress and
-  must be updated when those articles move (Phase 3). The math articles are done and linked internally.
+- Links to 3dgep.com articles that were never published or were dropped (Introduction to OpenGL and GLSL, Beginning
+  OpenGL, Multi-textured Terrain, Cg runtime / Cg lighting, Introduction to CUDA, OpenGL/CUDA interop) are now plain
+  text (titles kept). Remaining absolute 3dgep.com links: the CMake article (Wayback copy) and citations in Volume Tiled
+  Forward Shading / Forward+ (kept as written in the thesis).
 
 ## Known content issues (found during the prototype)
 
@@ -225,3 +236,22 @@ learn.microsoft.com). Links that needed a judgment call:
     the inverse negates (not "subtracts") the vector part; θ from the dot product is half the rotation angle; SQUAD
     end points and sign alignment added.
   - Plus imprecise wording and typos in all four.
+- OpenGL / GPGPU / DLL articles (converter: `[math]` shortcodes, one-column reference tables → `.book-ref`
+  paragraphs, protocol-relative image URLs; hand fixes in the scratchpad script `gl-gpgpu-hand-fixes.mjs`):
+  - Each dated article got a short note at the top: MD5 loading (legacy client-side vertex arrays), GPU skinning (Cg
+    discontinued; maps to GLSL/HLSL), CUDA execution/memory model (Fermi-era numbers), Optimizing CUDA (Nsight tools),
+    OpenCL (1.2, still valid in 3.0). The Cg effect files are highlighted as HLSL.
+  - The patched `SOIL.zip` (WordPress upload) is not copied; the GLSL article points to SOIL2 / stb_image instead.
+  - The GLSL article's outer SOIL parameter list was never closed in the original HTML (the rest of the article
+    nested inside it); patched before conversion. Exercise 7 duplicated exercise 5 and was removed.
+  - Dead external links → Wayback Machine copies (lonesock SOIL, NVIDIA Cg pages, katsbits, glprogramming.com red book,
+    Doom 3, CUDA 4.0 PDFs); opengl.org man pages → Khronos OpenGL 2.1 refpages; Khronos OpenCL links → registry.khronos.org.
+    glew/freeglut/shadedrelief/blender answer 403 to scripts but work in a browser.
+- **Source downloads that no longer work** (replaced by a note in the article; re-share or put them on GitHub to restore;
+  porting them to in-browser demos is planned in [TODO.md](TODO.md)):
+  - `OpenGL_TexturingAndLighting.zip`: https://drive.google.com/file/d/0B0ND0J8HHfaXOFZQSy1CZ09sRTA (sign-in required)
+  - `MD5ModelLoader.zip` VS2008: docs.google.com/leaf?id=0B9NpHNF2In_uZDViNGM0MTYtNmQzNS00Zjg4LTgwMjItODkzNjE4ZWQ4M2Qx (404)
+  - `MD5ModelLoader.zip` VS2010: https://docs.google.com/file/d/0B0ND0J8HHfaXalp6RUZUVnJadWM (sign-in required)
+  - `GPUAnimation.zip`: docs.google.com/leaf?id=0B9NpHNF2In_uZmU3MGZmY2MtMjU3YS00NjY5LWFlMjMtMDJmZGEyNTM2NzBm (404)
+  - `CUDA_Examples.zip`: https://drive.google.com/file/d/0B0ND0J8HHfaXWlVGbklrc3ZpVlU (sign-in required)
+  - Still working (links updated to the Drive file page): `CreatingDLLs.zip` (DLL plug-ins), `FluidSim.zip` (OpenCL).

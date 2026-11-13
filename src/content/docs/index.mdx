@@ -39,6 +39,15 @@ import mathVectors from '../../assets/CrossProduct.png';
 import mathMatrices from '../../assets/matrix-det-21.png';
 import viewMatrix from '../../assets/View-Matrix.png';
 import quaternions from '../../assets/Quaternion-Rotation-13.png';
+import dllPlugins from '../../assets/DLL.png';
+import glTexturing from '../../assets/OpenGL_TexturingAndLighting.jpg';
+import md5Loading from '../../assets/Bob-with-Lamp.png';
+import md5Skinning from '../../assets/Bob-with-Lamp-GPU-Skinning.jpg';
+import cudaExecution from '../../assets/grid-of-thread-blocks.png';
+import cudaMemory from '../../assets/CUDA-memory-model.gif';
+import cudaOptimizing from '../../assets/shared-memory-bank-conflicts-linear-addressing.png';
+import nBody from '../../assets/N-Body-Simulation.jpg';
+import openCL from '../../assets/OpenCL-Platform-Model1.png';
 
 <div class="home-features">
 <CardGrid>
@@ -97,6 +106,8 @@ import quaternions from '../../assets/Quaternion-Rotation-13.png';
 <div class="home-article-grid not-content">
 	<ArticleCard badge="Article" title="C++ Template Programming" href="/beginning-cpp-template-programming/" image={cppTemplates} year={2021}
 		description="Function, class, variable and alias templates, template type deduction, type traits, SFINAE and C++20 concepts." />
+	<ArticleCard badge="Article" title="DLL Plug-Ins" href="/using-dynamic-link-libraries-dll-to-create-plug-ins/" image={dllPlugins} focus="top" year={2011}
+		description="Implicit and explicit linking of DLLs, exporting classes and functions, and a plug-in system with LoadLibrary." />
 </div>
 
 <h2 id="articles" class="home-section-title">Learning DirectX 12</h2>
@@ -130,6 +141,22 @@ import quaternions from '../../assets/Quaternion-Rotation-13.png';
 		description="Create a DirectX 11 application from scratch: window, device, swap chain, states and shaders, and a rotating cube." />
 	<ArticleCard badge="Part 2" title="Texturing and Lighting" href="/texturing-lighting-directx-11/" image={dx11Texturing} year={2014}
 		description="Textures, samplers, filtering and addressing modes, constant buffer packing and per-pixel Phong lighting." />
+</div>
+
+<h2 id="opengl" class="home-section-title">OpenGL</h2>
+
+<p class="home-series-intro">
+	Texturing and lighting with OpenGL and GLSL, and skeletal animation of MD5 models, on the CPU and in a vertex shader.
+</p>
+<p class="home-series-meta">3 articles · OpenGL · C++ / GLSL / Cg · 2011–2014</p>
+
+<div class="home-article-grid not-content">
+	<ArticleCard badge="Article" title="Texturing and Lighting with GLSL" href="/texturing-and-lighting-with-opengl-and-glsl/" image={glTexturing} year={2014}
+		description="Texture objects, mipmaps, filtering and wrap modes, and per-pixel Blinn-Phong lighting in an OpenGL 3.3 core profile." />
+	<ArticleCard badge="Part 1" title="Loading and Animating MD5 Models" href="/loading-and-animating-md5-models-with-opengl/" image={md5Loading} year={2011}
+		description="Parse the MD5 mesh and animation files, interpolate the skeleton between frames and skin the mesh." />
+	<ArticleCard badge="Part 2" title="GPU Skinning of MD5 Models" href="/gpu-skinning-of-md5-models-in-opengl-and-cg/" image={md5Skinning} focus="top" year={2011}
+		description="Move the vertex skinning to the GPU: bone weights and indices in vertex buffers, and a skinning vertex shader." />
 </div>
 
 <h2 id="rendering-techniques" class="home-section-title">Rendering Techniques</h2>
@@ -166,8 +193,22 @@ import quaternions from '../../assets/Quaternion-Rotation-13.png';
 		description="Complex numbers, quaternion operations, rotating points with quaternions, and SLERP interpolation." />
 </div>
 
-<div class="home-coming-soon">
-<Card title="More articles coming" icon="information">
-	The OpenGL, CUDA and other articles from 3dgep.com are being moved here one by one.
-</Card>
+<h2 id="gpgpu" class="home-section-title">GPGPU</h2>
+
+<p class="home-series-intro">
+	General purpose GPU programming with CUDA and OpenCL: how threads are scheduled, the memory hierarchy, and optimization.
+</p>
+<p class="home-series-meta">5 articles · CUDA · OpenCL · 2011</p>
+
+<div class="home-article-grid not-content">
+	<ArticleCard badge="CUDA" title="CUDA Thread Execution Model" href="/cuda-thread-execution-model/" image={cudaExecution} focus="top" year={2011}
+		description="Grids, blocks and warps, the streaming multiprocessor, warp scheduling, thread divergence and occupancy." />
+	<ArticleCard badge="CUDA" title="CUDA Memory Model" href="/cuda-memory-model/" image={cudaMemory} focus="top" year={2011}
+		description="Registers, local, shared, constant and global memory, and a tiled matrix multiply using shared memory." />
+	<ArticleCard badge="CUDA" title="Optimizing CUDA Applications" href="/optimizing-cuda-applications/" image={cudaOptimizing} year={2011}
+		description="Timing kernels, coalesced global memory access, shared memory bank conflicts, occupancy and flow control." />
+	<ArticleCard badge="Case study" title="N-Body Simulation" href="/cuda-case-study-n-body-simulation/" image={nBody} year={2011}
+		description="An all-pairs N-body gravity simulation in CUDA, with tiles of bodies loaded into shared memory." />
+	<ArticleCard badge="OpenCL" title="Introduction to OpenCL" href="/introduction-to-opencl/" image={openCL} year={2011}
+		description="The platform, execution and memory models, the host API, and writing and running OpenCL kernels." />
 </div>

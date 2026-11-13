@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Texture and Lighting Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body {
+            background: #000;
+            color: #EEE;
+            padding: 0;
+            margin: 0;
+            font-weight: bold;
+            overflow: hidden;
+
+            font-family: Monospace;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        a { color: green; }
+        b { color: green; }
+    </style>
+
+    <script src="Three/build/three.min.js"></script>
+    <script src="Three/examples/js/libs/stats.min.js"></script>
+    <script src="Three/examples/js/Detector.js"></script>
+
+</head>
+
+<body>
+
+<script>
+
+var radius, tilt, rotationSpeed1, rotationSpeed2, moonScale, sunScale, height, width, container, stats, camera, scene, renderer, geometry, meshPlanet, meshMoon, meshSun, pointLight, ambientLight, clock;
+
+radius = 6371;
+tilt = 0.41;
+rotationSpeed1 = 0.3;
+rotationSpeed2 = 0.5;
+moonScale = 0.23;
+sunScale = 0.1;
+
+height = window.innerHeight;
+width = window.innerWidth;
+clock = new THREE.Clock();
+
+window.onload = function() {
+
+    if ( !Detector.webgl ) {
+
+        Detector.addGetWebGLMessage();
+        return;
+    }
+
+    init();
+    animate();
+
+}
+
+function init() {
+
+    container = document.createElement( 'div' );
+    document.body.appendChild( container );
+
+    scene = new THREE.Scene();
+
+    renderer = new THREE.WebGLRenderer( { clearAlpha: 1, clearColor: 0x000000, antialias: true } );
+    renderer.setSize( width, height );
+    renderer.sortObjects = false;
+    renderer.autoClear = false;
+
+    //
+
+    renderer.gammaInput = true;
+    renderer.gammaOutput = true;
+
+    //
+
+    container.appendChild( renderer.domElement );
+
+    camera = new THREE.PerspectiveCamera( 25, width / height, 1, 1e6 );
+    camera.position.z = radius * 10;
+    scene.add( camera );
+
+    pointLight = new THREE.PointLight( 0xFFFFFF );
+    pointLight.position.set( radius * 9, 0, 0 );
+    scene.add( pointLight );
+	
+	ambientLight = new THREE.AmbientLight( 0x222222 );
+	scene.add( ambientLight );
+
+    var planetTexture = THREE.ImageUtils.loadTexture( "Textures/1_earth_1k.jpg" );
+    var moonTexture   = THREE.ImageUtils.loadTexture( "Textures/moon_1024.jpg" );
+
+    // earth
+    var materialEarth = new THREE.MeshPhongMaterial( { color: 0xffffff, shininess: 50, map: planetTexture } );
+    geometry = new THREE.SphereGeometry( radius, 100, 50 );
+    meshPlanet = new THREE.Mesh( geometry, materialEarth );
+    meshPlanet.rotation.y = 0;
+    scene.add( meshPlanet );
+
+    // moon
+
+    var materialMoon = new THREE.MeshPhongMaterial( { color: 0xffffff, map: moonTexture } );
+
+    meshMoon = new THREE.Mesh( geometry, materialMoon );
+    meshMoon.position.set( radius * 5, 0, 0 );
+    meshMoon.scale.set( moonScale, moonScale, moonScale );
+    scene.add( meshMoon );
+
+    // sun
+
+    var materialSun = new THREE.MeshBasicMaterial();
+    meshSun = new THREE.Mesh( geometry,materialSun );
+    meshSun.position = pointLight.position;
+    meshSun.scale.set( sunScale, sunScale, sunScale );
+    scene.add( meshSun );
+
+    stats = new Stats();
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.top = '0px';
+    stats.domElement.style.zIndex = 100;
+    container.appendChild( stats.domElement );
+
+    window.addEventListener( 'resize', onWindowResize, false );
+
+};
+
+function onWindowResize( event ) {
+
+    width = window.innerWidth;
+    height = window.innerHeight;
+
+    renderer.setSize( width, height );
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+
+    camera.radius = ( width + height ) / 4;
+
+};
+
+function animate() {
+
+    requestAnimationFrame( animate );
+
+    render();
+    stats.update();
+
+};
+
+function render() {
+
+    var delta = clock.getDelta();
+
+    meshPlanet.rotation.y += rotationSpeed1 * delta;
+
+    var angle1 = delta * rotationSpeed1;
+    var angle2 = delta * rotationSpeed2;
+
+    meshMoon.position = new THREE.Vector3(
+            Math.cos( angle1 ) * meshMoon.position.x - Math.sin( angle1 ) * meshMoon.position.z,
+            0,
+            Math.sin( angle1 ) * meshMoon.position.x + Math.cos( angle1 ) * meshMoon.position.z
+    );
+    meshMoon.rotation.y -= angle1;
+
+    pointLight.position = new THREE.Vector3(
+            Math.cos( angle2 ) * pointLight.position.x - Math.sin( angle2 ) * pointLight.position.z,
+            0,
+            Math.sin( angle2 ) * pointLight.position.x + Math.cos( angle2 ) * pointLight.position.z
+    );
+
+    meshSun.position = pointLight.position;
+
+    renderer.clear();
+    renderer.clear();
+    renderer.render( scene, camera );
+
+};
+
+</script>
+</body>
+</html>

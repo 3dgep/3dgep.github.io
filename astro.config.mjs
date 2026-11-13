@@ -46,6 +46,18 @@ export default defineConfig({
 		'/cpp-fast-track-15-fileio/': '/cpp-fast-track-14-fileio/',
 		'/cpp-fast-track-16-physics/': '/cpp-fast-track-15-physics/',
 		'/cpp-fast-track-17-ai/': '/cpp-fast-track-16-ai/',
+		// Obsolete articles that were not migrated: send readers to the closest current article.
+		'/introduction-to-directx-for-game-programmers/': '/introduction-to-directx-11/', // DirectX 9 + D3DX
+		'/introduction-to-shader-programming-with-cg-3-1/': '/texturing-and-lighting-with-opengl-and-glsl/', // Cg (discontinued)
+		'/using-opengl-vertex-buffer-objects/': '/texturing-and-lighting-with-opengl-and-glsl/', // client-side vertex arrays
+		'/introduction-to-cuda-using-visual-studio-2008/': '/cuda-thread-execution-model/', // VS 2008 / CUDA 4 setup
+		'/opengl-interoperability-with-cuda/': '/cuda-thread-execution-model/', // legacy GL + old interop API
+		// Pages that were removed (course pages and the WordPress privacy policy).
+		'/courses/': '/',
+		'/graphics-programming-3-grp3/': '/',
+		'/graphics-programming-4-grp4/': '/',
+		'/advanced-game-technology-6-agt6/': '/',
+		'/privacy-and-cookie-policy/': '/',
 	},
 	integrations: [
 		starlight({
@@ -108,13 +120,24 @@ export default defineConfig({
 				},
 				{
 					label: 'C++',
-					items: [{ label: 'C++ Template Programming', slug: 'beginning-cpp-template-programming' }],
+					items: [
+						{ label: 'C++ Template Programming', slug: 'beginning-cpp-template-programming' },
+						{ label: 'DLL Plug-Ins', slug: 'using-dynamic-link-libraries-dll-to-create-plug-ins' },
+					],
 				},
 				{
 					label: 'DirectX 11',
 					items: [
 						{ label: 'Introduction to DirectX 11', slug: 'introduction-to-directx-11' },
 						{ label: 'Texturing and Lighting', slug: 'texturing-lighting-directx-11' },
+					],
+				},
+				{
+					label: 'OpenGL',
+					items: [
+						{ label: 'Texturing and Lighting with GLSL', slug: 'texturing-and-lighting-with-opengl-and-glsl' },
+						{ label: 'Loading and Animating MD5 Models', slug: 'loading-and-animating-md5-models-with-opengl' },
+						{ label: 'GPU Skinning of MD5 Models', slug: 'gpu-skinning-of-md5-models-in-opengl-and-cg' },
 					],
 				},
 				{
@@ -134,6 +157,17 @@ export default defineConfig({
 						{ label: 'Understanding Quaternions', slug: 'understanding-quaternions' },
 					],
 				},
+				{
+					label: 'GPGPU',
+					items: [
+						{ label: 'CUDA Thread Execution Model', slug: 'cuda-thread-execution-model' },
+						{ label: 'CUDA Memory Model', slug: 'cuda-memory-model' },
+						{ label: 'Optimizing CUDA Applications', slug: 'optimizing-cuda-applications' },
+						{ label: 'CUDA Case Study: N-Body Simulation', slug: 'cuda-case-study-n-body-simulation' },
+						{ label: 'Introduction to OpenCL', slug: 'introduction-to-opencl' },
+					],
+				},
+				{ label: 'About', slug: 'about-3d-game-engine-programming' },
 			],
 		}),
 	],

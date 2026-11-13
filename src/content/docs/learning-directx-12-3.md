@@ -1113,7 +1113,7 @@ A method to parse the root signature and configure the descriptor table cache is
 
 The `d3dx12.h` header file provides some helper types for working with DirectX 12. The `d3dx12.h` header file also includes the `d3d12.h` file so it does not need to be included directly.
 
-The `wrl.h` header file includes the [`ComPtr`](https://learn.microsoft.com/cpp/cppcx/wrl/comptr-class?view=msvc-170&viewFallbackFrom=vs-2017) template class.
+The `wrl.h` header file includes the [`ComPtr`](https://learn.microsoft.com/cpp/cppcx/wrl/comptr-class) template class.
 
 The [`cstdint`](https://en.cppreference.com/cpp/header/cstdint) header provides access to the standard integer types (such as `uint32_t`). The [`memory`](https://en.cppreference.com/cpp/header/memory) header file is required for the [`std::unique_ptr`](https://en.cppreference.com/cpp/memory/unique_ptr) and the [`queue`](https://en.cppreference.com/cpp/header/queue) header file is required for the [`std::queue`](https://en.cppreference.com/cpp/container/queue) container class.
 

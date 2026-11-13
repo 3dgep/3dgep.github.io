@@ -109,9 +109,12 @@ async function check(original) {
     const html = /html/.test(res.headers.get('content-type') ?? '') ? await res.text() : '';
     const title = decodeEntities(/<title[^>]*>([^<]*)<\/title>/i.exec(html)?.[1]?.trim() ?? '');
     let final = cleanUrl(url, fragment);
-    // Keep a ?view= that the original link chose deliberately (e.g. view=vs-2015 for archived docs).
+    // Keep a ?view= that the original link chose deliberately (e.g. view=vs-2015 for archived docs) — unless
+    // Learn answered with viewFallbackFrom=..., meaning that version doesn't exist (any more) for this page.
     const view = new URL(original).searchParams.get('view');
-    if (view && new URL(final).host === 'learn.microsoft.com') {
+    const fellBack = new URL(url).searchParams.has('viewFallbackFrom');
+    if (fellBack) { const f = new URL(final); f.searchParams.delete('viewFallbackFrom'); f.searchParams.delete('view'); final = f.toString(); }
+    if (view && !fellBack && new URL(final).host === 'learn.microsoft.com') {
       const f = new URL(final);
       f.searchParams.set('view', view);
       final = f.toString();

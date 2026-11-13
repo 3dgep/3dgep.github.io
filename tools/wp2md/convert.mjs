@@ -152,6 +152,15 @@ for (const a of document.querySelectorAll('a[id], a[name]')) {
   namedAnchors.set(anchorKey(name), id);
   a.replaceWith(document.createTextNode(`CITETARGET${id}END`));
 }
+// Ids on other inline/text elements (e.g. footnote markers <sup id="q1">, answers <p id="a1">) are kept as an
+// anchor at the start of the element. Headings, captions and code blocks get their ids elsewhere.
+for (const el of document.querySelectorAll('sup[id], sub[id], span[id], p[id], li[id], td[id], em[id], strong[id]')) {
+  const name = el.getAttribute('id');
+  if (/^(caption-attachment|attachment|urvanov|crayon|video|audio)/.test(name) || namedAnchors.has(anchorKey(name))) continue;
+  const id = `ref-${slugify(name)}`;
+  namedAnchors.set(anchorKey(name), id);
+  el.insertBefore(document.createTextNode(`CITETARGET${id}END`), el.firstChild);
+}
 
 // 3. Math (QuickLaTeX/MathJax style \( \) and \[ \]) -> placeholders, so turndown doesn't escape the LaTeX.
 //    Code blocks are already placeholders, so only prose is scanned. WordPress inserts <br /> in display math.
@@ -414,11 +423,29 @@ function fixHref(href, text = '') {
   unresolvedAnchors.add(anchor);
   return '#' + slugify(anchor);
 }
+// Files in WordPress uploads disappear with the domain: links to them become /downloads/<file> (copy the
+// files listed at the end). An image linked to its own upload (click to enlarge) is just the image.
+const downloads = new Map(); // upload URL -> local path
+function uploadHref(href) {
+  if (!/^https?:\/\/(?:www\.)?3dgep\.com\/wp-content\/uploads\//.test(href)) return null;
+  const url = href.replace(/[?#].*$/, '');
+  const name = decodeURIComponent(path.basename(new URL(url).pathname));
+  if (/\.(mp4|webm|mov)$/i.test(name)) { videos.push(url); return `/videos/${name}`; } // same place as <video>
+  const local = `/downloads/${name}`;
+  downloads.set(url, local);
+  return local;
+}
+// Note: turndown gives rules added later priority, so this rule also covers image-only links.
 td.addRule('links', {
   filter: (n) => n.nodeName === 'A' && n.getAttribute('href'),
   // Line breaks (<br>) inside link text: WordPress used them to stack an icon above its label; they'd split
   // the Markdown link over several lines, so drop them.
-  replacement: (content, n) => `[${content.replace(/ {2}\n/g, ' ').replace(/\s+/g, ' ').replace(/(\/>) /g, '$1').trim()}](${fixHref(n.getAttribute('href'), n.textContent).replace(/[()]/g, encodeURIComponent)})`,
+  replacement: (content, n) => {
+    const href = n.getAttribute('href');
+    if (n.querySelector('img') && !n.textContent.trim() && /wp-content\/uploads/.test(href)) return content;
+    const target = uploadHref(href) ?? fixHref(href, n.textContent);
+    return `[${content.replace(/ {2}\n/g, ' ').replace(/\s+/g, ' ').replace(/(\/>) /g, '$1').trim()}](${target.replace(/[()]/g, encodeURIComponent)})`;
+  },
 });
 
 // WordPress uses <h1> for top-level sections; the page title is the only H1 in the new site.
@@ -481,3 +508,4 @@ if (startDisagreements.length) {
   for (const d of startDisagreements) console.log(`    block ${d.block} (${d.title}): found at ${d.found}, article showed ${d.original}${d.exact ? '' : ' (snippet differs from source)'}`);
 }
 if (videos.length) console.log(`  copy these videos to public/videos/: ${videos.join(', ')}`);
+if (downloads.size) console.log(`  copy these files to public/downloads/: ${[...downloads.keys()].join(', ')}`);

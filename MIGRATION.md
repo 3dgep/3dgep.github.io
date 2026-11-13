@@ -17,12 +17,12 @@ keep every article URL working, then point the 3dgep.com domain here and retire 
 ## Inventory (from the WordPress REST API)
 
 45 posts and 6 pages. Done: DirectX 12 lessons 1–4, Introduction to DirectX 11, Texturing and Lighting in
-DirectX 11, Forward+, Volume Tiled Forward Shading.
+DirectX 11, Forward+, Volume Tiled Forward Shading, C++ Fast Track (16 parts).
 
 | Series / group | Posts | Notes |
 |---|---|---|
 | Learning DirectX 12 | 4 (all done) | Sources at `LearningDirectX12` tags v0.0.1–v0.0.4 |
-| C++ Fast Track for Games Programming | 17 | Planned **rewrite**, not a straight port (see below). Uses `start-line` and `mark` (highlighted lines) |
+| C++ Fast Track for Games Programming | 17 (all done, part 14 removed) | Ported as-is (parts 1–2 already updated for VS 2026); template downloads point to `3dgep/tmpl8` (zip of `main`). A fuller rewrite is still planned (Phase 6) |
 | DirectX 9/11, Forward+, Volume Tiled Forward | 5 (4 done) | Introduction to DirectX 9 remains. Sources: `LearningDirectX11` v1.0.0/v2.0.0, `3dgep/ForwardPlus` @94f71f9 |
 | OpenGL / GLSL / Cg / MD5 models | 5 | Self-hosted WebGL demos via script (like Lesson 2) in 3 posts |
 | CUDA / OpenCL | 7 | Some text in `[brackets]` looks like shortcodes (`[index]`, `[gtid]`) but is code; verify |
@@ -77,6 +77,7 @@ For each article:
 3. [ ] Math articles (KaTeX check: `\begin{bmatrix}`, `\mathbf`, aligned environments)
 4. [ ] OpenGL / Cg / MD5 (self-host the WebGL demos under `public/demos/`)
 5. [ ] CUDA / OpenCL, DLL plug-ins, C++ templates
+6. [x] C++ Fast Track (part 14 "Fixed Point" removed; see below)
 6. [ ] Pages: About (+ Privacy policy if still needed)
 
 Site structure as content grows:
@@ -174,3 +175,13 @@ learn.microsoft.com). Links that needed a judgment call:
   to Wayback Machine copies from 2015.
 - Volume Tiled Forward Shading: the thesis PDF (28 MB) is now part of the site at
   `/downloads/volume-tiled-forward-shading.pdf` (was in WordPress uploads).
+- C++ Fast Track: the 2019 `TheTemplate.zip` (404 on WordPress) was replaced everywhere by the `3dgep/tmpl8` repository
+  (link + zip of `main`); text mentions now say "the template". The "Previous Part / Next Part" lines were removed
+  (the sidebar lists the series, and Starlight adds previous/next links at the bottom of each page). `nc2tiles.png` (exercise download) is
+  self-hosted under `/downloads/`. Old slugs `cpp-fast-track-8-addresses` and `cpp-fast-track-14-fixedpoint` redirect.
+  Parts 3–17 still describe Visual Studio 2019 and the 2019 template in places.
+- C++ Fast Track part 14 "Fixed Point" was removed: fixed-point arithmetic is no longer relevant for a beginner course,
+  and no other part depends on it. Its URLs (`/cpp-fast-track-14-fixed-point/`, `/cpp-fast-track-14-fixedpoint/`) redirect to
+  File I/O. The following parts were renumbered, URLs included: File I/O, Physics and AI are now parts 14–16
+  (`/cpp-fast-track-14-fileio/`, `/cpp-fast-track-15-physics/`, `/cpp-fast-track-16-ai/`); the old URLs
+  (`-15-fileio`, `-16-physics`, `-17-ai`) redirect to them.

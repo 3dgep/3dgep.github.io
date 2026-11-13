@@ -192,3 +192,13 @@
 .home-features .card-grid {
 	grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
 }
+/* C++ Fast Track part list: numbered, in columns. */
+.sl-markdown-content .home-part-list {
+	columns: 3 14rem;
+	column-gap: 2rem;
+	padding-inline-start: 1.5rem;
+}
+.sl-markdown-content .home-part-list li {
+	break-inside: avoid;
+	margin-block: 0 0.35rem;
+}

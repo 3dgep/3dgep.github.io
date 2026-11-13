@@ -35,6 +35,14 @@ export default defineConfig({
 		'/learning-directx12-2/': '/learning-directx-12-2/',
 		'/learning-directx12-3/': '/learning-directx-12-3/',
 		'/learning-directx12-4/': '/learning-directx-12-4/',
+		'/cpp-fast-track-8-addresses/': '/cpp-fast-track-8-memory-addresses/',
+		// Part 14 (Fixed Point) was removed from the series; old links go to the next part.
+		'/cpp-fast-track-14-fixed-point/': '/cpp-fast-track-14-fileio/',
+		'/cpp-fast-track-14-fixedpoint/': '/cpp-fast-track-14-fileio/',
+		// Parts 15-17 were renumbered to 14-16 after that.
+		'/cpp-fast-track-15-fileio/': '/cpp-fast-track-14-fileio/',
+		'/cpp-fast-track-16-physics/': '/cpp-fast-track-15-physics/',
+		'/cpp-fast-track-17-ai/': '/cpp-fast-track-16-ai/',
 	},
 	integrations: [
 		starlight({
@@ -71,6 +79,28 @@ export default defineConfig({
 						{ label: 'Lesson 2 – Rendering', slug: 'learning-directx-12-2' },
 						{ label: 'Lesson 3 – Framework', slug: 'learning-directx-12-3' },
 						{ label: 'Lesson 4 – Textures', slug: 'learning-directx-12-4' },
+					],
+				},
+				{
+					label: 'C++ Fast Track',
+					collapsed: true,
+					items: [
+						{ label: 'Part 1: Getting Started', slug: 'cpp-fast-track-1-getting-started' },
+						{ label: 'Part 2: The Template', slug: 'cpp-fast-track-2-template' },
+						{ label: 'Part 3: Variables and Functions', slug: 'cpp-fast-track-3-variables' },
+						{ label: 'Part 4: Sprites and Loops', slug: 'cpp-fast-track-4-sprites-and-loops' },
+						{ label: 'Part 5: Conditions', slug: 'cpp-fast-track-5-conditions' },
+						{ label: 'Part 6: Floats', slug: 'cpp-fast-track-6-floats' },
+						{ label: 'Part 7: Debugging', slug: 'cpp-fast-track-7-debugging' },
+						{ label: 'Part 8: Memory Addresses', slug: 'cpp-fast-track-8-memory-addresses' },
+						{ label: 'Part 9: Colours', slug: 'cpp-fast-track-9-colours' },
+						{ label: 'Part 10: Arrays', slug: 'cpp-fast-track-10-arrays' },
+						{ label: 'Part 11: Tiles', slug: 'cpp-fast-track-11-tiles' },
+						{ label: 'Part 12: Classes', slug: 'cpp-fast-track-12-classes' },
+						{ label: 'Part 13: Data Structures', slug: 'cpp-fast-track-13-data-structures' },
+						{ label: 'Part 14: File I/O', slug: 'cpp-fast-track-14-fileio' },
+						{ label: 'Part 15: Physics', slug: 'cpp-fast-track-15-physics' },
+						{ label: 'Part 16: AI', slug: 'cpp-fast-track-16-ai' },
 					],
 				},
 				{

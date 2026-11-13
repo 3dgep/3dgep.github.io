@@ -123,6 +123,8 @@
 }
 .sl-markdown-content iframe.embed-demo { aspect-ratio: 16 / 10; min-height: 380px; }
 .sl-markdown-content iframe.embed-video { aspect-ratio: 16 / 9; }
+/* Demos with a control panel need more height. */
+.sl-markdown-content iframe.embed-demo-tall { aspect-ratio: 4 / 3; min-height: 560px; }
 
 
 /* Theme-specific images: <img class="light-only"> / <img class="dark-only"> (e.g. the GitHub mark). */
@@ -201,4 +203,75 @@
 .sl-markdown-content .home-part-list li {
 	break-inside: avoid;
 	margin-block: 0 0.35rem;
+}
+
+/* Grammar notation (e.g. "requires { requirement-seq }"): keywords bold, placeholders italic, as in the standard. */
+.sl-markdown-content pre.grammar {
+	padding: 0.75rem 1rem;
+	overflow-x: auto;
+	font-family: var(--__sl-font-mono, var(--sl-font-mono, monospace));
+	font-size: var(--sl-text-code-sm, 0.875rem);
+	line-height: 1.6;
+	color: var(--sl-color-gray-2);
+	background: var(--sl-color-gray-6);
+	border: 1px solid var(--sl-color-gray-5);
+}
+.sl-markdown-content pre.grammar strong { color: var(--sl-color-white); }
+.sl-markdown-content pre.grammar em { color: var(--sl-color-text-accent); }
+
+/* Back-references after bibliography entries (src/plugins/rehype-citation-backrefs.mjs). */
+.sl-markdown-content .backrefs {
+	white-space: nowrap;
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-3);
+}
+.sl-markdown-content .backrefs a {
+	text-decoration-line: none !important;
+	font-weight: 400 !important;
+}
+.sl-markdown-content .backrefs a:hover { text-decoration-line: underline !important; }
+.hover-preview .backrefs { display: none; }
+/* The citation or entry you jumped to is briefly highlighted. */
+.sl-markdown-content :is(a[id*='-use-'], p:has(> span[id^='cite-'], > span[id^='ref-'])):target,
+.sl-markdown-content p:has(> span:target) {
+	background: var(--sl-color-accent-low);
+	border-radius: 0.25rem;
+	transition: background 1s;
+}
+/* Land citations and reference entries well below the header, with some context above them. */
+.sl-markdown-content a[id*='-use-'],
+.sl-markdown-content span[id^='cite-'],
+.sl-markdown-content span[id^='ref-'] {
+	scroll-margin-top: 30vh;
+}
+
+/* Figures side by side (e.g. left- and right-hand rule), stacked on narrow screens. */
+.sl-markdown-content .figure-row {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 1.5rem;
+}
+.sl-markdown-content .figure-row figure {
+	flex: 0 1 15rem;
+	margin: 0;
+}
+.sl-markdown-content .figure-row figcaption {
+	margin-top: 0.25rem;
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-3);
+	text-align: center;
+}
+
+/* A reference with its book cover: the cover floats left of the text, and each reference starts on its own row
+   at the left edge (instead of the next cover wrapping around the previous one). */
+.sl-markdown-content .book-ref {
+	display: flow-root;
+	margin-block: 1rem;
+}
+.sl-markdown-content .book-ref img.thumb {
+	margin: 0 1rem 0 0;
+}
+.sl-markdown-content .book-ref p {
+	margin: 0;
 }

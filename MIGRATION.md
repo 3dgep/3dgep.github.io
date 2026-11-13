@@ -17,7 +17,7 @@ keep every article URL working, then point the 3dgep.com domain here and retire 
 ## Inventory (from the WordPress REST API)
 
 45 posts and 6 pages. Done: DirectX 12 lessons 1–4, Introduction to DirectX 11, Texturing and Lighting in
-DirectX 11, Forward+, Volume Tiled Forward Shading, C++ Fast Track (16 parts).
+DirectX 11, Forward+, Volume Tiled Forward Shading, C++ Fast Track (16 parts), C++ Template Programming, the five math articles.
 
 | Series / group | Posts | Notes |
 |---|---|---|
@@ -26,8 +26,8 @@ DirectX 11, Forward+, Volume Tiled Forward Shading, C++ Fast Track (16 parts).
 | DirectX 9/11, Forward+, Volume Tiled Forward | 5 (4 done) | Introduction to DirectX 9 remains. Sources: `LearningDirectX11` v1.0.0/v2.0.0, `3dgep/ForwardPlus` @94f71f9 |
 | OpenGL / GLSL / Cg / MD5 models | 5 | Self-hosted WebGL demos via script (like Lesson 2) in 3 posts |
 | CUDA / OpenCL | 7 | Some text in `[brackets]` looks like shortcodes (`[index]`, `[gtid]`) but is code; verify |
-| Math (primers, view matrix, quaternions) | 6 | Math-heavy: up to 230 equations per post; check KaTeX coverage |
-| Misc (DLL plug-ins, C++ templates) | 2 | |
+| Math (primers, view matrix, quaternions) | 5 (all done) | 593 equations, all render with KaTeX (no errors or warnings) |
+| Misc (DLL plug-ins, C++ templates) | 2 (1 done) | C++ Template Programming done (no tagged sources: snippets kept inline). DLL plug-ins remains |
 | Pages | 6 | About, Courses, GRP3, GRP4, AGT6, Privacy and Cookie Policy: decide which to keep |
 
 Totals across all posts: ~1,280 code blocks, ~440 images, ~1,020 equations, 126 alert boxes,
@@ -53,9 +53,16 @@ Totals across all posts: ~1,280 code blocks, ~440 images, ~1,020 equations, 126 
 - [ ] Handle remaining markup: `<video>`,
       script-built demo embeds (generalize the Lesson 2 handling), file downloads (zip/exe → GitHub release
       links where possible instead of copying binaries).
+- [x] Non-Crayon `<pre>` blocks (`crayon:false`, grammar notation such as `requires { requirement-seq }`) become
+      `<pre class="grammar">` keeping only bold/italic; `<br>` inside table cells is kept as `<br />` so the row
+      stays on one line.
+- [x] Back-references in bibliographies (`src/plugins/rehype-citation-backrefs.mjs`, at build time): each entry
+      that starts with an anchor and "[N]" gets ↩ links to its citations ("↩ a b c" when cited more than once).
 - [x] GitHub mark next to repository links: light/dark variants (`public/images/github-mark*.svg`), chosen by
       theme via `.light-only`/`.dark-only`; the converter emits them automatically.
 - [ ] Check other dark images that are hard to see in dark mode (use the same `.light-only`/`.dark-only` classes).
+- [x] LaTeX that WordPress "texturized" (`v’`, `a–b`, `…`) is restored to plain LaTeX, and `\begin{array}{1}` (a typo
+      MathJax accepted) becomes `{l}`. Descriptions come from the excerpt again (it was parsed as an empty nested `<p>`).
 - [ ] Remove the legacy `myst` target from `tools/wp2md/convert.mjs`.
 
 ## Phase 2: Port the content
@@ -74,9 +81,9 @@ For each article:
 
 1. [x] DirectX 12 lessons 3–4 (sources: `LearningDirectX12` v0.0.3, v0.0.4)
 2. [x] DirectX 11 / Forward+ / Volume Tiled Forward (Introduction to DirectX 9 still to do)
-3. [ ] Math articles (KaTeX check: `\begin{bmatrix}`, `\mathbf`, aligned environments)
+3. [x] Math articles (3D Math Primer parts 1–3, Understanding the View Matrix, Understanding Quaternions)
 4. [ ] OpenGL / Cg / MD5 (self-host the WebGL demos under `public/demos/`)
-5. [ ] CUDA / OpenCL, DLL plug-ins, C++ templates
+5. [ ] CUDA / OpenCL, DLL plug-ins (C++ templates done)
 6. [x] C++ Fast Track (part 14 "Fixed Point" removed; see below)
 6. [ ] Pages: About (+ Privacy policy if still needed)
 
@@ -151,8 +158,8 @@ learn.microsoft.com). Links that needed a judgment call:
 - Old MSDN links to individual enum values now go to the enum page's `#constants` section (Learn has no
   per-value anchors).
 - freeimage.sourceforge.io and blender.org block scripts (HTTP 403) but work in a browser.
-- Links to 3dgep.com articles that aren't ported yet (math primers, view matrix) still point to WordPress and
-  must be updated when those articles move (Phase 3).
+- Links to 3dgep.com articles that aren't ported yet (e.g. CUDA, Cg normal mapping, CMake) still point to WordPress and
+  must be updated when those articles move (Phase 3). The math articles are done and linked internally.
 
 ## Known content issues (found during the prototype)
 
@@ -185,3 +192,36 @@ learn.microsoft.com). Links that needed a judgment call:
   File I/O. The following parts were renumbered, URLs included: File I/O, Physics and AI are now parts 14–16
   (`/cpp-fast-track-14-fileio/`, `/cpp-fast-track-15-physics/`, `/cpp-fast-track-16-ai/`); the old URLs
   (`-15-fileio`, `-16-physics`, `-17-ai`) redirect to them.
+- C++ Template Programming: no tagged sources, so all 188 snippets are inline. cppreference moved from `/w/cpp/...`
+  to `/cpp/...`; links were updated, two renamed anchors fixed by hand (`#Unevaluated_expressions` →
+  `#Potentially-evaluated_expressions`, `#Floating_point_types` → `#Floating-point_types`), and the dead SmartBear
+  lvalue blog post (reference [5]) points to a 2020 Wayback Machine copy. A broken in-page `#decltype` link now points
+  to "decltype Specifier". The Stack Overflow references answer 403 to scripts (bot block) but work in a browser.
+- Math articles: layout tables were rewritten by hand (left/right-hand rule figures side by side in a `.figure-row`, the
+  rotation-direction table as a Markdown table, the Quaternions reference list with book covers). The *3D Math Primer for
+  Graphics and Game Development* cover is a small thumbnail next to the reference. Links to these articles from Lesson 2
+  and Forward+ now point to the new pages. The Vector Operations excerpt lost its first letter (drop cap); fixed.
+  Dead links: lolengine.net (TLS failure) points to a 2023 Wayback Machine copy; Unity's old download page goes to
+  unity.com/download.
+- Understanding Quaternions: the Unity demo (`Understanding Quaternions.zip`, Google Docs) now requires a Google sign-in.
+  It was replaced by an interactive WebGL demo (`public/demos/understanding-quaternions.html`, embedded in the article):
+  axis–angle rotation with q p q⁻¹, and SLERP / NLERP / LERP between two orientations (with the shortest-path option).
+- Understanding the View Matrix: the "Download the Demo" section is now an interactive WebGL demo
+  (`public/demos/understanding-the-view-matrix.html`) with the article's Look At, FPS and Arcball cameras, the live view
+  matrix V and camera matrix M = V⁻¹, and a world view showing the camera's frustum. The original OpenGL demo
+  (ViewMatrixDemo.zip on Google Drive) still downloads and is linked in a note.
+- Both demos are single self-contained HTML files (WebGL 2, no libraries) that follow the site's light/dark theme.
+- Understanding the View Matrix: the formulas and code were checked and are correct; text fixes only (post- vs
+  pre-multiply in the row-vector function, the look-at z axis is the *backward* vector, column-major storage vs column
+  vectors, typos), plus a caution about the look-at singularity (looking along the up vector), the missing `t1 = vec3(0)`
+  default in the optimized Arcball, and the "not fully tested" warning replaced by a pointer to the demo that runs it.
+- Math review of the other math articles (worked examples recomputed; formulas otherwise correct):
+  - Matrices: affine form v' = vM + b → Mv + b (the article uses column vectors); translation is not an orthogonal
+    transformation; the orthogonality derivation now uses MᵀM = I so the dot products really are column · column.
+  - Vector Operations: "subtracting b from a" for b − a; a − b ends at the head of −b; unit vectors are not "normals";
+    dot product of a vector with itself is its squared *length*; 5² + (−4)²; a stray "." after an equation.
+  - Coordinate Systems: perspective projection is not affine.
+  - Understanding Quaternions: the q⁰ derivation contradicted the exp definition; rotor q = [cos θ, sin θ v̂] (unit v);
+    the inverse negates (not "subtracts") the vector part; θ from the dot product is half the rotation angle; SQUAD
+    end points and sign alignment added.
+  - Plus imprecise wording and typos in all four.

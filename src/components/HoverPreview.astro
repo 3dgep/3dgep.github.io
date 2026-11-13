@@ -35,6 +35,12 @@
 		// anchor sits alone in its paragraph (figures), the following image and caption.
 		if (!target.textContent?.trim()) {
 			const para = target.closest('p');
+			if (para?.querySelector(':scope > br')) {
+				// Several entries in one paragraph, separated by <br>: show only the line the anchor starts.
+				const line = document.createElement('p');
+				for (let n = target.nextSibling; n && n.nodeName !== 'BR'; n = n.nextSibling) line.append(n instanceof Element ? clone(n) : n.cloneNode(true));
+				if (line.textContent?.trim()) return [line];
+			}
 			if (para?.textContent?.trim()) return [clone(para)];
 			const nodes: Node[] = [];
 			let next = (para ?? target).nextElementSibling;
@@ -80,7 +86,7 @@
 	}
 
 	const inPageLink = (e: Event) =>
-		(e.target as Element).closest?.<HTMLAnchorElement>('a[href^="#"]') ?? null;
+		(e.target as Element).closest?.<HTMLAnchorElement>('a[href^="#"]:not(.backrefs a)') ?? null;
 
 	content?.addEventListener('mouseover', (e) => {
 		const link = inPageLink(e);

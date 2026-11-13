@@ -33,6 +33,12 @@ import dx11Texturing from '../../assets/DirectX-Demo-Screenshot.jpg';
 import forwardPlus from '../../assets/G-Buffer.jpg';
 import volumeTiled from '../../assets/Volume_Tiled_Forward_Shading-Thumbnail.png';
 import cppCourse from '../../assets/udemy-cpp23-for-game-programming.jpg';
+import cppTemplates from '../../assets/C-Templates-Thumbnail.png';
+import mathCoordinates from '../../assets/WorldSpaceCoordinateSystem.png';
+import mathVectors from '../../assets/CrossProduct.png';
+import mathMatrices from '../../assets/matrix-det-21.png';
+import viewMatrix from '../../assets/View-Matrix.png';
+import quaternions from '../../assets/Quaternion-Rotation-13.png';
 
 <div class="home-features">
 <CardGrid>
@@ -86,6 +92,13 @@ import cppCourse from '../../assets/udemy-cpp23-for-game-programming.jpg';
 	<li><a href="/cpp-fast-track-16-ai/">AI</a></li>
 </ol>
 
+<h2 id="more-cpp" class="home-section-title">More C++</h2>
+
+<div class="home-article-grid not-content">
+	<ArticleCard badge="Article" title="C++ Template Programming" href="/beginning-cpp-template-programming/" image={cppTemplates} year={2021}
+		description="Function, class, variable and alias templates, template type deduction, type traits, SFINAE and C++20 concepts." />
+</div>
+
 <h2 id="articles" class="home-section-title">Learning DirectX 12</h2>
 
 <p class="home-series-intro">
@@ -133,8 +146,28 @@ import cppCourse from '../../assets/udemy-cpp23-for-game-programming.jpg';
 		description="3D volume tiles and a bounding volume hierarchy over the lights: millions of light sources in real time." />
 </div>
 
+<h2 id="math" class="home-section-title">Math</h2>
+
+<p class="home-series-intro">
+	The math behind 3D graphics: coordinate systems, vectors and matrices, building a view matrix, and rotations with quaternions.
+</p>
+<p class="home-series-meta">5 articles · Linear algebra · 2011–2012</p>
+
+<div class="home-article-grid not-content">
+	<ArticleCard badge="Primer 1" title="Coordinate Systems" href="/3d-math-primer-for-game-programmers/" image={mathCoordinates} year={2011}
+		description="Left- and right-handed coordinate systems, the direction of rotation, and object, world and inertial space." />
+	<ArticleCard badge="Primer 2" title="Vector Operations" href="/3d-math-primer-for-game-programmers-vector-operations/" image={mathVectors} year={2011}
+		description="Vector addition, length and normalization, distance, the dot and cross products, and projection." />
+	<ArticleCard badge="Primer 3" title="Matrices" href="/3d-math-primer-for-game-programmers-matrices/" image={mathMatrices} year={2011}
+		description="Linear and affine transformations (rotation and scale), the determinant, the inverse and orthogonal matrices." />
+	<ArticleCard badge="Article" title="Understanding the View Matrix" href="/understanding-the-view-matrix/" image={viewMatrix} year={2011}
+		description="How to build a view matrix: look-at, FPS and arcball cameras, and the camera position in world space." />
+	<ArticleCard badge="Article" title="Understanding Quaternions" href="/understanding-quaternions/" image={quaternions} year={2012}
+		description="Complex numbers, quaternion operations, rotating points with quaternions, and SLERP interpolation." />
+</div>
+
 <div class="home-coming-soon">
 <Card title="More articles coming" icon="information">
-	The OpenGL, CUDA, math and other articles from 3dgep.com are being moved here one by one.
+	The OpenGL, CUDA and other articles from 3dgep.com are being moved here one by one.
 </Card>
 </div>

@@ -90,11 +90,15 @@ const lineReport = [];
 // Optional: the raw post (/wp-json/wp/v2/posts/<id>, env RAW_POST) has every code block as
 // <pre class="brush:cpp;first-line:25"> / <pre class="lang:c++ start-line:25 mark:3,5-7">, in the same order
 // as the rendered Crayon blocks: the line numbers (and highlighted lines) the article originally showed.
+// Blocks marked crayon:false were never highlighted by Crayon (they stay plain <pre> in the rendered post), so
+// they are skipped here to keep the one-to-one pairing.
 const rawBlocks = process.env.RAW_POST
-  ? [...JSON.parse(fs.readFileSync(process.env.RAW_POST, 'utf8')).content.rendered.matchAll(/<pre([^>]*)>/g)].map((m) => ({
-      first: +(/(?:first|start)-line:\s*(\d+)/.exec(m[1])?.[1] ?? 1),
-      mark: /mark:\s*([\d,\s-]+)/.exec(m[1])?.[1]?.replace(/\s/g, ''),
-    }))
+  ? [...JSON.parse(fs.readFileSync(process.env.RAW_POST, 'utf8')).content.rendered.matchAll(/<pre([^>]*)>/g)]
+      .filter((m) => !/crayon:\s*false/.test(m[1]))
+      .map((m) => ({
+        first: +(/(?:first|start)-line:\s*(\d+)/.exec(m[1])?.[1] ?? 1),
+        mark: /mark:\s*([\d,\s-]+)/.exec(m[1])?.[1]?.replace(/\s/g, ''),
+      }))
   : null;
 const startDisagreements = [];
 
@@ -138,6 +142,27 @@ for (const n of crayonBlocks) {
   p.textContent = `CODEBLOCK${codeBlocks.push(md) - 1}PLACEHOLDER`;
   n.replaceWith(p);
 }
+// Plain <pre> blocks that Crayon left alone (class="crayon:false"), e.g. grammar notation like
+// "<strong>requires</strong> { <em>requirement-seq</em> }": kept as an HTML <pre class="grammar"> with only its
+// bold/italic markup, so keywords and placeholders stay distinguishable (Markdown code blocks can't do that).
+// Turndown would otherwise treat a <pre> without <code> as text and collapse its line breaks.
+const plainBlocks = [];
+for (const n of document.querySelectorAll('pre')) {
+  if (n.closest('div.urvanov-syntax-highlighter-syntax')) continue;
+  const inner = n.innerHTML
+    .replace(/\r/g, '')
+    .replace(/<(\/?)(?:strong|b)\b[^>]*>/g, '\u0001$1strong\u0002')
+    .replace(/<(\/?)(?:em|i)\b[^>]*>/g, '\u0001$1em\u0002')
+    .replace(/<br\s*\/?>/g, '\n')
+    .replace(/<[^>]+>/g, '') // any other markup
+    .replace(/\u0001/g, '<').replace(/\u0002/g, '>')
+    .replace(/^(?:[ \t]*\n)+/, '').replace(/\s+$/, ''); // drop leading blank lines and trailing whitespace
+  const md = `<pre class="grammar">${inner}</pre>`;
+  const p = document.createElement('p');
+  p.textContent = `CODEBLOCK${codeBlocks.push(md) - 1}PLACEHOLDER`;
+  plainBlocks.push(n);
+  n.replaceWith(p);
+}
 
 // 2. Anchor targets: empty <a id="cite-6"></a> / <a name="cite_6"></a> / <a name="WNDCLASSEX"></a> (reference
 //    entries) -> placeholders (turndown drops empty anchors). cite_N/cite-N become "cite-N"; other names become
@@ -166,7 +191,14 @@ for (const el of document.querySelectorAll('sup[id], sub[id], span[id], p[id], l
 //    Code blocks are already placeholders, so only prose is scanned. WordPress inserts <br /> in display math.
 const math = [];
 // KaTeX (unlike MathJax) rejects a bare "_" inside \text{...}: escape it (\text{BLOCK_SIZE} -> \text{BLOCK\_SIZE}).
-const katexSafe = (tex) => tex.replace(/\\text\{([^{}]*)\}/g, (_m, t) => `\\text{${t.replace(/(?<!\\)_/g, '\\_')}}`);
+// WordPress "texturized" the LaTeX too (v' -> v’, a-b -> a–b, ... -> …): undo that. MathJax also accepted the
+// typo \begin{array}{1} for {l}.
+const TEXTURIZED = { '’': "'", '‘': '`', '“': "''", '”': "''", '–': '-', '—': '-', '…': '\\ldots ', '×': '\\times ' };
+const katexSafe = (tex) =>
+  tex
+    .replace(/\\text\{([^{}]*)\}/g, (_m, t) => `\\text{${t.replace(/(?<!\\)_/g, '\\_')}}`)
+    .replace(/[’‘“”–—…×]/g, (c) => TEXTURIZED[c])
+    .replace(/\\begin\{array\}\{([1lcr|]+)\}/g, (_m, cols) => `\\begin{array}{${cols.replace(/1/g, 'l')}}`);
 const bodyHtml = document.body.innerHTML
   .replace(/\\\[([\s\S]+?)\\\]/g, (_m, tex) => {
     const clean = decode(tex.replace(/<br\s*\/?>/g, '').replace(/<\/?p>/g, '')).trim();
@@ -227,6 +259,11 @@ const unresolvedAnchors = new Set();
 
 const td = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', bulletListMarker: '-', emDelimiter: '*' });
 td.use(gfm);
+// A Markdown table row is one line: a <br> inside a cell would end the row, so keep it as HTML.
+td.addRule('cellBreak', {
+  filter: (n) => n.nodeName === 'BR' && !!n.parentNode?.closest?.('td, th'),
+  replacement: () => '<br />',
+});
 
 td.addRule('alerts', {
   filter: (n) => n.nodeName === 'DIV' && n.className.includes('simple-alert-boxes'),
@@ -475,14 +512,19 @@ md = md
     anchorsAdded.push(n);
     return MYST ? `(${label(`cite-${n}`)})=\n${m}` : `<span id="cite-${n}"></span>${m}`;
   })
+  // Reference lists written as one paragraph with <br> between entries: one paragraph per entry, so the hover
+  // preview of a citation shows just that entry.
+  .replace(/ {2}\n(?=<span id="(?:cite|ref)-)/g, '\n\n')
   .replace(/MATHDISPLAY(\d+)END/g, (_m, i) => `\n\n$$\n${math[+i]}\n$$\n\n`)
   .replace(/MATHINLINE(\d+)END/g, (_m, i) => `$${math[+i]}$`)
   .replace(/\n{3,}/g, '\n\n');
 
-const text = (html) => parseHTML(`<p>${html}</p>`).document.querySelector('p').textContent.trim();
+// (A <div> wrapper: excerpts are <p>…</p> themselves, and a <p> inside a <p> would end up empty.)
+const text = (html) => parseHTML(`<div>${html}</div>`).document.querySelector('div').textContent.trim();
 const title = text(post.title.rendered);
 // Description: the WordPress excerpt (first sentences), falling back to the first paragraph.
-let description = text(post.excerpt?.rendered ?? '').replace(/\s*\[(…|&hellip;)\]\s*$/, '').replace(/\s+/g, ' ');
+// Theme excerpts end with "… Continue reading" (a link to the post): drop it.
+let description = text((post.excerpt?.rendered ?? '').replace(/<a [^>]*>\s*(?:Continue|Read more)[\s\S]*?<\/a>/gi, '')).replace(/\s*\[(…|&hellip;)\]\s*$/, '').replace(/\s+/g, ' ');
 if (!description) description = text(document.querySelector('p')?.innerHTML ?? '');
 if (description.length > 200) description = description.slice(0, 200).replace(/\s+\S*$/, '') + '…';
 description = description.replace(/"/g, '\\"');

@@ -245,7 +245,7 @@ Option 3 is clearly the most realistic one. But how do we move the balls away fr
     }
 ```
 
-In words: for two balls with radii $16$ and $49$, the distance should be at least $16 + 49$. If it isn’t, then they are intersecting, by $(16 + 49) – d$, where $d$ is the distance between the two balls. They need to be moved apart, and not just in any direction, but along the line that connects their centres.
+In words: for two balls with radii $16$ and $49$, the distance should be at least $16 + 49$. If it isn’t, then they are intersecting, by $(16 + 49) - d$, where $d$ is the distance between the two balls. They need to be moved apart, and not just in any direction, but along the line that connects their centres.
 
 Once that is done, the small ball responds surprisingly realistic to the collision.
 

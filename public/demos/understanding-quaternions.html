@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quaternion Demo</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: rgba(23, 27, 36, 0.92);
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--mono: menlo, consolas, 'DejaVu Sans Mono', monospace;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f4f5f8;
+		--panel: rgba(255, 255, 255, 0.94);
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { position: relative; height: 100%; overflow: hidden; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+	canvas:active { cursor: grabbing; }
+	#panel {
+		position: absolute; top: 8px; right: 8px; bottom: 8px; width: clamp(250px, 40%, 330px);
+		display: flex; flex-direction: column;
+		background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+		backdrop-filter: blur(6px);
+	}
+	#panel.collapsed { bottom: auto; }
+	#panel.collapsed .body { display: none; }
+	.head { display: flex; align-items: center; gap: 4px; padding: 6px; border-bottom: 1px solid var(--border); }
+	#panel.collapsed .head { border-bottom: 0; }
+	.tab {
+		flex: 1; padding: 5px 8px; border: 1px solid transparent; border-radius: 5px;
+		background: none; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer;
+	}
+	.tab[aria-selected='true'] { color: var(--text); background: var(--input); border-color: var(--border); }
+	#toggle { flex: 0 0 auto; width: 28px; padding: 5px 0; border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; }
+	.body { overflow-y: auto; padding: 8px 10px 10px; }
+	.mode[hidden] { display: none; }
+	h3 { margin: 10px 0 4px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+	h3:first-child { margin-top: 0; }
+	.row { display: grid; grid-template-columns: 52px 1fr 48px; align-items: center; gap: 6px; margin: 2px 0; }
+	.row label { color: var(--muted); }
+	.row output { font-family: var(--mono); font-size: 12px; text-align: right; }
+	input[type='range'] { width: 100%; accent-color: var(--accent); }
+	.buttons { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+	button.small {
+		padding: 2px 8px; border: 1px solid var(--border); border-radius: 4px;
+		background: var(--input); color: var(--text); font: inherit; font-size: 12px; cursor: pointer;
+	}
+	button.small:hover { border-color: var(--accent); }
+	.check { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+	.radio { display: flex; gap: 10px; margin: 4px 0; }
+	.radio label { display: flex; align-items: center; gap: 4px; }
+	.read {
+		margin: 6px 0 0; padding: 6px; border-radius: 5px; background: var(--input);
+		font-family: var(--mono); font-size: 10.5px; line-height: 1.55; white-space: pre; overflow-x: auto;
+	}
+	.note { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+	.legend { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 8px; color: var(--muted); font-size: 11.5px; }
+	.legend span::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 4px; border-radius: 2px; background: var(--c); vertical-align: -1px; }
+	.hint { position: absolute; left: 10px; bottom: 8px; color: var(--muted); font-size: 11.5px; pointer-events: none; }
+	#nogl { position: absolute; inset: 0; display: none; place-items: center; padding: 2rem; text-align: center; }
+	@media (max-width: 560px) {
+		#panel { width: auto; left: 8px; top: auto; max-height: 58%; }
+		.hint { display: none; }
+	}
+</style>
+</head>
+<body>
+<div id="app">
+	<canvas id="view" aria-label="3D view of a cube rotated by a quaternion"></canvas>
+	<div class="hint">Drag to orbit · wheel to zoom · double-click to reset the view</div>
+	<div id="panel">
+		<div class="head" role="tablist">
+			<button class="tab" role="tab" aria-selected="true" data-mode="rotate">Rotation</button>
+			<button class="tab" role="tab" aria-selected="false" data-mode="interp">Interpolation</button>
+			<button id="toggle" title="Hide or show the controls" aria-expanded="true">▾</button>
+		</div>
+		<div class="body">
+			<section class="mode" id="mode-rotate">
+				<h3>Rotation axis v</h3>
+				<div class="row"><label for="ax">x</label><input id="ax" type="range" min="-1" max="1" step="0.01" value="0.3" /><output for="ax"></output></div>
+				<div class="row"><label for="ay">y</label><input id="ay" type="range" min="-1" max="1" step="0.01" value="1" /><output for="ay"></output></div>
+				<div class="row"><label for="az">z</label><input id="az" type="range" min="-1" max="1" step="0.01" value="0.2" /><output for="az"></output></div>
+				<div class="buttons">
+					<button class="small" data-axis="1,0,0">x axis</button>
+					<button class="small" data-axis="0,1,0">y axis</button>
+					<button class="small" data-axis="0,0,1">z axis</button>
+					<button class="small" data-axis="1,1,1">(1, 1, 1)</button>
+				</div>
+				<h3>Angle θ</h3>
+				<div class="row"><label for="angle">θ</label><input id="angle" type="range" min="-360" max="360" step="1" value="120" /><output for="angle"></output></div>
+				<label class="check"><input id="spin" type="checkbox" /> Animate θ</label>
+				<div class="read" id="rotRead"></div>
+				<p class="note">The cube is rotated by the matrix of q, which is the same as computing q p q⁻¹ for every vertex p. The orange point shows one such p and its rotated position p′; the arc is the path it takes as θ grows.</p>
+				<div class="legend"><span style="--c:#e8c547">axis v̂</span><span style="--c:#f08a3c">point p → p′</span><span style="--c:#e05555">x</span><span style="--c:#4cc26a">y</span><span style="--c:#4f86f0">z</span></div>
+			</section>
+			<section class="mode" id="mode-interp" hidden>
+				<h3>Start orientation q₁</h3>
+				<div class="row"><label for="y1">yaw</label><input id="y1" type="range" min="-180" max="180" step="1" value="-40" /><output for="y1"></output></div>
+				<div class="row"><label for="p1">pitch</label><input id="p1" type="range" min="-90" max="90" step="1" value="10" /><output for="p1"></output></div>
+				<div class="row"><label for="r1">roll</label><input id="r1" type="range" min="-180" max="180" step="1" value="0" /><output for="r1"></output></div>
+				<h3>End orientation q₂</h3>
+				<div class="row"><label for="y2">yaw</label><input id="y2" type="range" min="-180" max="180" step="1" value="150" /><output for="y2"></output></div>
+				<div class="row"><label for="p2">pitch</label><input id="p2" type="range" min="-90" max="90" step="1" value="-30" /><output for="p2"></output></div>
+				<div class="row"><label for="r2">roll</label><input id="r2" type="range" min="-180" max="180" step="1" value="60" /><output for="r2"></output></div>
+				<div class="buttons"><button class="small" id="random">Random orientations</button></div>
+				<h3>Interpolation</h3>
+				<div class="radio" role="radiogroup">
+					<label><input type="radio" name="method" value="slerp" checked /> SLERP</label>
+					<label><input type="radio" name="method" value="nlerp" /> NLERP</label>
+					<label><input type="radio" name="method" value="lerp" /> LERP</label>
+				</div>
+				<label class="check"><input id="shortest" type="checkbox" checked /> Shortest path (negate q₂ if q₁·q₂ &lt; 0)</label>
+				<div class="row"><label for="t">t</label><input id="t" type="range" min="0" max="1" step="0.001" value="0.35" /><output for="t"></output></div>
+				<label class="check"><input id="play" type="checkbox" checked /> Animate t</label>
+				<div class="read" id="interpRead"></div>
+				<p class="note" id="methodNote"></p>
+				<div class="legend"><span style="--c:#9aa3b5">q₁ and q₂ (ghosts)</span><span style="--c:#f08a3c">path of the z tip, dots every Δt = 0.1</span></div>
+			</section>
+		</div>
+	</div>
+	<div id="nogl">This demo needs WebGL 2, which isn't available in this browser.</div>
+</div>
+<script>
+'use strict';
+// ---------------------------------------------------------------------------------------------------------------
+// Quaternions, written as in the article: q = [s, v] = [s, (x, y, z)], stored as [s, x, y, z].
+// ---------------------------------------------------------------------------------------------------------------
+const DEG = Math.PI / 180;
+const v3 = {
+	add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
+	scale: (a, s) => [a[0] * s, a[1] * s, a[2] * s],
+	dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
+	cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]],
+	len: (a) => Math.hypot(a[0], a[1], a[2]),
+	norm: (a) => { const l = Math.hypot(a[0], a[1], a[2]); return l > 1e-9 ? [a[0] / l, a[1] / l, a[2] / l] : [0, 0, 0]; },
+};
+const quat = {
+	/** q = [cos(θ/2), sin(θ/2) v̂] */
+	axisAngle(axis, degrees) {
+		const n = v3.norm(axis), h = (degrees * DEG) / 2, s = Math.sin(h);
+		return [Math.cos(h), n[0] * s, n[1] * s, n[2] * s];
+	},
+	/** [sa, a][sb, b] = [sa sb − a·b, sa b + sb a + a × b] */
+	mul(a, b) {
+		const va = [a[1], a[2], a[3]], vb = [b[1], b[2], b[3]];
+		const v = v3.add(v3.add(v3.scale(vb, a[0]), v3.scale(va, b[0])), v3.cross(va, vb));
+		return [a[0] * b[0] - v3.dot(va, vb), v[0], v[1], v[2]];
+	},
+	conj: (q) => [q[0], -q[1], -q[2], -q[3]],
+	dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3],
+	norm: (q) => Math.hypot(q[0], q[1], q[2], q[3]),
+	scale: (q, s) => [q[0] * s, q[1] * s, q[2] * s, q[3] * s],
+	add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2], a[3] + b[3]],
+	normalize: (q) => quat.scale(q, 1 / quat.norm(q)),
+	inverse: (q) => quat.scale(quat.conj(q), 1 / quat.dot(q, q)),
+	/** Yaw about y, then pitch about x, then roll about z (applied to the object in that order: q = q_yaw q_pitch q_roll). */
+	euler(yaw, pitch, roll) {
+		return quat.mul(quat.mul(quat.axisAngle([0, 1, 0], yaw), quat.axisAngle([1, 0, 0], pitch)), quat.axisAngle([0, 0, 1], roll));
+	},
+	/** p′ = q p q⁻¹ with p as the pure quaternion [0, p]. */
+	rotate(q, p) {
+		const r = quat.mul(quat.mul(q, [0, p[0], p[1], p[2]]), quat.inverse(q));
+		return [r[1], r[2], r[3]];
+	},
+	lerp: (a, b, t) => quat.add(quat.scale(a, 1 - t), quat.scale(b, t)),
+	nlerp: (a, b, t) => quat.normalize(quat.lerp(a, b, t)),
+	/** q_t = sin((1 − t)θ)/sin θ q₁ + sin(tθ)/sin θ q₂, with cos θ = q₁·q₂ */
+	slerp(a, b, t) {
+		const d = Math.min(1, Math.max(-1, quat.dot(a, b)));
+		const theta = Math.acos(d), s = Math.sin(theta);
+		if (s < 1e-6) return quat.nlerp(a, b, t); // (nearly) the same orientation: avoid dividing by zero
+		return quat.add(quat.scale(a, Math.sin((1 - t) * theta) / s), quat.scale(b, Math.sin(t * theta) / s));
+	},
+	/**
+	 * Matrix (column-major 4×4) of p ↦ q p q* — for a unit quaternion this is the rotation matrix. It is deliberately
+	 * not normalized, so an un-normalized LERP result visibly scales the object by |q|².
+	 */
+	matrix(q) {
+		const [s, x, y, z] = q;
+		return new Float32Array([
+			s * s + x * x - y * y - z * z, 2 * (x * y + s * z), 2 * (x * z - s * y), 0,
+			2 * (x * y - s * z), s * s - x * x + y * y - z * z, 2 * (y * z + s * x), 0,
+			2 * (x * z + s * y), 2 * (y * z - s * x), s * s - x * x - y * y + z * z, 0,
+			0, 0, 0, 1,
+		]);
+	},
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// 4×4 matrices (column-major, as WebGL expects).
+// ---------------------------------------------------------------------------------------------------------------
+const mat4 = {
+	mul(a, b) {
+		const o = new Float32Array(16);
+		for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+			let v = 0;
+			for (let k = 0; k < 4; k++) v += a[k * 4 + r] * b[c * 4 + k];
+			o[c * 4 + r] = v;
+		}
+		return o;
+	},
+	perspective(fovy, aspect, near, far) {
+		const f = 1 / Math.tan(fovy / 2);
+		return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, (2 * far * near) / (near - far), 0]);
+	},
+	lookAt(eye, target, up) {
+		const z = v3.norm([eye[0] - target[0], eye[1] - target[1], eye[2] - target[2]]);
+		const x = v3.norm(v3.cross(up, z)), y = v3.cross(z, x);
+		return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -v3.dot(x, eye), -v3.dot(y, eye), -v3.dot(z, eye), 1]);
+	},
+	translateScale: (p, s) => new Float32Array([s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, p[0], p[1], p[2], 1]),
+	identity: () => new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// WebGL setup.
+// ---------------------------------------------------------------------------------------------------------------
+const canvas = document.getElementById('view');
+const gl = canvas.getContext('webgl2', { antialias: true });
+if (!gl) document.getElementById('nogl').style.display = 'grid';
+
+const VS = `#version 300 es
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec3 aNormal;
+layout(location = 2) in vec3 aColor;
+uniform mat4 uViewProj, uModel;
+out vec3 vNormal, vColor;
+void main() {
+	vNormal = mat3(uModel) * aNormal;
+	vColor = aColor;
+	gl_Position = uViewProj * uModel * vec4(aPos, 1.0);
+}`;
+const FS = `#version 300 es
+precision mediump float;
+in vec3 vNormal, vColor;
+uniform float uLit, uAlpha;
+uniform vec3 uLight;
+out vec4 color;
+void main() {
+	float d = length(vNormal) > 0.0 ? max(dot(normalize(vNormal), uLight), 0.0) : 1.0;
+	vec3 c = mix(vColor, vColor * (0.38 + 0.62 * d), uLit);
+	color = vec4(c, uAlpha);
+}`;
+function compile(type, src) {
+	const s = gl.createShader(type);
+	gl.shaderSource(s, src);
+	gl.compileShader(s);
+	if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+	return s;
+}
+let prog, U;
+if (gl) {
+	prog = gl.createProgram();
+	gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS));
+	gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FS));
+	gl.linkProgram(prog);
+	U = Object.fromEntries(['uViewProj', 'uModel', 'uLit', 'uAlpha', 'uLight'].map((n) => [n, gl.getUniformLocation(prog, n)]));
+}
+
+/** A vertex array with interleaved position, normal and colour (9 floats per vertex). */
+function makeMesh(data, mode, dynamic = false) {
+	const vao = gl.createVertexArray(), buf = gl.createBuffer();
+	gl.bindVertexArray(vao);
+	gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW);
+	for (let i = 0; i < 3; i++) {
+		gl.enableVertexAttribArray(i);
+		gl.vertexAttribPointer(i, 3, gl.FLOAT, false, 36, i * 12);
+	}
+	gl.bindVertexArray(null);
+	return { vao, buf, mode, count: data.length / 9 };
+}
+function updateMesh(mesh, data) {
+	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buf);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+	mesh.count = data.length / 9;
+}
+
+// --- geometry ---------------------------------------------------------------------------------------------------
+const COLORS = {
+	x: [0.88, 0.33, 0.33], y: [0.3, 0.76, 0.42], z: [0.31, 0.53, 0.94],
+	axis: [0.91, 0.77, 0.28], point: [0.94, 0.54, 0.24],
+};
+function pushTri(out, a, b, c, color) {
+	const n = v3.norm(v3.cross([b[0] - a[0], b[1] - a[1], b[2] - a[2]], [c[0] - a[0], c[1] - a[1], c[2] - a[2]]));
+	for (const p of [a, b, c]) out.push(...p, ...n, ...color);
+}
+function pushQuad(out, a, b, c, d, color) { pushTri(out, a, b, c, color); pushTri(out, a, c, d, color); }
+function pushBox(out, min, max, faceColors) {
+	const [x0, y0, z0] = min, [x1, y1, z1] = max;
+	const c = Array.isArray(faceColors[0]) ? faceColors : Array(6).fill(faceColors);
+	pushQuad(out, [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [x1, y0, z1], c[0]); // +x
+	pushQuad(out, [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], [x0, y0, z0], c[1]); // −x
+	pushQuad(out, [x0, y1, z0], [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], c[2]); // +y
+	pushQuad(out, [x0, y0, z1], [x0, y0, z0], [x1, y0, z0], [x1, y0, z1], c[3]); // −y
+	pushQuad(out, [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], c[4]); // +z
+	pushQuad(out, [x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], c[5]); // −z
+}
+/** An arrow along +z, then permuted to the requested axis (cyclic permutations keep the winding). */
+function pushArrow(out, axis, length, color) {
+	const tmp = [], w = 0.035, h = 0.22, r = 0.09, seg = 14;
+	pushBox(tmp, [-w, -w, 0], [w, w, length - h], color);
+	for (let i = 0; i < seg; i++) {
+		const a0 = (i / seg) * 2 * Math.PI, a1 = ((i + 1) / seg) * 2 * Math.PI;
+		const p0 = [Math.cos(a0) * r, Math.sin(a0) * r, length - h], p1 = [Math.cos(a1) * r, Math.sin(a1) * r, length - h];
+		pushTri(tmp, p0, p1, [0, 0, length], color);
+		pushTri(tmp, p1, p0, [0, 0, length - h], color);
+	}
+	const perm = { x: (p) => [p[2], p[0], p[1]], y: (p) => [p[1], p[2], p[0]], z: (p) => p }[axis];
+	for (let i = 0; i < tmp.length; i += 9) out.push(...perm(tmp.slice(i, i + 3)), ...perm(tmp.slice(i + 3, i + 6)), ...tmp.slice(i + 6, i + 9));
+}
+const tint = (c, k) => c.map((v) => 0.55 + (v - 0.55) * k);
+function buildObject() {
+	const out = [];
+	const s = 0.5;
+	pushBox(out, [-s, -s, -s], [s, s, s], [tint(COLORS.x, 0.55), tint(COLORS.x, 0.25), tint(COLORS.y, 0.55), tint(COLORS.y, 0.25), tint(COLORS.z, 0.55), tint(COLORS.z, 0.25)]);
+	pushArrow(out, 'x', 1.25, COLORS.x);
+	pushArrow(out, 'y', 1.25, COLORS.y);
+	pushArrow(out, 'z', 1.25, COLORS.z);
+	return out;
+}
+function buildMarker() {
+	const out = [];
+	pushBox(out, [-0.5, -0.5, -0.5], [0.5, 0.5, 0.5], [1, 1, 1]);
+	return out;
+}
+function line(out, a, b, color) { out.push(...a, 0, 0, 0, ...color, ...b, 0, 0, 0, ...color); }
+function buildGrid(dark) {
+	const out = [], g = dark ? [0.22, 0.25, 0.31] : [0.8, 0.82, 0.86], y = -1.6;
+	for (let i = -6; i <= 6; i++) {
+		line(out, [i * 0.5, y, -3], [i * 0.5, y, 3], g);
+		line(out, [-3, y, i * 0.5], [3, y, i * 0.5], g);
+	}
+	return out;
+}
+
+let objectMesh, markerMesh, gridMesh, linesMesh;
+if (gl) {
+	objectMesh = makeMesh(buildObject(), gl.TRIANGLES);
+	markerMesh = makeMesh(buildMarker(), gl.TRIANGLES);
+	gridMesh = makeMesh(buildGrid(true), gl.LINES);
+	linesMesh = makeMesh([], gl.LINES, true);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Theme: follow the page that embeds the demo (same origin), else the system setting.
+// ---------------------------------------------------------------------------------------------------------------
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+let dark = true;
+function applyTheme() {
+	dark = currentTheme() === 'dark';
+	document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+	if (gl) updateMesh(gridMesh, buildGrid(dark));
+	requestRender();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+// ---------------------------------------------------------------------------------------------------------------
+// Orbit camera.
+// ---------------------------------------------------------------------------------------------------------------
+const DEFAULT_VIEW = { yaw: 35, pitch: 22, dist: 6.2 };
+const cam = { ...DEFAULT_VIEW };
+let drag = null;
+canvas.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', (e) => {
+	if (!drag) return;
+	cam.yaw -= (e.clientX - drag.x) * 0.4;
+	cam.pitch = Math.max(-85, Math.min(85, cam.pitch + (e.clientY - drag.y) * 0.4));
+	drag = { x: e.clientX, y: e.clientY };
+	requestRender();
+});
+canvas.addEventListener('pointerup', () => (drag = null));
+canvas.addEventListener('pointercancel', () => (drag = null));
+canvas.addEventListener('wheel', (e) => { e.preventDefault(); cam.dist = Math.max(3, Math.min(14, cam.dist * Math.exp(e.deltaY * 0.001))); requestRender(); }, { passive: false });
+canvas.addEventListener('dblclick', () => { Object.assign(cam, DEFAULT_VIEW); requestRender(); });
+
+// ---------------------------------------------------------------------------------------------------------------
+// UI state.
+// ---------------------------------------------------------------------------------------------------------------
+const $ = (id) => document.getElementById(id);
+let mode = 'rotate';
+for (const tab of document.querySelectorAll('.tab')) {
+	tab.addEventListener('click', () => {
+		mode = tab.dataset.mode;
+		for (const t of document.querySelectorAll('.tab')) t.setAttribute('aria-selected', String(t === tab));
+		$('mode-rotate').hidden = mode !== 'rotate';
+		$('mode-interp').hidden = mode !== 'interp';
+		requestRender();
+	});
+}
+$('toggle').addEventListener('click', () => {
+	const collapsed = $('panel').classList.toggle('collapsed');
+	$('toggle').textContent = collapsed ? '▸' : '▾';
+	$('toggle').setAttribute('aria-expanded', String(!collapsed));
+});
+if (matchMedia('(max-width: 560px)').matches && innerHeight < 420) $('toggle').click();
+
+const num = (v, d = 3) => (v < 0 ? '−' : ' ') + Math.abs(v).toFixed(d);
+const fmtQ = (q) => `[${num(q[0])}, (${num(q[1])}, ${num(q[2])}, ${num(q[3])})]`;
+const fmtV = (v) => `(${num(v[0])}, ${num(v[1])}, ${num(v[2])})`;
+
+for (const input of document.querySelectorAll('input[type=range]')) {
+	const show = () => {
+		const out = document.querySelector(`output[for="${input.id}"]`);
+		const unit = ['angle', 'y1', 'p1', 'r1', 'y2', 'p2', 'r2'].includes(input.id) ? '°' : '';
+		if (out) out.textContent = (+input.value).toFixed(input.step < 0.01 ? 2 : input.step < 1 ? 2 : 0) + unit;
+	};
+	input.addEventListener('input', () => { show(); requestRender(); });
+	show();
+}
+for (const b of document.querySelectorAll('[data-axis]')) {
+	b.addEventListener('click', () => {
+		const [x, y, z] = b.dataset.axis.split(',').map(Number);
+		for (const [id, v] of [['ax', x], ['ay', y], ['az', z]]) { $(id).value = v; $(id).dispatchEvent(new Event('input')); }
+	});
+}
+$('random').addEventListener('click', () => {
+	const r = (lo, hi) => Math.round(lo + Math.random() * (hi - lo));
+	for (const [id, lo, hi] of [['y1', -180, 180], ['p1', -90, 90], ['r1', -180, 180], ['y2', -180, 180], ['p2', -90, 90], ['r2', -180, 180]]) {
+		$(id).value = r(lo, hi);
+		$(id).dispatchEvent(new Event('input'));
+	}
+});
+for (const el of document.querySelectorAll('input[name=method], #shortest, #spin, #play')) el.addEventListener('change', requestRender);
+
+const METHOD_NOTES = {
+	slerp: 'SLERP moves along the great arc at a constant angular speed: the dots are evenly spaced.',
+	nlerp: 'NLERP (linear interpolation, then normalize) follows the same arc, but faster in the middle than at the ends: the dots bunch up near q₁ and q₂.',
+	lerp: 'Plain LERP without normalizing: |q_t| < 1 between the end points, and since q p q* scales p by |q|², the cube shrinks on the way.',
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Rendering.
+// ---------------------------------------------------------------------------------------------------------------
+let viewProj;
+function draw(mesh, model, { lit = true, alpha = 1, color = null } = {}) {
+	gl.uniformMatrix4fv(U.uModel, false, model);
+	gl.uniform1f(U.uLit, lit ? 1 : 0);
+	gl.uniform1f(U.uAlpha, alpha);
+	gl.bindVertexArray(mesh.vao);
+	if (color) { gl.disableVertexAttribArray(2); gl.vertexAttrib3f(2, ...color); }
+	gl.drawArrays(mesh.mode, 0, mesh.count);
+	if (color) gl.enableVertexAttribArray(2);
+}
+function marker(p, size, color, alpha = 1) { draw(markerMesh, mat4.translateScale(p, size), { color, alpha }); }
+
+let last = performance.now();
+function frame(now) {
+	const dt = Math.min(0.1, (now - last) / 1000);
+	last = now;
+	if (mode === 'rotate' && $('spin').checked) {
+		// Keep the angle as a float: the slider rounds to whole degrees, which would stall small steps.
+		spinAngle = (Math.abs(spinAngle - +$('angle').value) > 1 ? +$('angle').value : spinAngle) + dt * 45;
+		if (spinAngle > 360) spinAngle -= 720;
+		$('angle').value = spinAngle;
+		document.querySelector('output[for="angle"]').textContent = Math.round(spinAngle) + '°';
+	}
+	if (mode === 'interp' && $('play').checked) {
+		playT = (playT + dt * 0.35) % 2;
+		$('t').value = playT <= 1 ? playT : 2 - playT;
+		document.querySelector('output[for="t"]').textContent = (+$('t').value).toFixed(2);
+	}
+	render();
+	pending = false;
+	if ((mode === 'rotate' && $('spin').checked) || (mode === 'interp' && $('play').checked)) requestRender();
+}
+let playT = 0.35, spinAngle = 120, pending = false;
+function requestRender() {
+	if (!pending && gl) { pending = true; requestAnimationFrame(frame); }
+}
+
+function render() {
+	const dpr = Math.min(devicePixelRatio || 1, 2);
+	const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+	if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+	gl.viewport(0, 0, w, h);
+	const bg = dark ? [0.059, 0.071, 0.094] : [0.957, 0.961, 0.973];
+	gl.clearColor(...bg, 1);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	gl.enable(gl.DEPTH_TEST);
+	gl.useProgram(prog);
+
+	// Keep the scene centred in the part of the canvas that the panel doesn't cover.
+	const panelW = $('panel').classList.contains('collapsed') || matchMedia('(max-width: 560px)').matches ? 0 : $('panel').offsetWidth + 16;
+	const shift = (panelW * dpr) / w; // in NDC units / 2
+	const eye = [
+		cam.dist * Math.cos(cam.pitch * DEG) * Math.sin(cam.yaw * DEG),
+		cam.dist * Math.sin(cam.pitch * DEG),
+		cam.dist * Math.cos(cam.pitch * DEG) * Math.cos(cam.yaw * DEG),
+	];
+	const proj = mat4.perspective(45 * DEG, w / h, 0.1, 100);
+	const offset = mat4.identity();
+	offset[12] = -shift;
+	viewProj = mat4.mul(offset, mat4.mul(proj, mat4.lookAt(eye, [0, 0, 0], [0, 1, 0])));
+	gl.uniformMatrix4fv(U.uViewProj, false, viewProj);
+	gl.uniform3fv(U.uLight, v3.norm([0.45, 0.85, 0.55]));
+
+	const lines = [];
+	const ghosts = [];
+	const axisDim = dark ? 0.45 : 0.7;
+	for (const [k, d] of [['x', [1, 0, 0]], ['y', [0, 1, 0]], ['z', [0, 0, 1]]]) line(lines, [0, 0, 0], v3.scale(d, 2.4), COLORS[k].map((c) => c * axisDim + (dark ? 0 : 0.3)));
+
+	if (mode === 'rotate') {
+		let axis = [+$('ax').value, +$('ay').value, +$('az').value];
+		const zero = v3.len(axis) < 1e-6;
+		if (zero) axis = [0, 1, 0];
+		const n = v3.norm(axis), theta = $('spin').checked ? spinAngle : +$('angle').value;
+		const q = quat.axisAngle(n, theta);
+		const p = [1.05, 0.55, 0.75];
+		const pr = quat.rotate(q, p);
+
+		draw(objectMesh, quat.matrix(q));
+		ghosts.push(() => draw(objectMesh, mat4.identity(), { alpha: 0.13 }));
+
+		// The rotation axis through the origin, and the circle p travels around it.
+		line(lines, v3.scale(n, -2.6), v3.scale(n, 2.6), COLORS.axis);
+		const center = v3.scale(n, v3.dot(p, n));
+		let prev = null;
+		for (let i = 0; i <= 96; i++) {
+			const c = quat.rotate(quat.axisAngle(n, (i / 96) * 360), p);
+			if (prev) line(lines, prev, c, dark ? [0.3, 0.27, 0.22] : [0.82, 0.78, 0.7]);
+			prev = c;
+		}
+		prev = null;
+		const steps = Math.max(2, Math.ceil(Math.abs(theta) / 3));
+		for (let i = 0; i <= steps; i++) {
+			const c = quat.rotate(quat.axisAngle(n, (theta * i) / steps), p);
+			if (prev) line(lines, prev, c, COLORS.point);
+			prev = c;
+		}
+		line(lines, center, pr, COLORS.point.map((c) => c * 0.7));
+		marker(v3.scale(n, 2.6), 0.09, COLORS.axis);
+		marker(pr, 0.11, COLORS.point);
+		ghosts.push(() => marker(p, 0.11, COLORS.point, 0.35));
+
+		const qi = quat.inverse(q);
+		const h = theta / 2;
+		$('rotRead').textContent =
+			(zero ? 'v = 0: using the y axis instead\n' : '') +
+			`v̂ = ${fmtV(n)}\n` +
+			`θ/2 = ${num(h, 1)}°\n` +
+			`q = [cos(θ/2), sin(θ/2) v̂]\n` +
+			`  = ${fmtQ(q)}\n` +
+			`|q| = ${quat.norm(q).toFixed(3)}\n` +
+			`q⁻¹ = ${fmtQ(qi)}\n` +
+			`p  = ${fmtV(p)}\n` +
+			`p′ = q p q⁻¹\n` +
+			`   = ${fmtV(pr)}`;
+	} else {
+		const q1 = quat.euler(+$('y1').value, +$('p1').value, +$('r1').value);
+		let q2 = quat.euler(+$('y2').value, +$('p2').value, +$('r2').value);
+		const dot0 = quat.dot(q1, q2);
+		const flipped = $('shortest').checked && dot0 < 0;
+		if (flipped) q2 = quat.scale(q2, -1);
+		const method = document.querySelector('input[name=method]:checked').value;
+		const interp = (t) => quat[method](q1, q2, t);
+		const t = +$('t').value;
+		const qt = interp(t);
+
+		draw(objectMesh, quat.matrix(qt));
+		ghosts.push(() => draw(objectMesh, quat.matrix(q1), { alpha: 0.16 }));
+		ghosts.push(() => draw(objectMesh, quat.matrix(q2), { alpha: 0.16 }));
+
+		// Path of the tip of the z arrow (and of the x arrow, dimmer) for t in [0, 1], with dots every 0.1.
+		for (const [tip, col, dots] of [[[0, 0, 1.25], COLORS.point, true], [[1.25, 0, 0], COLORS.x.map((c) => c * 0.75), false]]) {
+			let prev = null;
+			for (let i = 0; i <= 120; i++) {
+				const c = quat.rotate(interp(i / 120), tip).map((v) => v * quat.dot(interp(i / 120), interp(i / 120)));
+				if (prev) line(lines, prev, c, col);
+				prev = c;
+			}
+			if (dots) for (let i = 0; i <= 10; i++) {
+				const qi = interp(i / 10);
+				marker(quat.rotate(qi, tip).map((v) => v * quat.dot(qi, qi)), i === 0 || i === 10 ? 0.075 : 0.05, col);
+			}
+		}
+		const theta = Math.acos(Math.min(1, Math.max(-1, quat.dot(q1, q2))));
+		$('interpRead').textContent =
+			`q₁ = ${fmtQ(q1)}\n` +
+			`q₂ = ${fmtQ(q2)}\n` +
+			`cos θ = q₁·q₂ = ${num(quat.dot(q1, q2))}\n` +
+			`θ = ${(theta / DEG).toFixed(1)}°  (rotation ${((2 * theta) / DEG).toFixed(1)}°)\n` +
+			`t = ${t.toFixed(3)}\n` +
+			`q_t = ${fmtQ(qt)}\n` +
+			`|q_t| = ${quat.norm(qt).toFixed(3)}`;
+		$('methodNote').textContent = METHOD_NOTES[method] + (flipped ? ' q₁·q₂ was negative, so q₂ was negated: −q₂ is the same orientation, but the path is the short way round.' : '');
+	}
+
+	updateMesh(linesMesh, lines);
+	draw(gridMesh, mat4.identity(), { lit: false });
+	draw(linesMesh, mat4.identity(), { lit: false });
+
+	// Transparent ghosts last, without writing depth.
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	gl.depthMask(false);
+	for (const g of ghosts) g();
+	gl.depthMask(true);
+	gl.disable(gl.BLEND);
+}
+
+if (gl) {
+	new ResizeObserver(requestRender).observe(canvas);
+	applyTheme();
+	requestRender();
+}
+</script>
+</body>
+</html>

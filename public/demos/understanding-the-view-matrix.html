@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>View Matrix Demo</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: rgba(23, 27, 36, 0.93);
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--mono: menlo, consolas, 'DejaVu Sans Mono', monospace;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f4f5f8;
+		--panel: rgba(255, 255, 255, 0.95);
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { position: relative; height: 100%; overflow: hidden; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+	.label {
+		position: absolute; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; pointer-events: none;
+		background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+	}
+	#insetFrame { position: absolute; border: 1px solid var(--border); border-radius: 6px; pointer-events: none; }
+	#panel {
+		position: absolute; top: 8px; right: 8px; bottom: 8px; width: clamp(240px, 36%, 330px);
+		display: flex; flex-direction: column;
+		background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+	}
+	#panel.collapsed { bottom: auto; }
+	#panel.collapsed .body { display: none; }
+	.head { display: flex; align-items: center; gap: 4px; padding: 6px; border-bottom: 1px solid var(--border); }
+	#panel.collapsed .head { border-bottom: 0; }
+	.tab {
+		flex: 1; padding: 5px 6px; border: 1px solid transparent; border-radius: 5px;
+		background: none; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer;
+	}
+	.tab[aria-selected='true'] { color: var(--text); background: var(--input); border-color: var(--border); }
+	#toggle { flex: 0 0 auto; width: 28px; padding: 5px 0; border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; }
+	.body { overflow-y: auto; padding: 8px 10px 10px; }
+	.mode[hidden] { display: none; }
+	h3 { margin: 10px 0 4px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+	h3:first-child { margin-top: 0; }
+	.row { display: grid; grid-template-columns: 52px 1fr 48px; align-items: center; gap: 6px; margin: 2px 0; }
+	.row label { color: var(--muted); }
+	.row output { font-family: var(--mono); font-size: 12px; text-align: right; }
+	input[type='range'] { width: 100%; accent-color: var(--accent); }
+	select { width: 100%; padding: 2px 4px; background: var(--input); color: var(--text); border: 1px solid var(--border); border-radius: 4px; font: inherit; }
+	button.small {
+		padding: 2px 8px; border: 1px solid var(--border); border-radius: 4px;
+		background: var(--input); color: var(--text); font: inherit; font-size: 12px; cursor: pointer;
+	}
+	button.small:hover { border-color: var(--accent); }
+	.formula { margin: 4px 0; font-family: var(--mono); font-size: 12px; }
+	.read {
+		margin: 6px 0 0; padding: 6px 8px; border-radius: 5px; background: var(--input);
+		font-family: var(--mono); font-size: 11px; line-height: 1.45; white-space: pre; overflow-x: auto;
+	}
+	.read .x { color: #e05555; } .read .y { color: #3fae5c; } .read .z { color: #4f86f0; } .read .t { color: #d08a2c; }
+	.note { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+	kbd { padding: 0 4px; border: 1px solid var(--border); border-radius: 3px; font: 11px var(--mono); }
+	#nogl { position: absolute; inset: 0; display: none; place-items: center; padding: 2rem; text-align: center; }
+	@media (max-width: 560px) {
+		#panel { width: auto; left: 8px; top: auto; max-height: 55%; }
+	}
+</style>
+</head>
+<body>
+<div id="app">
+	<canvas id="view" tabindex="0" aria-label="The scene seen through the camera, with a small world view showing the camera itself"></canvas>
+	<div class="label" id="mainLabel">Camera view (V)</div>
+	<div id="insetFrame"></div>
+	<div class="label" id="insetLabel">World view (M = V⁻¹)</div>
+	<div id="panel">
+		<div class="head" role="tablist">
+			<button class="tab" role="tab" aria-selected="false" data-mode="lookat">Look At</button>
+			<button class="tab" role="tab" aria-selected="true" data-mode="fps">FPS</button>
+			<button class="tab" role="tab" aria-selected="false" data-mode="arcball">Arcball</button>
+			<button id="toggle" title="Hide or show the controls" aria-expanded="true">▾</button>
+		</div>
+		<div class="body">
+			<section class="mode" id="mode-lookat" hidden>
+				<div class="formula">V = LookAtRH(eye, target, up)</div>
+				<h3>Eye</h3>
+				<div class="row"><label for="ex">x</label><input id="ex" type="range" min="-12" max="12" step="0.1" value="6" /><output for="ex"></output></div>
+				<div class="row"><label for="ey">y</label><input id="ey" type="range" min="-2" max="12" step="0.1" value="4" /><output for="ey"></output></div>
+				<div class="row"><label for="ez">z</label><input id="ez" type="range" min="-12" max="12" step="0.1" value="7" /><output for="ez"></output></div>
+				<h3>Target</h3>
+				<div class="row"><label for="tx">x</label><input id="tx" type="range" min="-10" max="10" step="0.1" value="0" /><output for="tx"></output></div>
+				<div class="row"><label for="ty">y</label><input id="ty" type="range" min="-2" max="6" step="0.1" value="0.5" /><output for="ty"></output></div>
+				<div class="row"><label for="tz">z</label><input id="tz" type="range" min="-10" max="10" step="0.1" value="0" /><output for="tz"></output></div>
+				<p class="note">up = (0, 1, 0). Move the target (the orange cross) with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, up/down with <kbd>Q</kbd><kbd>E</kbd>, faster with <kbd>Shift</kbd> (click the view first): the eye stays put and the camera turns to follow. Drag in the camera view to move the eye around the target; use the wheel to move closer.</p>
+			</section>
+			<section class="mode" id="mode-fps">
+				<div class="formula">V = (T(eye) R<sub>y</sub>(yaw) R<sub>x</sub>(pitch))⁻¹</div>
+				<div class="row"><label for="yaw">yaw</label><input id="yaw" type="range" min="-180" max="180" step="1" value="40" /><output for="yaw"></output></div>
+				<div class="row"><label for="pitch">pitch</label><input id="pitch" type="range" min="-89" max="89" step="1" value="-18" /><output for="pitch"></output></div>
+				<p class="note">Drag in the camera view to look around. Move with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, up/down with <kbd>Q</kbd><kbd>E</kbd>, faster with <kbd>Shift</kbd> (click the view first). Pitch is limited to ±89° so the camera can't flip over.</p>
+			</section>
+			<section class="mode" id="mode-arcball" hidden>
+				<div class="formula">V = (T₁ R T₀)⁻¹ = T₀⁻¹ R⁻¹ T₁⁻¹</div>
+				<div class="row"><label for="target">orbit</label><select id="target"></select><span></span></div>
+				<div class="row"><label for="dist">t₀</label><input id="dist" type="range" min="2" max="16" step="0.1" value="7" /><output for="dist"></output></div>
+				<p class="note">Drag in the camera view to rotate the arcball: the drag is mapped onto a sphere and turned into the rotation quaternion R. T₀ moves the camera back along its z axis, T₁ moves it to the object.</p>
+				<button class="small" id="resetArc">Reset rotation</button>
+			</section>
+			<h3>View matrix V</h3>
+			<div class="read" id="vRead"></div>
+			<h3>Camera matrix M = V⁻¹</h3>
+			<div class="read" id="mRead"></div>
+			<p class="note">The rows of the 3×3 part of V are the camera's <span style="color:#e05555">right</span>, <span style="color:#3fae5c">up</span> and <span style="color:#4f86f0">backward</span> axes (the camera looks down −z); in M they are the columns, and the last column of M is the <span style="color:#d08a2c">eye position</span>.</p>
+		</div>
+	</div>
+	<div id="nogl">This demo needs WebGL 2, which isn't available in this browser.</div>
+</div>
+<script>
+'use strict';
+const DEG = Math.PI / 180;
+const v3 = {
+	add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
+	sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]],
+	scale: (a, s) => [a[0] * s, a[1] * s, a[2] * s],
+	dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
+	cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]],
+	len: (a) => Math.hypot(a[0], a[1], a[2]),
+	norm: (a) => { const l = Math.hypot(a[0], a[1], a[2]); return l > 1e-9 ? [a[0] / l, a[1] / l, a[2] / l] : [0, 0, 0]; },
+};
+// Quaternions [s, x, y, z] (as in "Understanding Quaternions").
+const quat = {
+	identity: () => [1, 0, 0, 0],
+	mul(a, b) {
+		const va = [a[1], a[2], a[3]], vb = [b[1], b[2], b[3]];
+		const v = v3.add(v3.add(v3.scale(vb, a[0]), v3.scale(va, b[0])), v3.cross(va, vb));
+		return [a[0] * b[0] - v3.dot(va, vb), v[0], v[1], v[2]];
+	},
+	conj: (q) => [q[0], -q[1], -q[2], -q[3]],
+	normalize(q) { const l = Math.hypot(...q); return q.map((c) => c / l); },
+	/** The rotation that turns unit vector a into unit vector b. */
+	between(a, b) { const c = v3.cross(a, b); return quat.normalize([1 + v3.dot(a, b), c[0], c[1], c[2]]); },
+	/** From the 3×3 part of a column-major 4×4 rotation matrix. */
+	fromMatrix(m) {
+		const tr = m[0] + m[5] + m[10];
+		if (tr > 0) { const s = Math.sqrt(tr + 1) * 2; return [0.25 * s, (m[6] - m[9]) / s, (m[8] - m[2]) / s, (m[1] - m[4]) / s]; }
+		if (m[0] > m[5] && m[0] > m[10]) { const s = Math.sqrt(1 + m[0] - m[5] - m[10]) * 2; return [(m[6] - m[9]) / s, 0.25 * s, (m[4] + m[1]) / s, (m[8] + m[2]) / s]; }
+		if (m[5] > m[10]) { const s = Math.sqrt(1 + m[5] - m[0] - m[10]) * 2; return [(m[8] - m[2]) / s, (m[4] + m[1]) / s, 0.25 * s, (m[9] + m[6]) / s]; }
+		const s = Math.sqrt(1 + m[10] - m[0] - m[5]) * 2; return [(m[1] - m[4]) / s, (m[8] + m[2]) / s, (m[9] + m[6]) / s, 0.25 * s];
+	},
+	toMat4(q) {
+		const [s, x, y, z] = q;
+		return new Float32Array([
+			1 - 2 * (y * y + z * z), 2 * (x * y + s * z), 2 * (x * z - s * y), 0,
+			2 * (x * y - s * z), 1 - 2 * (x * x + z * z), 2 * (y * z + s * x), 0,
+			2 * (x * z + s * y), 2 * (y * z - s * x), 1 - 2 * (x * x + y * y), 0,
+			0, 0, 0, 1,
+		]);
+	},
+};
+// Column-major 4×4 matrices; m[col * 4 + row].
+const mat4 = {
+	identity: () => new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+	mul(a, b) {
+		const o = new Float32Array(16);
+		for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+			let v = 0;
+			for (let k = 0; k < 4; k++) v += a[k * 4 + r] * b[c * 4 + k];
+			o[c * 4 + r] = v;
+		}
+		return o;
+	},
+	translate: (t) => new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, t[0], t[1], t[2], 1]),
+	scale: (s) => new Float32Array([s[0], 0, 0, 0, 0, s[1], 0, 0, 0, 0, s[2], 0, 0, 0, 0, 1]),
+	perspective(fovy, aspect, near, far) {
+		const f = 1 / Math.tan(fovy / 2);
+		return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, (2 * far * near) / (near - far), 0]);
+	},
+	/** Inverse of a rigid transformation (rotation + translation): transpose the rotation, rotate and negate the translation. */
+	rigidInverse(m) {
+		const o = new Float32Array([m[0], m[4], m[8], 0, m[1], m[5], m[9], 0, m[2], m[6], m[10], 0, 0, 0, 0, 1]);
+		const t = [m[12], m[13], m[14]];
+		o[12] = -(o[0] * t[0] + o[4] * t[1] + o[8] * t[2]);
+		o[13] = -(o[1] * t[0] + o[5] * t[1] + o[9] * t[2]);
+		o[14] = -(o[2] * t[0] + o[6] * t[1] + o[10] * t[2]);
+		return o;
+	},
+	transformPoint: (m, p) => [
+		m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12],
+		m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13],
+		m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14],
+	],
+};
+
+// ---- The three camera models from the article -----------------------------------------------------------------
+function LookAtRH(eye, target, up) {
+	const zaxis = v3.norm(v3.sub(eye, target)); // The "forward" vector (the camera looks down −z).
+	const xaxis = v3.norm(v3.cross(up, zaxis)); // The "right" vector.
+	const yaxis = v3.cross(zaxis, xaxis);       // The "up" vector.
+	return new Float32Array([
+		xaxis[0], yaxis[0], zaxis[0], 0,
+		xaxis[1], yaxis[1], zaxis[1], 0,
+		xaxis[2], yaxis[2], zaxis[2], 0,
+		-v3.dot(xaxis, eye), -v3.dot(yaxis, eye), -v3.dot(zaxis, eye), 1,
+	]);
+}
+function FPSViewRH(eye, pitch, yaw) {
+	const cosPitch = Math.cos(pitch), sinPitch = Math.sin(pitch), cosYaw = Math.cos(yaw), sinYaw = Math.sin(yaw);
+	const xaxis = [cosYaw, 0, -sinYaw];
+	const yaxis = [sinYaw * sinPitch, cosPitch, cosYaw * sinPitch];
+	const zaxis = [sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw];
+	return new Float32Array([
+		xaxis[0], yaxis[0], zaxis[0], 0,
+		xaxis[1], yaxis[1], zaxis[1], 0,
+		xaxis[2], yaxis[2], zaxis[2], 0,
+		-v3.dot(xaxis, eye), -v3.dot(yaxis, eye), -v3.dot(zaxis, eye), 1,
+	]);
+}
+function Arcball(t0, r, t1) {
+	const T0 = mat4.translate(v3.scale(t0, -1));  // Translation away from the object.
+	const R = quat.toMat4(quat.conj(r));          // Rotate around the object.
+	const T1 = mat4.translate(v3.scale(t1, -1));  // Translate to the center of the object.
+	return mat4.mul(mat4.mul(T0, R), T1);
+}
+
+// ---- WebGL -----------------------------------------------------------------------------------------------------
+const canvas = document.getElementById('view');
+const gl = canvas.getContext('webgl2', { antialias: true });
+if (!gl) document.getElementById('nogl').style.display = 'grid';
+const VS = `#version 300 es
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec3 aNormal;
+layout(location = 2) in vec3 aColor;
+uniform mat4 uProj, uView, uModel;
+out vec3 vNormal, vColor;
+void main() {
+	vNormal = mat3(uModel) * aNormal;
+	vColor = aColor;
+	gl_Position = uProj * uView * uModel * vec4(aPos, 1.0);
+}`;
+const FS = `#version 300 es
+precision mediump float;
+in vec3 vNormal, vColor;
+uniform float uLit, uAlpha;
+uniform vec3 uLight;
+out vec4 color;
+void main() {
+	float d = max(dot(normalize(vNormal + vec3(1e-6)), uLight), 0.0);
+	color = vec4(mix(vColor, vColor * (0.4 + 0.6 * d), uLit), uAlpha);
+}`;
+let prog, U;
+if (gl) {
+	const sh = (type, src) => {
+		const s = gl.createShader(type);
+		gl.shaderSource(s, src);
+		gl.compileShader(s);
+		if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+		return s;
+	};
+	prog = gl.createProgram();
+	gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS));
+	gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+	gl.linkProgram(prog);
+	U = Object.fromEntries(['uProj', 'uView', 'uModel', 'uLit', 'uAlpha', 'uLight'].map((n) => [n, gl.getUniformLocation(prog, n)]));
+}
+function makeMesh(data, mode, dynamic = false) {
+	const vao = gl.createVertexArray(), buf = gl.createBuffer();
+	gl.bindVertexArray(vao);
+	gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW);
+	for (let i = 0; i < 3; i++) { gl.enableVertexAttribArray(i); gl.vertexAttribPointer(i, 3, gl.FLOAT, false, 36, i * 12); }
+	gl.bindVertexArray(null);
+	return { vao, buf, mode, count: data.length / 9 };
+}
+function updateMesh(mesh, data) {
+	gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buf);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+	mesh.count = data.length / 9;
+}
+function pushTri(out, a, b, c, color) {
+	const n = v3.norm(v3.cross(v3.sub(b, a), v3.sub(c, a)));
+	for (const p of [a, b, c]) out.push(...p, ...n, ...color);
+}
+function pushQuad(out, a, b, c, d, color) { pushTri(out, a, b, c, color); pushTri(out, a, c, d, color); }
+/** Unit cube from (−0.5, 0, −0.5) to (0.5, 1, 0.5): it stands on the ground when scaled. */
+function cubeData(color) {
+	const out = [], x0 = -0.5, x1 = 0.5, y0 = 0, y1 = 1, z0 = -0.5, z1 = 0.5;
+	const shade = (k) => color.map((c) => c * k);
+	pushQuad(out, [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [x1, y0, z1], shade(0.95));
+	pushQuad(out, [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], [x0, y0, z0], shade(0.95));
+	pushQuad(out, [x0, y1, z0], [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], shade(1));
+	pushQuad(out, [x0, y0, z1], [x0, y0, z0], [x1, y0, z0], [x1, y0, z1], shade(0.8));
+	pushQuad(out, [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], shade(0.95));
+	pushQuad(out, [x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], shade(0.95));
+	return out;
+}
+function line(out, a, b, color) { out.push(...a, 0, 0, 0, ...color, ...b, 0, 0, 0, ...color); }
+
+const OBJECTS = [
+	{ name: 'Blue block', pos: [0, 0, 0], size: [1.6, 1.6, 1.6], color: [0.33, 0.5, 0.9] },
+	{ name: 'Red tower', pos: [-3.5, 0, -3], size: [1, 3.2, 1], color: [0.88, 0.36, 0.33] },
+	{ name: 'Green slab', pos: [3.4, 0, -2.2], size: [2.2, 0.6, 1.4], color: [0.32, 0.72, 0.42] },
+	{ name: 'Yellow cube', pos: [2.6, 0, 3], size: [1.1, 1.1, 1.1], color: [0.9, 0.75, 0.3] },
+	{ name: 'Purple column', pos: [-2.8, 0, 2.6], size: [0.8, 2.2, 0.8], color: [0.62, 0.45, 0.85] },
+];
+const center = (o) => [o.pos[0], o.pos[1] + o.size[1] / 2, o.pos[2]];
+
+let cubeMeshes, gridMesh, linesMesh;
+function buildGrid(dark) {
+	const out = [], g = dark ? [0.24, 0.27, 0.33] : [0.78, 0.8, 0.85];
+	for (let i = -10; i <= 10; i++) { line(out, [i, 0, -10], [i, 0, 10], g); line(out, [-10, 0, i], [10, 0, i], g); }
+	line(out, [0, 0.01, 0], [2, 0.01, 0], [0.88, 0.33, 0.33]);
+	line(out, [0, 0, 0], [0, 2, 0], [0.3, 0.76, 0.42]);
+	line(out, [0, 0.01, 0], [0, 0.01, 2], [0.31, 0.53, 0.94]);
+	return out;
+}
+if (gl) {
+	cubeMeshes = OBJECTS.map((o) => makeMesh(cubeData(o.color), gl.TRIANGLES));
+	gridMesh = makeMesh(buildGrid(true), gl.LINES);
+	linesMesh = makeMesh([], gl.LINES, true);
+}
+
+// ---- Theme (follows the embedding page) --------------------------------------------------------------------------
+let dark = true;
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	dark = currentTheme() === 'dark';
+	document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+	if (gl) updateMesh(gridMesh, buildGrid(dark));
+	requestRender();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+// ---- State -----------------------------------------------------------------------------------------------------
+const $ = (id) => document.getElementById(id);
+let mode = 'fps';
+const fps = { eye: [6.5, 3.2, 7.5] };
+const arc = { r: quat.identity(), target: 0 };
+const overview = { yaw: -35, pitch: 38, dist: 24 };
+for (const [i, o] of OBJECTS.entries()) $('target').add(new Option(o.name, i));
+
+/** The look-at point: the float value moved with the keys, unless the sliders were changed since (drag, slider, mode switch). */
+let lookTargetFloat = null;
+function lookTarget() {
+	const slider = ['tx', 'ty', 'tz'].map((id) => +$(id).value);
+	if (lookTargetFloat && lookTargetFloat.every((v, i) => Math.abs(v - slider[i]) <= 0.051)) return lookTargetFloat;
+	lookTargetFloat = null;
+	return slider;
+}
+function viewMatrix() {
+	if (mode === 'lookat') return LookAtRH([+$('ex').value, +$('ey').value, +$('ez').value], lookTarget(), [0, 1, 0]);
+	if (mode === 'fps') return FPSViewRH(fps.eye, +$('pitch').value * DEG, +$('yaw').value * DEG);
+	return Arcball([0, 0, +$('dist').value], arc.r, center(OBJECTS[arc.target]));
+}
+
+/** Switching cameras keeps the camera where it is (as far as the new model allows). */
+function switchMode(next) {
+	const M = mat4.rigidInverse(viewMatrix());
+	const eye = [M[12], M[13], M[14]], back = [M[8], M[9], M[10]];
+	if (next === 'fps') {
+		fps.eye = eye;
+		setInput('yaw', Math.round(Math.atan2(back[0], back[2]) / DEG));
+		setInput('pitch', Math.round(Math.max(-89, Math.min(89, Math.asin(-back[1]) / DEG))));
+	} else if (next === 'lookat') {
+		const target = v3.sub(eye, v3.scale(back, 6));
+		for (const [id, v] of [['ex', eye[0]], ['ey', eye[1]], ['ez', eye[2]], ['tx', target[0]], ['ty', target[1]], ['tz', target[2]]]) setInput(id, v);
+	} else if (next === 'arcball') {
+		// Aim at the orbit target from the current eye position.
+		const c = center(OBJECTS[arc.target]);
+		const d = Math.max(2, Math.min(16, v3.len(v3.sub(eye, c))));
+		arc.r = quat.fromMatrix(mat4.rigidInverse(LookAtRH(eye, c, [0, 1, 0])));
+		setInput('dist', d);
+	}
+	mode = next;
+	for (const t of document.querySelectorAll('.tab')) t.setAttribute('aria-selected', String(t.dataset.mode === mode));
+	for (const m of ['lookat', 'fps', 'arcball']) $(`mode-${m}`).hidden = m !== mode;
+	requestRender();
+}
+function setInput(id, v) {
+	const el = $(id);
+	el.value = v;
+	showOutput(el);
+}
+function showOutput(el) {
+	const out = document.querySelector(`output[for="${el.id}"]`);
+	if (out) out.textContent = el.step >= 1 ? `${Math.round(+el.value)}°` : (+el.value).toFixed(1);
+}
+for (const input of document.querySelectorAll('input[type=range]')) {
+	showOutput(input);
+	input.addEventListener('input', () => { showOutput(input); requestRender(); });
+}
+for (const tab of document.querySelectorAll('.tab')) tab.addEventListener('click', () => tab.dataset.mode !== mode && switchMode(tab.dataset.mode));
+$('target').addEventListener('change', () => { arc.target = +$('target').value; requestRender(); });
+$('resetArc').addEventListener('click', () => { arc.r = quat.identity(); requestRender(); });
+$('toggle').addEventListener('click', () => {
+	const collapsed = $('panel').classList.toggle('collapsed');
+	$('toggle').textContent = collapsed ? '▸' : '▾';
+	$('toggle').setAttribute('aria-expanded', String(!collapsed));
+	requestRender();
+});
+
+// ---- Layout: main (camera) view, world view inset, panel ---------------------------------------------------------
+function layout() {
+	const W = canvas.clientWidth, H = canvas.clientHeight;
+	const narrow = matchMedia('(max-width: 560px)').matches;
+	const panel = $('panel');
+	const right = !narrow && !panel.classList.contains('collapsed') ? panel.offsetWidth + 16 : 0;
+	const bottom = narrow && !panel.classList.contains('collapsed') ? panel.offsetHeight + 16 : 0;
+	const main = { x: 0, y: 0, w: Math.max(50, W - right), h: Math.max(50, H - bottom) };
+	const iw = Math.round(Math.min(main.w * 0.42, 300)), ih = Math.round(iw * 0.72);
+	const inset = { x: 8, y: main.h - ih - 8, w: iw, h: ih };
+	return { W, H, main, inset };
+}
+
+// ---- Input -----------------------------------------------------------------------------------------------------
+let drag = null;
+const keys = new Set();
+function inRect(r, x, y) { return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h; }
+/** Arcball: a point in the view mapped onto a unit sphere (Shoemake), in camera space (x right, y up, z to the viewer). */
+function spherePoint(r, x, y) {
+	const s = Math.min(r.w, r.h) / 2;
+	const p = [(x - (r.x + r.w / 2)) / s, -(y - (r.y + r.h / 2)) / s, 0];
+	const d = p[0] * p[0] + p[1] * p[1];
+	if (d <= 1) p[2] = Math.sqrt(1 - d);
+	return v3.norm(p);
+}
+canvas.addEventListener('pointerdown', (e) => {
+	canvas.focus();
+	const L = layout(), r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+	drag = { x, y, target: inRect(L.inset, x, y) ? 'inset' : 'main', sphere: spherePoint(L.main, x, y) };
+	canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', (e) => {
+	if (!drag) return;
+	const L = layout(), r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+	const dx = x - drag.x, dy = y - drag.y;
+	if (drag.target === 'inset') {
+		overview.yaw -= dx * 0.4;
+		overview.pitch = Math.max(5, Math.min(85, overview.pitch + dy * 0.4));
+	} else if (mode === 'fps') {
+		let yaw = +$('yaw').value - dx * 0.3;
+		if (yaw > 180) yaw -= 360;
+		if (yaw < -180) yaw += 360;
+		setInput('yaw', yaw);
+		setInput('pitch', Math.max(-89, Math.min(89, +$('pitch').value - dy * 0.3)));
+	} else if (mode === 'lookat') {
+		// Move the eye on a sphere around the target.
+		const t = lookTarget();
+		const off = v3.sub([+$('ex').value, +$('ey').value, +$('ez').value], t);
+		const dist = v3.len(off);
+		let az = Math.atan2(off[0], off[2]) - dx * 0.008;
+		const el = Math.max(-1.2, Math.min(1.45, Math.asin(off[1] / dist) + dy * 0.008));
+		const eye = v3.add(t, [dist * Math.cos(el) * Math.sin(az), dist * Math.sin(el), dist * Math.cos(el) * Math.cos(az)]);
+		setInput('ex', eye[0]); setInput('ey', eye[1]); setInput('ez', eye[2]);
+	} else {
+		// The drag rotates the object in camera space by Q, so the camera rotates by Q⁻¹: R ← R Q⁻¹.
+		const p = spherePoint(L.main, x, y);
+		const Q = quat.between(drag.sphere, p);
+		arc.r = quat.normalize(quat.mul(arc.r, quat.conj(Q)));
+		drag.sphere = p;
+	}
+	drag.x = x; drag.y = y;
+	requestRender();
+});
+canvas.addEventListener('pointerup', () => (drag = null));
+canvas.addEventListener('pointercancel', () => (drag = null));
+canvas.addEventListener('wheel', (e) => {
+	e.preventDefault();
+	const L = layout(), r = canvas.getBoundingClientRect();
+	const k = Math.exp(e.deltaY * 0.001);
+	if (inRect(L.inset, e.clientX - r.left, e.clientY - r.top)) overview.dist = Math.max(8, Math.min(50, overview.dist * k));
+	else if (mode === 'arcball') setInput('dist', Math.max(2, Math.min(16, +$('dist').value * k)));
+	else if (mode === 'lookat') {
+		const t = lookTarget();
+		const off = v3.scale(v3.sub([+$('ex').value, +$('ey').value, +$('ez').value], t), k);
+		if (v3.len(off) > 1.5 && v3.len(off) < 20) { const eye = v3.add(t, off); setInput('ex', eye[0]); setInput('ey', eye[1]); setInput('ez', eye[2]); }
+	} else {
+		const M = mat4.rigidInverse(viewMatrix());
+		fps.eye = v3.add(fps.eye, v3.scale([M[8], M[9], M[10]], (k - 1) * 8));
+	}
+	requestRender();
+}, { passive: false });
+canvas.addEventListener('keydown', (e) => {
+	const k = e.key.toLowerCase();
+	if ('wasdqe'.includes(k) || k === 'shift') {
+		// Starting to move: the first frame must not count the idle time since the last frame (that made it jump).
+		if (![...keys].some((key) => key !== 'shift')) last = null;
+		keys.add(k);
+		e.preventDefault();
+		requestRender();
+	}
+});
+canvas.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+canvas.addEventListener('blur', () => keys.clear());
+
+// ---- Rendering -------------------------------------------------------------------------------------------------
+let pending = false, last = performance.now();
+function requestRender() { if (!pending && gl) { pending = true; requestAnimationFrame(frame); } }
+function frame(now) {
+	pending = false;
+	const dt = last === null ? 0 : Math.max(0, Math.min(0.1, (now - last) / 1000));
+	last = now;
+	if (mode === 'fps' && keys.size) {
+		const M = mat4.rigidInverse(viewMatrix());
+		const right = [M[0], M[1], M[2]], forward = [-M[8], -M[9], -M[10]];
+		let move = [0, 0, 0];
+		if (keys.has('w')) move = v3.add(move, forward);
+		if (keys.has('s')) move = v3.sub(move, forward);
+		if (keys.has('d')) move = v3.add(move, right);
+		if (keys.has('a')) move = v3.sub(move, right);
+		if (keys.has('q')) move = v3.add(move, [0, 1, 0]);
+		if (keys.has('e')) move = v3.sub(move, [0, 1, 0]);
+		fps.eye = v3.add(fps.eye, v3.scale(v3.norm(move), dt * (keys.has('shift') ? 9 : 3.5)));
+	}
+	if (mode === 'lookat' && keys.size) {
+		// Move the target (the look-at point) over the ground, relative to the direction the camera faces; the eye
+		// stays where it is, so the camera turns to follow the target.
+		const eye = [+$('ex').value, +$('ey').value, +$('ez').value];
+		const target = lookTarget();
+		let forward = v3.sub(target, eye);
+		forward = v3.norm([forward[0], 0, forward[2]]);
+		if (!v3.len(forward)) forward = [0, 0, -1]; // looking straight down
+		const right = v3.cross(forward, [0, 1, 0]);
+		let move = [0, 0, 0];
+		if (keys.has('w')) move = v3.add(move, forward);
+		if (keys.has('s')) move = v3.sub(move, forward);
+		if (keys.has('d')) move = v3.add(move, right);
+		if (keys.has('a')) move = v3.sub(move, right);
+		if (keys.has('q')) move = v3.add(move, [0, 1, 0]);
+		if (keys.has('e')) move = v3.sub(move, [0, 1, 0]);
+		const t = v3.add(target, v3.scale(v3.norm(move), dt * (keys.has('shift') ? 7 : 2.5)));
+		// Kept as floats: the sliders round to 0.1, which would swallow the small steps of each frame.
+		lookTargetFloat = ['tx', 'ty', 'tz'].map((id, i) => Math.max(+$(id).min, Math.min(+$(id).max, t[i])));
+		lookTargetFloat.forEach((v, i) => setInput(['tx', 'ty', 'tz'][i], v));
+	}
+	render();
+	if ((mode === 'fps' || mode === 'lookat') && [...keys].some((k) => k !== 'shift')) requestRender();
+	else last = performance.now();
+}
+
+function drawScene(proj, view, extra) {
+	gl.uniformMatrix4fv(U.uProj, false, proj);
+	gl.uniformMatrix4fv(U.uView, false, view);
+	gl.uniform3fv(U.uLight, v3.norm([0.4, 0.9, 0.55]));
+	gl.uniform1f(U.uAlpha, 1);
+	gl.uniform1f(U.uLit, 0);
+	gl.uniformMatrix4fv(U.uModel, false, mat4.identity());
+	gl.bindVertexArray(gridMesh.vao);
+	gl.drawArrays(gl.LINES, 0, gridMesh.count);
+	gl.uniform1f(U.uLit, 1);
+	for (const [i, o] of OBJECTS.entries()) {
+		gl.uniformMatrix4fv(U.uModel, false, mat4.mul(mat4.translate(o.pos), mat4.scale(o.size)));
+		gl.bindVertexArray(cubeMeshes[i].vao);
+		gl.drawArrays(gl.TRIANGLES, 0, cubeMeshes[i].count);
+	}
+	if (extra) extra();
+}
+
+const num = (v) => (v < 0 ? '−' : ' ') + Math.abs(v).toFixed(2).padStart(5);
+function matrixHtml(m, columnColors) {
+	const rows = [];
+	for (let r = 0; r < 4; r++) {
+		const cells = [];
+		for (let c = 0; c < 4; c++) {
+			const cls = columnColors ? (c < 3 && r < 3 ? ['x', 'y', 'z'][c] : c === 3 && r < 3 ? 't' : '') : r < 3 && c < 3 ? ['x', 'y', 'z'][r] : '';
+			cells.push(cls ? `<span class="${cls}">${num(m[c * 4 + r])}</span>` : num(m[c * 4 + r]));
+		}
+		rows.push(`${r === 0 ? '⎡' : r === 3 ? '⎣' : '⎢'}${cells.join(' ')} ${r === 0 ? '⎤' : r === 3 ? '⎦' : '⎥'}`);
+	}
+	return rows.join('\n');
+}
+
+function render() {
+	const L = layout();
+	const dpr = Math.min(devicePixelRatio || 1, 2);
+	const w = Math.round(L.W * dpr), h = Math.round(L.H * dpr);
+	if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+	gl.useProgram(prog);
+	gl.enable(gl.DEPTH_TEST);
+	gl.enable(gl.SCISSOR_TEST);
+	const bg = dark ? [0.059, 0.071, 0.094] : [0.957, 0.961, 0.973];
+	const bgInset = dark ? [0.09, 0.105, 0.135] : [0.91, 0.92, 0.94];
+	const vp = (r, color) => {
+		const x = Math.round(r.x * dpr), y = Math.round((L.H - r.y - r.h) * dpr), ww = Math.round(r.w * dpr), hh = Math.round(r.h * dpr);
+		gl.viewport(x, y, ww, hh);
+		gl.scissor(x, y, ww, hh);
+		gl.clearColor(...color, 1);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	};
+	gl.scissor(0, 0, w, h);
+	gl.clearColor(...bg, 1);
+	gl.clear(gl.COLOR_BUFFER_BIT);
+
+	// 1. Through the camera: world → view space with V.
+	const V = viewMatrix();
+	const M = mat4.rigidInverse(V);
+	const fov = 55 * DEG, aspect = L.main.w / L.main.h;
+	vp(L.main, bg);
+	drawScene(mat4.perspective(fov, aspect, 0.1, 100), V, () => {
+		if (mode === 'lookat' || mode === 'arcball') {
+			const t = mode === 'lookat' ? lookTarget() : center(OBJECTS[arc.target]);
+			const lines = [];
+			const c = [0.95, 0.6, 0.2], s = 0.25;
+			line(lines, v3.add(t, [-s, 0, 0]), v3.add(t, [s, 0, 0]), c);
+			line(lines, v3.add(t, [0, -s, 0]), v3.add(t, [0, s, 0]), c);
+			line(lines, v3.add(t, [0, 0, -s]), v3.add(t, [0, 0, s]), c);
+			updateMesh(linesMesh, lines);
+			gl.uniform1f(U.uLit, 0);
+			gl.uniformMatrix4fv(U.uModel, false, mat4.identity());
+			gl.disable(gl.DEPTH_TEST);
+			gl.bindVertexArray(linesMesh.vao);
+			gl.drawArrays(gl.LINES, 0, linesMesh.count);
+			gl.enable(gl.DEPTH_TEST);
+		}
+	});
+
+	// 2. World view: an overview camera that shows the camera itself, placed with M = V⁻¹.
+	vp(L.inset, bgInset);
+	const oe = [
+		overview.dist * Math.cos(overview.pitch * DEG) * Math.sin(overview.yaw * DEG),
+		overview.dist * Math.sin(overview.pitch * DEG),
+		overview.dist * Math.cos(overview.pitch * DEG) * Math.cos(overview.yaw * DEG),
+	];
+	drawScene(mat4.perspective(40 * DEG, L.inset.w / L.inset.h, 0.1, 200), LookAtRH(oe, [0, 0.5, 0], [0, 1, 0]), () => {
+		// The camera's axes and view frustum, built in camera (view) space and transformed with M.
+		const lines = [];
+		const P = (p) => mat4.transformPoint(M, p);
+		const o = P([0, 0, 0]);
+		line(lines, o, P([1.2, 0, 0]), [0.88, 0.33, 0.33]);
+		line(lines, o, P([0, 1.2, 0]), [0.3, 0.76, 0.42]);
+		line(lines, o, P([0, 0, 1.2]), [0.31, 0.53, 0.94]);
+		const fc = dark ? [0.9, 0.9, 0.95] : [0.2, 0.22, 0.28];
+		const corners = (d) => { const hh = Math.tan(fov / 2) * d, ww = hh * aspect; return [[-ww, -hh, -d], [ww, -hh, -d], [ww, hh, -d], [-ww, hh, -d]].map(P); };
+		const near = corners(0.6), far = corners(4.5);
+		for (let i = 0; i < 4; i++) {
+			line(lines, near[i], near[(i + 1) % 4], fc);
+			line(lines, far[i], far[(i + 1) % 4], fc.map((c) => c * 0.7));
+			line(lines, o, far[i], fc.map((c) => c * 0.55));
+		}
+		line(lines, near[2], P([0, Math.tan(fov / 2) * 0.6 + 0.25, -0.6]), fc); // a little "up" tick on the near plane
+		line(lines, near[3], P([0, Math.tan(fov / 2) * 0.6 + 0.25, -0.6]), fc);
+		updateMesh(linesMesh, lines);
+		gl.uniform1f(U.uLit, 0);
+		gl.uniformMatrix4fv(U.uModel, false, mat4.identity());
+		gl.bindVertexArray(linesMesh.vao);
+		gl.drawArrays(gl.LINES, 0, linesMesh.count);
+	});
+	gl.disable(gl.SCISSOR_TEST);
+
+	// Labels and the inset frame (HTML on top of the canvas).
+	Object.assign($('mainLabel').style, { left: `${L.main.x + 8}px`, top: `${L.main.y + 8}px` });
+	Object.assign($('insetFrame').style, { left: `${L.inset.x}px`, top: `${L.inset.y}px`, width: `${L.inset.w}px`, height: `${L.inset.h}px` });
+	Object.assign($('insetLabel').style, { left: `${L.inset.x + 6}px`, top: `${L.inset.y + 6}px`, maxWidth: `${L.inset.w - 12}px` });
+
+	$('vRead').innerHTML = matrixHtml(V, false);
+	$('mRead').innerHTML = matrixHtml(M, true);
+}
+
+if (gl) {
+	new ResizeObserver(requestRender).observe(canvas);
+	applyTheme();
+	requestRender();
+}
+</script>
+</body>
+</html>

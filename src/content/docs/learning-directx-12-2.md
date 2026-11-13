@@ -650,7 +650,7 @@ In DirectX 12 the names of the semantics are arbitrary (except for [system value
 
 #### Transformation and Spaces
 
-In order to animate the object in the scene, a basic understanding of transformation and spaces must be established. If a refresher on transformation and spaces is needed, please refer to the articles titled [Coordinate Systems](https://www.3dgep.com/3d-math-primer-for-game-programmers/), [Matrices](https://www.3dgep.com/3d-math-primer-for-game-programmers-matrices/), and [Understanding the View Matrix](https://www.3dgep.com/understanding-the-view-matrix/).
+In order to animate the object in the scene, a basic understanding of transformation and spaces must be established. If a refresher on transformation and spaces is needed, please refer to the articles titled [Coordinate Systems](/3d-math-primer-for-game-programmers/), [Matrices](/3d-math-primer-for-game-programmers-matrices/), and [Understanding the View Matrix](/understanding-the-view-matrix/).
 
 For this demo, an object is placed at the origin of the world and rotated. The camera is placed some distance away from the origin in order to view the object. The transformation matrix that rotates the object is called the **model matrix** and the transformation matrix to place the camera in the scene is called the **view matrix**. A final transformation called the **projection matrix** is also applied in order to transform the vertices from view space to clip space. These three matrices can be combined using matrix multiplication to produce a single matrix that can transform the vertices from objects space to clip space. This matrix is appropriately named the **model-view-projection** matrix or just **MVP** matrix.
 
@@ -1677,8 +1677,8 @@ A left-handed view matrix can be computed using the [`XMMatrixLookAtLH`](https:/
 A left-handed projection matrix can be computed from the field of view (`m_FoV`) in radians, the aspect ratio of the screen (`aspectRatio`), the distance to the near clipping plane (`0.1f`) and the distance to the far clipping plane (`100.0f`).
 
 :::note
-See the article titled [Coordinate Systems](https://www.3dgep.com/3d-math-primer-for-game-programmers/) for more information on left, and right-handed coordinate system.  
-See the article titled [Understanding the View Matrix](https://www.3dgep.com/understanding-the-view-matrix/) for more information about building view matrices.
+See the article titled [Coordinate Systems](/3d-math-primer-for-game-programmers/) for more information on left, and right-handed coordinate system.  
+See the article titled [Understanding the View Matrix](/understanding-the-view-matrix/) for more information about building view matrices.
 :::
 
 ### Tutorial2::TransitionResource

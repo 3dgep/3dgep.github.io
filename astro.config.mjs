@@ -8,6 +8,7 @@ import { unified } from '@astrojs/markdown-remark';
 import rehypeExternalLinks from 'rehype-external-links';
 import { fileURLToPath } from 'node:url';
 import remarkCodeFromSource from './src/plugins/remark-code-from-source.mjs';
+import rehypeCitationBackrefs from './src/plugins/rehype-citation-backrefs.mjs';
 import starlightLinksValidator from 'starlight-links-validator';
 
 export default defineConfig({
@@ -23,6 +24,8 @@ export default defineConfig({
 			],
 			rehypePlugins: [
 				rehypeKatex,
+				// Reference entries link back to their citations (↩).
+				rehypeCitationBackrefs,
 				// External links open in a new tab (internal links stay in the same tab).
 				[rehypeExternalLinks, { target: '_blank', rel: ['noopener', 'noreferrer'] }],
 			],
@@ -104,6 +107,10 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'C++',
+					items: [{ label: 'C++ Template Programming', slug: 'beginning-cpp-template-programming' }],
+				},
+				{
 					label: 'DirectX 11',
 					items: [
 						{ label: 'Introduction to DirectX 11', slug: 'introduction-to-directx-11' },
@@ -115,6 +122,16 @@ export default defineConfig({
 					items: [
 						{ label: 'Forward vs Deferred vs Forward+', slug: 'forward-plus' },
 						{ label: 'Volume Tiled Forward Shading', slug: 'volume-tiled-forward-shading' },
+					],
+				},
+				{
+					label: 'Math',
+					items: [
+						{ label: 'Coordinate Systems', slug: '3d-math-primer-for-game-programmers' },
+						{ label: 'Vector Operations', slug: '3d-math-primer-for-game-programmers-vector-operations' },
+						{ label: 'Matrices', slug: '3d-math-primer-for-game-programmers-matrices' },
+						{ label: 'Understanding the View Matrix', slug: 'understanding-the-view-matrix' },
+						{ label: 'Understanding Quaternions', slug: 'understanding-quaternions' },
 					],
 				},
 			],

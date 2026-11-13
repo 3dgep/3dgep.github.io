@@ -1,0 +1,194 @@
+/* Figure captions converted from WordPress [caption] shortcodes. */
+.sl-markdown-content .caption {
+	margin-top: 0.25rem;
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-3);
+	text-align: center;
+}
+.sl-markdown-content img { margin-inline: auto; display: block; }
+
+/* WordPress thumbnails (logos next to text) keep their size and float left. */
+.sl-markdown-content img.thumb {
+	float: left;
+	display: inline;
+	margin: 0.25rem 1rem 0.5rem 0;
+}
+.sl-markdown-content :is(h2, h3, .sl-heading-wrapper) { clear: both; }
+.sl-markdown-content .caption > p { margin: 0; }
+
+/* External link indicator (like MyST): a small "open in new window" arrow after links to other sites.
+   Skips image-only links and links back to 3dgep.com. */
+:is(.sl-markdown-content, .hover-preview)
+	a[href^='http']:not([href*='3dgep.com'], [href*='3dgep.github.io']):not(:has(img:not(.thumb)), .sl-link-card a, .not-content a)::after {
+	content: '';
+	display: inline-block;
+	width: 0.7em;
+	height: 0.7em;
+	margin-inline-start: 0.15em;
+	vertical-align: 0.05em;
+	background-color: currentColor;
+	-webkit-mask: var(--external-link-icon) no-repeat center / contain;
+	mask: var(--external-link-icon) no-repeat center / contain;
+}
+:root {
+	--external-link-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4h6v6'/%3E%3Cpath d='M20 4 10 14'/%3E%3Cpath d='M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5'/%3E%3C/svg%3E");
+}
+
+/* (Starlight components such as link cards keep their own styling.)
+   Link styles matching the MyST book theme: blue links with a thicker, offset underline in a slightly
+   different blue; the hover colour applies to text and underline. In-page references (citations,
+   figures, sections) get a dotted underline like MyST's cross-references. */
+:root,
+:root[data-theme='light'] {
+	--link: #1d4ed8;
+	--link-underline: #60a5fa;
+	--link-hover: #3b82f6;
+}
+:root[data-theme='dark'] {
+	--link: #60a5fa;
+	--link-underline: #3b82f6;
+	--link-hover: #93c5fd;
+}
+:is(.sl-markdown-content, .hover-preview) a:not(.sl-anchor-link, :has(img:not(.thumb)), .sl-link-card a, .not-content a) {
+	color: var(--link);
+	font-weight: 500;
+	text-decoration-line: underline;
+	text-decoration-color: var(--link-underline);
+	text-decoration-thickness: 0.1em;
+	text-underline-offset: 0.15em;
+}
+:is(.sl-markdown-content, .hover-preview) a[href^='#']:not(.sl-anchor-link) {
+	text-decoration-style: dotted;
+}
+:is(.sl-markdown-content, .hover-preview) a:not(.sl-anchor-link, :has(img:not(.thumb)), .sl-link-card a, .not-content a):hover {
+	color: var(--link-hover);
+	text-decoration-color: var(--link-hover);
+}
+/* Code inside links takes the link colour (as in MyST). */
+:is(.sl-markdown-content, .hover-preview) a code {
+	color: inherit;
+}
+
+/* Inline code matching the MyST book theme: pink monospace text without a background box.
+   Code blocks (Expressive Code) are not affected. Code inside links takes the link colour (above). */
+:root,
+:root[data-theme='light'] {
+	--inline-code: #be185d;
+}
+:root[data-theme='dark'] {
+	--inline-code: #f472b6;
+}
+:is(.sl-markdown-content, .hover-preview) code:not(pre code, .expressive-code *) {
+	color: var(--inline-code);
+	background: none;
+	border: 0;
+	padding: 0;
+	border-radius: 0;
+	font-family: menlo, consolas, 'DejaVu Sans Mono', monospace;
+	font-size: 0.875em;
+	font-weight: 400;
+	overflow-wrap: break-word;
+}
+:is(.sl-markdown-content, .hover-preview) a code:not(pre code, .expressive-code *) {
+	color: inherit;
+}
+
+/* Right sidebar ("On this page"): Starlight makes this fixed panel 100% of the viewport wide, so it runs
+   off-screen. End it at the window edge and don't hand leftover wheel scrolling to the page when the TOC
+   reaches its end. Its scrollbar stays hidden (Starlight default) so only the page scrollbar is visible. */
+@media (min-width: 72rem) {
+	/* Size the fixed panel to its column (container units) instead of the whole viewport. */
+	.right-sidebar-container {
+		container-type: inline-size;
+	}
+	.right-sidebar {
+		width: 100cqi;
+		overscroll-behavior: contain;
+	}
+	/* Let the TOC use the whole column (Starlight caps it at the sidebar width, so long entries such as
+	   "CommandQueue::CreateCommandAllocator" wrapped while the rest of the column was empty). */
+	.right-sidebar-panel .sl-container {
+		width: auto;
+		max-width: none;
+	}
+}
+
+/* Embedded demos and videos (converted WordPress iframes). */
+.sl-markdown-content iframe.embed {
+	display: block;
+	width: 100%;
+	border: 0;
+	border-radius: 0.5rem;
+	background: var(--sl-color-gray-6);
+}
+.sl-markdown-content iframe.embed-demo { aspect-ratio: 16 / 10; min-height: 380px; }
+.sl-markdown-content iframe.embed-video { aspect-ratio: 16 / 9; }
+
+
+/* Theme-specific images: <img class="light-only"> / <img class="dark-only"> (e.g. the GitHub mark). */
+:root[data-theme='dark'] .light-only,
+:root[data-theme='light'] .dark-only {
+	display: none !important;
+}
+
+/* Linked icons (e.g. "Download the Source": GitHub / zip / executable): each icon + link is its own
+   left-aligned row instead of the floats stacking beside each other. */
+.sl-markdown-content p:has(> a > img.thumb) {
+	display: flow-root;
+}
+.sl-markdown-content p:has(> a > img.thumb) > a {
+	display: inline-flex;
+	align-items: center;
+}
+.sl-markdown-content p:has(> a > img.thumb) img.thumb {
+	float: none;
+	margin: 0 1rem 0 0;
+}
+
+/* Self-hosted videos (converted WordPress [video] shortcodes): original size, scaled down on narrow screens. */
+.sl-markdown-content video.embed-video-file {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	margin-inline: auto;
+	border-radius: 0.5rem;
+}
+
+/* ---- Home page ---------------------------------------------------------------------------------- */
+/* Hero logo: circular, with a soft glow in the accent colour. */
+.hero img {
+	width: min(18rem, 60vw);
+	border-radius: 50%;
+	box-shadow: 0 0 4rem -1rem var(--sl-color-accent);
+}
+/* Series headings and intros. */
+.sl-markdown-content .home-section-title {
+	margin-top: 3.5rem;
+	padding-bottom: 0.4rem;
+	border-bottom: 1px solid var(--sl-color-hairline);
+	scroll-margin-top: 5rem;
+}
+.sl-markdown-content .home-series-intro {
+	max-width: 48rem;
+	color: var(--sl-color-gray-2);
+}
+/* "4 lessons · DirectX 12 · ..." line under each series intro. */
+.sl-markdown-content .home-series-meta {
+	margin: 0.5rem 0 1.25rem;
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-3);
+}
+/* Article cards (src/components/ArticleCard.astro). */
+.home-article-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr));
+	gap: 1rem;
+}
+/* Closing note (a Starlight Card). */
+.home-coming-soon {
+	margin-top: 3rem;
+}
+/* Feature highlights: three across on wide screens (Starlight's CardGrid has two columns). */
+.home-features .card-grid {
+	grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+}

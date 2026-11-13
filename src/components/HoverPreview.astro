@@ -1,0 +1,121 @@
+---
+// Hover previews for in-page links (citations, figures, sections), similar to MyST's cross-reference popups.
+// Hovering or focusing a link like [6](#cite-6) shows the target's content in a small popover.
+---
+
+<div id="hover-preview" class="hover-preview" role="tooltip" hidden></div>
+
+<script>
+	const popup = document.getElementById('hover-preview')!;
+	// Starlight's .main-pane uses `isolation: isolate`, which traps z-index; move the popup to <body>
+	// so it can draw above the sidebars.
+	document.body.appendChild(popup);
+	const content = document.querySelector('.sl-markdown-content');
+	let hideTimer: ReturnType<typeof setTimeout> | undefined;
+	let current: HTMLAnchorElement | null = null;
+
+	/** Build the preview nodes for an in-page target element. */
+	function previewFor(target: HTMLElement): Node[] {
+		const clone = (el: Element) => {
+			const c = el.cloneNode(true) as HTMLElement;
+			c.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
+			c.removeAttribute('id');
+			return c;
+		};
+		// Headings: the heading text plus the first paragraph after it.
+		const heading = target.matches('h1, h2, h3, h4, h5, h6') ? target : null;
+		if (heading) {
+			const block = heading.closest('.sl-heading-wrapper') ?? heading;
+			const title = document.createElement('strong');
+			title.textContent = heading.textContent;
+			const next = block.nextElementSibling;
+			return next?.matches('p') ? [title, clone(next)] : [title];
+		}
+		// Empty anchor targets (<span id="cite-6"></span>): use the surrounding paragraph, or, if the
+		// anchor sits alone in its paragraph (figures), the following image and caption.
+		if (!target.textContent?.trim()) {
+			const para = target.closest('p');
+			if (para?.textContent?.trim()) return [clone(para)];
+			const nodes: Node[] = [];
+			let next = (para ?? target).nextElementSibling;
+			while (next && nodes.length < 2 && (next.querySelector('img') || next.matches('.caption'))) {
+				nodes.push(clone(next));
+				next = next.nextElementSibling;
+			}
+			return nodes;
+		}
+		return [clone(target)];
+	}
+
+	function show(link: HTMLAnchorElement) {
+		const id = decodeURIComponent(link.hash.slice(1));
+		const target = id && document.getElementById(id);
+		if (!target) return;
+		const nodes = previewFor(target);
+		if (!nodes.length) return;
+		clearTimeout(hideTimer);
+		current = link;
+		popup.replaceChildren(...nodes);
+		popup.hidden = false;
+		link.setAttribute('aria-describedby', 'hover-preview');
+
+		// Position below the link (or above when there is no room), clamped to the viewport.
+		const r = link.getBoundingClientRect();
+		const p = popup.getBoundingClientRect();
+		const margin = 8;
+		const left = Math.min(Math.max(margin, r.left), window.innerWidth - p.width - margin);
+		const below = r.bottom + margin;
+		const top = below + p.height > window.innerHeight ? r.top - p.height - margin : below;
+		popup.style.left = `${left}px`;
+		popup.style.top = `${Math.max(margin, top)}px`;
+	}
+
+	function scheduleHide() {
+		clearTimeout(hideTimer);
+		hideTimer = setTimeout(() => {
+			popup.hidden = true;
+			current?.removeAttribute('aria-describedby');
+			current = null;
+		}, 200);
+	}
+
+	const inPageLink = (e: Event) =>
+		(e.target as Element).closest?.<HTMLAnchorElement>('a[href^="#"]') ?? null;
+
+	content?.addEventListener('mouseover', (e) => {
+		const link = inPageLink(e);
+		if (link && link !== current) show(link);
+	});
+	content?.addEventListener('mouseout', (e) => inPageLink(e) && scheduleHide());
+	content?.addEventListener('focusin', (e) => {
+		const link = inPageLink(e);
+		if (link) show(link);
+	});
+	content?.addEventListener('focusout', (e) => inPageLink(e) && scheduleHide());
+	// Keep the popup open while the pointer is over it, so links inside it can be clicked.
+	popup.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+	popup.addEventListener('mouseleave', scheduleHide);
+	document.addEventListener('keydown', (e) => e.key === 'Escape' && scheduleHide());
+	window.addEventListener('scroll', () => !popup.hidden && scheduleHide(), { passive: true });
+</script>
+
+<style>
+	.hover-preview {
+		position: fixed;
+		z-index: 100;
+		max-width: min(30rem, calc(100vw - 1rem));
+		max-height: 50vh;
+		overflow: auto;
+		padding: 0.75rem 1rem;
+		font-size: var(--sl-text-sm);
+		line-height: 1.5;
+		color: var(--sl-color-text);
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-hairline-shade);
+		border-radius: 0.5rem;
+		box-shadow: var(--sl-shadow-md);
+	}
+	.hover-preview :global(p) { margin: 0; }
+	.hover-preview :global(* + p) { margin-top: 0.5rem; }
+	.hover-preview :global(img) { max-height: 30vh; width: auto; }
+</style>

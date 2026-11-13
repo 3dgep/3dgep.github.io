@@ -1,0 +1,49 @@
+---
+// Giscus comments backed by GitHub Discussions (https://giscus.app) on 3dgep/3dgep.github.io.
+// Requires the giscus GitHub app to be installed on the repository.
+// "Announcements" is an announcement-type category: only maintainers (and giscus, for a new page) can start a
+// discussion, while anyone can comment. One discussion per page, matched by its pathname.
+const giscus = {
+	repo: '3dgep/3dgep.github.io',
+	repoId: 'R_kgDOLGo3Lg',
+	category: 'Announcements',
+	categoryId: 'DIC_kwDOLGo3Ls4DLDwM',
+};
+---
+
+<section class="comments">
+	<h2 id="comments">Comments</h2>
+	<div class="giscus"></div>
+	<script
+		is:inline
+		src="https://giscus.app/client.js"
+		data-repo={giscus.repo}
+		data-repo-id={giscus.repoId}
+		data-category={giscus.category}
+		data-category-id={giscus.categoryId}
+		data-mapping="pathname"
+		data-strict="1"
+		data-reactions-enabled="1"
+		data-emit-metadata="0"
+		data-input-position="top"
+		data-theme={'preferred_color_scheme'}
+		data-lang="en"
+		data-loading="lazy"
+		crossorigin="anonymous"
+		async></script>
+</section>
+
+<script is:inline>
+	// Keep the Giscus theme in sync with Starlight's light/dark toggle.
+	const setGiscusTheme = () => {
+		const frame = document.querySelector('iframe.giscus-frame');
+		const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+		frame?.contentWindow?.postMessage({ giscus: { setConfig: { theme } } }, 'https://giscus.app');
+	};
+	new MutationObserver(setGiscusTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+	window.addEventListener('message', (e) => e.origin === 'https://giscus.app' && setGiscusTheme(), { once: true });
+</script>
+
+<style>
+	.comments { margin-top: 3rem; }
+</style>

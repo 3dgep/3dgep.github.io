@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>Rotating Cube (Smooth Shading)</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #bababa;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="Three/build/three.min.js"></script>
+		<script src="Three/examples/js/controls/OrbitControls.js"></script>
+		<script src="Three/examples/js/libs/stats.min.js"></script>
+        <script src="Three/examples/js/Detector.js"></script>
+
+		<script>
+			if ( ! Detector.webgl ) {
+
+				Detector.addGetWebGLMessage();
+				document.getElementById( 'container' ).innerHTML = "";
+
+			}
+
+            var container, stats;
+			var camera, controls, scene, renderer;
+			var cube, plane;
+			
+			var lastTime;
+			var angularSpeed = 0.2 * ( 2.0 * Math.PI ); // Rotations per second
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			init();
+			animate();
+
+			function init() {
+				var date = new Date();
+				lastTime = date.getTime();
+				
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				scene = new THREE.Scene();
+				
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100 );
+				camera.position.z = 3;
+				scene.add( camera );
+				
+				controls = new THREE.OrbitControls( camera );
+				
+				var colors = [];
+				colors.push( new THREE.Color( 0xffffff ) ); // new THREE.Vector3( 1.0, 1.0, 1.0 ) );
+                colors.push( new THREE.Color( 0xffff00 ) ); // new THREE.Vector3( 1.0, 1.0, 0.0 ) );
+                colors.push( new THREE.Color( 0xff00ff ) ); // new THREE.Vector3( 1.0, 0.0, 1.0 ) );
+                colors.push( new THREE.Color( 0xff0000 ) ); // new THREE.Vector3( 1.0, 0.0, 0.0 ) );
+                colors.push( new THREE.Color( 0x00ff00 ) ); // new THREE.Vector3( 0.0, 1.0, 0.0 ) );
+				colors.push( new THREE.Color( 0x00ffff ) ); // new THREE.Vector3( 0.0, 1.0, 1.0 ) );
+                colors.push( new THREE.Color( 0x000000 ) ); // new THREE.Vector3( 0.0, 0.0, 0.0 ) );
+				colors.push( new THREE.Color( 0x0000ff ) ); // new THREE.Vector3( 0.0, 0.0, 1.0 ) );
+
+				var cubeGeometry = new THREE.CubeGeometry( 1, 1, 1 );
+				
+				var faceIndices = [ 'a', 'b', 'c' ];
+				for( var i = 0; i < cubeGeometry.faces.length; i++ )
+				{
+					var face = cubeGeometry.faces[i];
+					
+					for ( var j = 0; j < 3; j++ ) 
+					{
+						var vertexIndex = face[ faceIndices[ j ] ];
+						face.vertexColors[j] = colors[vertexIndex];
+					}
+				}
+				
+				var material = new THREE.MeshBasicMaterial( { color: 0xffffff, shading: THREE.SmoothShading, vertexColors: THREE.VertexColors } );
+				cube = new THREE.Mesh( cubeGeometry, material );
+
+				scene.add( cube );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+			}
+
+			//
+			function animate() 
+			{
+				var date = new Date();
+				var currentTime = date.getTime();
+				var elapsedTime = ( currentTime - lastTime ) / 1000.0;
+				lastTime = currentTime;
+				
+//				cube.rotation.x += ( angularSpeed * elapsedTime );
+//				cube.rotation.y += ( angularSpeed * elapsedTime );
+//				cube.rotation.z += ( angularSpeed * elapsedTime );
+
+				requestAnimationFrame( animate );
+				controls.update();
+
+				render();
+			}
+
+			function render() 
+			{
+				renderer.render( scene, camera );
+				stats.update();
+			}
+
+		</script>
+
+	</body>
+</html>

@@ -1,0 +1,14 @@
+---
+// Starlight component override: default footer + Giscus comments (not on the splash/home page)
+// + hover previews for in-page links (citations, figures, sections).
+import Default from '@astrojs/starlight/components/Footer.astro';
+import Giscus from './Giscus.astro';
+import HoverPreview from './HoverPreview.astro';
+
+const { entry } = Astro.locals.starlightRoute;
+const isArticle = entry.data.template !== 'splash';
+---
+
+{isArticle && <Giscus />}
+{isArticle && <HoverPreview />}
+<Default><slot /></Default>

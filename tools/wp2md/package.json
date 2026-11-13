@@ -1,0 +1,14 @@
+{
+  "name": "wp2md",
+  "private": true,
+  "description": "Convert 3dgep.com WordPress posts (Crayon code blocks, alert boxes, captions) to MyST or Starlight Markdown.",
+  "type": "module",
+  "scripts": {
+    "convert": "node convert.mjs"
+  },
+  "dependencies": {
+    "linkedom": "^0.18.9",
+    "turndown": "^7.2.5",
+    "turndown-plugin-gfm": "^1.0.2"
+  }
+}

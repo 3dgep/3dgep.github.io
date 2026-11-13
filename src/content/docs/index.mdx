@@ -1,0 +1,113 @@
+---
+title: 3D Game Engine Programming
+description: Graphics programming tutorials for game developers, from your first DirectX window to rendering millions of lights.
+template: splash
+hero:
+  title: 3D Game Engine Programming
+  tagline: Graphics programming tutorials for game developers, from your first DirectX window to rendering millions of lights.
+  image:
+    file: ../../assets/logo.png
+    alt: 3DGEP logo
+  actions:
+    - text: Start with DirectX 12
+      link: /learning-directx-12-1/
+      icon: right-arrow
+    - text: Browse articles
+      link: '#articles'
+      variant: secondary
+    - text: GitHub
+      link: https://github.com/3dgep
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import ArticleCard from '../../components/ArticleCard.astro';
+
+import dx12Lesson1 from '../../assets/DirectX-12-Logo.png';
+import dx12Lesson2 from '../../assets/Tutorial2-Screenshot.png';
+import dx12Lesson3 from '../../assets/Dynamic-Descriptor-Heap-1.png';
+import dx12Lesson4 from '../../assets/Mipmapping.png';
+import dx11Intro from '../../assets/DirectX-11-Rendering-Pipeline.png';
+import dx11Texturing from '../../assets/DirectX-Demo-Screenshot.jpg';
+import forwardPlus from '../../assets/G-Buffer.jpg';
+import volumeTiled from '../../assets/Volume_Tiled_Forward_Shading-Thumbnail.png';
+import cppCourse from '../../assets/udemy-cpp23-for-game-programming.jpg';
+
+<div class="home-features">
+<CardGrid>
+	<Card title="Step-by-step series" icon="open-book">
+		Each lesson builds on the previous one, from an empty window to a complete rendering framework.
+	</Card>
+	<Card title="Real, tagged source code" icon="seti:cpp">
+		Code snippets come straight from tagged releases on GitHub, with line numbers that match the files.
+	</Card>
+	<Card title="Rendering techniques" icon="rocket">
+		Forward, deferred and tiled forward rendering, up to volume tiled shading with millions of lights.
+	</Card>
+</CardGrid>
+</div>
+
+<h2 id="course" class="home-section-title">Online course</h2>
+
+<p class="home-series-intro">
+	Learn C++ by making games: my video course on Udemy.
+</p>
+
+<div class="home-article-grid not-content">
+	<ArticleCard badge="Udemy course" title="C++23 for Game Programming" href="https://www.udemy.com/course/cpp-for-games/?referralCode=7B6C2FDC190EAA360ABC" image={cppCourse}
+		description="Learn how to create games from scratch using C++23." />
+</div>
+
+<h2 id="articles" class="home-section-title">Learning DirectX 12</h2>
+
+<p class="home-series-intro">
+	Build a DirectX 12 application from scratch: devices, command queues and fences, resources and pipeline state,
+	a reusable framework, and textures with mipmaps generated on the GPU.
+</p>
+<p class="home-series-meta">4 lessons · DirectX 12 · C++ / HLSL · 2017–2019</p>
+
+<div class="home-article-grid not-content">
+	<ArticleCard badge="Lesson 1" title="Initialize DirectX 12" href="/learning-directx-12-1/" image={dx12Lesson1} year={2017}
+		description="Query adapters, create the device, command queue, swap chain and fences, and implement the render loop." />
+	<ArticleCard badge="Lesson 2" title="Rendering" href="/learning-directx-12-2/" image={dx12Lesson2} year={2018}
+		description="Resources, root signatures and pipeline state objects: render a rotating cube with vertex and pixel shaders." />
+	<ArticleCard badge="Lesson 3" title="Framework" href="/learning-directx-12-3/" image={dx12Lesson3} focus="top" year={2018}
+		description="An upload buffer, descriptor allocator, dynamic descriptor heap and automatic resource state tracking." />
+	<ArticleCard badge="Lesson 4" title="Textures" href="/learning-directx-12-4/" image={dx12Lesson4} year={2019}
+		description="Loading textures, mipmapping, filtering and addressing modes, and generating mipmaps in a compute shader." />
+</div>
+
+<h2 id="directx-11" class="home-section-title">DirectX 11</h2>
+
+<p class="home-series-intro">
+	Where it started: a DirectX 11 application from scratch, then textures, constant buffer packing and per-pixel lighting.
+</p>
+<p class="home-series-meta">2 articles · DirectX 11 · C++ / HLSL · 2014</p>
+
+<div class="home-article-grid not-content">
+	<ArticleCard badge="Part 1" title="Introduction to DirectX 11" href="/introduction-to-directx-11/" image={dx11Intro} focus="top" year={2014}
+		description="Create a DirectX 11 application from scratch: window, device, swap chain, states and shaders, and a rotating cube." />
+	<ArticleCard badge="Part 2" title="Texturing and Lighting" href="/texturing-lighting-directx-11/" image={dx11Texturing} year={2014}
+		description="Textures, samplers, filtering and addressing modes, constant buffer packing and per-pixel Phong lighting." />
+</div>
+
+<h2 id="rendering-techniques" class="home-section-title">Rendering Techniques</h2>
+
+<p class="home-series-intro">
+	How to render scenes with thousands, and then millions, of dynamic lights in real time.
+</p>
+<p class="home-series-meta">2 articles · DirectX 11 / 12 · Compute shaders · 2015–2017</p>
+
+<div class="home-article-grid not-content">
+	<ArticleCard badge="Comparison" title="Forward vs Deferred vs Forward+" href="/forward-plus/" image={forwardPlus} year={2015}
+		description="Forward, deferred and tiled forward rendering compared, with G-buffers, grid frustums and light culling in a compute shader." />
+	<ArticleCard badge="Thesis" title="Volume Tiled Forward Shading" href="/volume-tiled-forward-shading/" image={volumeTiled} year={2017}
+		description="3D volume tiles and a bounding volume hierarchy over the lights: millions of light sources in real time." />
+</div>
+
+<div class="home-coming-soon">
+<Card title="More articles coming" icon="information">
+	The OpenGL, CUDA, math and C++ articles from 3dgep.com are being moved here one by one.
+</Card>
+</div>

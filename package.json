@@ -1,0 +1,29 @@
+{
+  "name": "3dgep",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "3D Game Engine Programming (3dgep.com): graphics programming articles, built with Astro + Starlight.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "^7.3.8",
+    "@astrojs/starlight": "^0.42.11",
+    "@expressive-code/plugin-line-numbers": "^0.44.3",
+    "astro": "^7.3.6",
+    "rehype-external-links": "^3.0.0",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "sharp": "^0.35.3",
+    "starlight-links-validator": "^0.27.0",
+    "unist-util-visit": "^5.2.0"
+  }
+}

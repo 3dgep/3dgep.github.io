@@ -15,10 +15,15 @@ import { visit } from 'unist-util-visit';
 
 /** @param {{ root: string }} options  Directory that `source` paths are relative to. */
 export default function remarkCodeFromSource({ root }) {
+	// Cache the lines of each file, but read it again when it changed (the dev server keeps this plugin alive).
 	const cache = new Map();
 	const readLines = (file) => {
-		if (!cache.has(file)) cache.set(file, fs.readFileSync(file, 'utf8').replace(/\r\n?/g, '\n').split('\n'));
-		return cache.get(file);
+		const mtime = fs.statSync(file).mtimeMs;
+		const cached = cache.get(file);
+		if (cached?.mtime === mtime) return cached.lines;
+		const lines = fs.readFileSync(file, 'utf8').replace(/\r\n?/g, '\n').split('\n');
+		cache.set(file, { mtime, lines });
+		return lines;
 	};
 
 	return (tree, vfile) => {

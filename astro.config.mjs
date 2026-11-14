@@ -66,7 +66,10 @@ export default defineConfig({
 			plugins: [starlightLinksValidator()],
 			favicon: '/favicon.png',
 			logo: { src: './src/assets/logo.png', alt: '3DGEP' },
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/3dgep/3dgep.github.io' }],
+			social: [
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/3dgep/3dgep.github.io' },
+				{ icon: 'discord', label: 'Join our Discord server', href: 'https://discord.com/invite/gsxxaxc' },
+			],
 			customCss: ['katex/dist/katex.min.css', './src/styles/custom.css'],
 			head: [
 				{
@@ -79,12 +82,36 @@ export default defineConfig({
 						}
 					});`,
 				},
+				{
+					// Click a screenshot (<img class="screenshot">) to see it full size; click again or press Esc to close.
+					tag: 'script',
+					content: `document.addEventListener('DOMContentLoaded', () => {
+						const shots = document.querySelectorAll('.sl-markdown-content img.screenshot');
+						if (!shots.length) return;
+						const dialog = document.createElement('dialog');
+						dialog.className = 'lightbox';
+						const big = document.createElement('img');
+						dialog.append(big);
+						document.body.append(dialog);
+						dialog.addEventListener('click', () => dialog.close());
+						for (const img of shots) {
+							img.tabIndex = 0;
+							img.setAttribute('role', 'button');
+							img.title = 'Click to enlarge';
+							const open = () => { big.src = img.currentSrc || img.src; big.alt = img.alt; dialog.showModal(); };
+							img.addEventListener('click', open);
+							img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+						}
+					});`,
+				},
 			],
 			// Show h2–h4 in "On this page" (default stops at h3); converted articles use h2–h4.
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 4 },
 			components: {
 				// Wrap the default footer to append Giscus comments on every article page.
 				Footer: './src/components/Footer.astro',
+				// Adds a link to the Udemy course after the GitHub and Discord links in the header.
+				SocialIcons: './src/components/SocialIcons.astro',
 			},
 			sidebar: [
 				{

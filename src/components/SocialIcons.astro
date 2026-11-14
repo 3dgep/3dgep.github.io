@@ -1,0 +1,32 @@
+---
+// Starlight component override: the default social links (GitHub, Discord) plus a link to the Udemy course.
+// Starlight has no Udemy icon, so the mark (from Simple Icons, CC0) is inlined here.
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+
+const udemy = 'https://www.udemy.com/course/cpp-for-games/?referralCode=7B6C2FDC190EAA360ABC';
+---
+
+<Default />
+<a href={udemy} class="sl-flex udemy" title="C++23 for Game Programming (Udemy course)">
+	<span class="sr-only">C++23 for Game Programming (Udemy course)</span>
+	<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+		<path d="M12 0L5.81 3.573v3.574l6.189-3.574 6.191 3.574V3.573zM5.81 10.148v8.144c0 1.85.589 3.243 1.741 4.234S10.177 24 11.973 24s3.269-.482 4.448-1.474c1.179-.991 1.768-2.439 1.768-4.314v-8.064h-3.242v7.85c0 2.036-1.509 3.055-2.948 3.055-1.428 0-2.947-.991-2.947-3.027v-7.878z" />
+	</svg>
+</a>
+
+<style>
+	/* The same look as Starlight's own social links. */
+	.udemy {
+		color: var(--sl-color-text-accent);
+		padding: 0.5em;
+		margin: -0.5em;
+	}
+	.udemy:hover {
+		color: var(--sl-color-white);
+	}
+	.udemy svg {
+		width: 1em;
+		height: 1em;
+		overflow: visible;
+	}
+</style>

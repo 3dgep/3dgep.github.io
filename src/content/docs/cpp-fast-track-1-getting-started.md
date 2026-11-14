@@ -1,17 +1,17 @@
 ---
 title: "C++ Fast Track for Games Programming Part 1: Getting Started"
-description: "Start the C++ Fast Track: set up Visual Studio 2026, create a new program, and write Hello World."
+description: "Start the C++ Fast Track: install Visual Studio 2026, create a new C++23 project, and write Hello World."
 slug: cpp-fast-track-1-getting-started
-lastUpdated: 2026-07-27
+lastUpdated: 2026-11-14
 ---
 
-<span id="attachment-8103"></span><img src="/images/cpp-logo.png" alt="C++ Fast Track" width="150" class="thumb" />
+<img src="/images/cpp-logo.png" alt="C++ Fast Track" width="150" class="thumb" />
 
-Welcome to the first article in the Programming C++ Fast Track tutorial series! These tutorials are designed to take you from zero to a decent entry level in a somewhat smooth fashion. We start at the absolute basics: all that you need to get started is a laptop or PC, a fair bit of time, and quite a bit of dedication.
+Welcome to the first article in the C++ Fast Track for Games Programming tutorial series! These tutorials are designed to take you from zero to a decent entry level in a somewhat smooth fashion. We start at the absolute basics: all that you need to get started is a laptop or PC, a fair bit of time, and quite a bit of dedication.
 
 Regarding dedication: These tutorials are supposed to take you anywhere between two and four hours each. Aim to complete a minimum of two tutorials per week. That means that you have an extra workload of 4-8 hours. No-one said this was going to be easy, right?
 
-If you need support while going through these articles, join the Discord channel [https://discord.com/invite/gsxxaxc](https://discord.com/invite/gsxxaxc). You’ll have no problems getting answers to your newbie questions there. Lecturers and experienced programmers also roam this channel.
+If you need support while going through these articles, join the Discord channel [https://discord.com/invite/gsxxaxc](https://discord.com/invite/gsxxaxc). You'll have no problems getting answers to your newbie questions there. Lecturers and experienced programmers also roam this channel.
 
 ## About the Authors
 
@@ -22,273 +22,252 @@ This tutorial was written by Jacco Bikker, Brian Beuken, Nils Deslé, and Carlos
 
 ## Getting the Stuff You Need
 
-For the purpose of these tutorials, I will assume you develop your games on PCs. The preferred development environment is Microsoft’s Visual Studio 2026. A free version (the Community Edition) of this software is available from Microsoft, via [https://visualstudio.microsoft.com/downloads/](https://visualstudio.microsoft.com/downloads/).
+For the purpose of these tutorials, we assume you develop your games on a Windows PC. The development environment we use is Microsoft's Visual Studio 2026. The Community edition of Visual Studio is free, and you can download it from [https://visualstudio.microsoft.com/downloads/](https://visualstudio.microsoft.com/downloads/).
 
 Checklist:
 
--   A PC or laptop, pretty much any CPU and GPU will do
--   Windows 10 (32-bit or 64-bit)
--   Visual Studio 2026 Community Edition (Professional and Enterprise more than welcome), installed with default settings
+-   A PC or laptop: pretty much any CPU and GPU will do.
+-   Windows 10 or Windows 11 (64-bit).
+-   Visual Studio 2026 Community (Professional and Enterprise are more than welcome) with the **Desktop development with C++** workload.
+
+On the download page, click *Free download* under *Visual Studio Community*:
+
+<img src="/images/cpp-fast-track-1/00-download.png" alt="The Visual Studio download page, with the Free download button of Visual Studio Community" width="1160" height="523" class="screenshot" />
+
+<div class="caption">
+
+Visual Studio Community is free for students and individuals.
+
+</div>
+
+Run the file that you downloaded (`VisualStudioSetup.exe`): it starts the *Visual Studio Installer*. When it asks you what you want to install, check the *Desktop development with C++* workload on the *Workloads* tab (it's in the *Desktop & Mobile* section), and click *Install*. Without this workload, Visual Studio can't build C++ programs: you won't even find the C++ project templates.
+
+<img src="/images/cpp-fast-track-1/00b-workloads.png" alt="The Visual Studio Installer with the Desktop development with C++ workload checked" width="1200" height="640" class="screenshot" />
+
+<div class="caption">
+
+Check *Desktop development with C++*. You don't need any of the other workloads for these articles.
+
+</div>
+
+The installer then downloads and installs Visual Studio. This takes a while (it's several gigabytes), so it's a good moment to get a drink.
+
+<img src="/images/cpp-fast-track-1/00c-installing.png" alt="The Visual Studio Installer while it installs Visual Studio Community 2026" width="1200" height="640" class="screenshot" />
+
+<div class="caption">
+
+Visual Studio Community 2026 is being installed.
+
+</div>
+
+:::note
+If you already have Visual Studio 2026, but not the C++ workload, start the *Visual Studio Installer* from the Start menu, click *Modify* next to your Visual Studio, check *Desktop development with C++*, and click *Modify* at the bottom right.
+:::
 
 :::tip
-Keep in mind you will want to install Visual Studio and programming projects on your fastest storage device – a super fast Solid State Drive (SSD) is preferred! Some people even go crazy and use RAM disks for their projects. This might not matter now but when you are hitting tens of thousands of Lines of Code (LOCs) it will save you a lot of time.
+Install Visual Studio, and keep your programming projects, on your fastest drive: a Solid State Drive (SSD) is preferred. This might not matter now, but when your projects grow to tens of thousands of lines of code, it will save you a lot of time.
 :::
 
 ## Starting Visual Studio 2026
 
-When you start Visual Studio 2026 for the first time you are greeted with this window:
+The first time you start Visual Studio, it asks you to sign in with a Microsoft account. Signing in is optional: you can skip it and add an account later (or never). Next, you get to pick a theme. As the window says, you can always change this later. The screenshots in these articles use the *Dark* theme.
 
-<span id="attachment-9392"></span>
+You are then greeted by the start window:
 
-![](../../assets/vs2019splashscreen.jpg)
+<img src="/images/cpp-fast-track-1/01-start-window.png" alt="The Visual Studio 2026 start window" width="881" height="571" class="screenshot" />
 
 <div class="caption">
 
-Visual Studio installation splash screen to sign in or not to sign in – that is the question…
+The Visual Studio 2026 start window. The list on the left shows the projects you opened recently: it's empty the first time.
 
 </div>
 
-Selecting *not now, maybe later* is luckily a perfectly viable option, so let’s go for that (no need to leave any more personal information with a tech giant than strictly necessary, right?). In the next window, you get to choose a theme. As the window says, you can always change this later, so let’s go with *dark*. Now we finally get into the Integrated Development Environment (**IDE**)
+## Create a New Project
 
-## Create a New Program
+Click *Create a new project* on the right side of the start window. You then need to select the type of project. We are building a very simple program, so select *Empty Project* (the one with the *C++*, *Windows* and *Console* tags) and click *Next*:
 
-Now that you have Visual Studio up and running, select the 4th option *Create a new project* as pictured:
-
-<span id="attachment-9709"></span>
-
-![Your first adventure will be to create a new simple project using Visual Studio.](../../assets/create-new-project.gif)
+<img src="/images/cpp-fast-track-1/02-create-new-project.png" alt="The Create a new project dialog, with Empty Project selected" width="771" height="533" class="screenshot" />
 
 <div class="caption">
 
-Your first adventure will be to create a new simple project using Visual Studio.
-
-</div>
-
-You then need to select the type of project. Because we are building a very simple project then select *Empty project* as you can see here:
-
-<span id="attachment-9708"></span>
-
-![Starting with an empty project means we do not have to delete as many things later 😉](../../assets/create-a-new-project.gif)
-
-<div class="caption">
-
-Starting with an empty project means we do not have to delete as many things later 😉
+Starting with an empty project means we don't have to delete as many things later.
 
 </div>
 
 :::note
-Even an empty project will create enough directories anyway. With this option you will have **x86** (for 32-bit) and **x64** (for 64-bit) options – essentially a C++ console application. In selecting an empty project we want to avoid adding any [ATL](https://discord.com/invite/gsxxaxc), [MFC](https://learn.microsoft.com/cpp/mfc/mfc-desktop-applications) or [SDL](https://www.microsoft.com/en-us/securityengineering/sdl) stuff.
+If you don't see *Empty Project*, type `empty` in the search box at the top, or set the language filter to *C++*. If there are no C++ templates at all, the *Desktop development with C++* workload is missing: see [Getting the Stuff You Need](#getting-the-stuff-you-need).
 :::
 
-You now need to change a few things in the following dialog – this is *all* about where you place your files.
+In the next dialog, you choose the name of your project and where your files go:
 
-<span id="attachment-9711"></span>
-
-![You may choose any folder you want to create your new project.](../../assets/configure-your-new-project-1.gif)
+<img src="/images/cpp-fast-track-1/03-configure.png" alt="The Configure your new project dialog" width="771" height="533" class="screenshot" />
 
 <div class="caption">
 
-You may choose any folder you want to create your new project.
+You may choose any folder you want for your new project.
 
 </div>
 
-Set the *Project name* to `Getting Started`
-
-Set the *Location* to `C:\my_projects` (or whichever folder you keep all of your programming projects).
+1.  Set the *Project name* to `Getting Started`.
+2.  Set the *Location* to `C:\Projects` (or whichever folder you keep all of your programming projects in).
+3.  Set the *Solution name* to `C++ Fast Track for Games Programming`.
+4.  Leave *Place solution and project in the same directory* unchecked.
 
 :::danger
-It is not recommended to keep your projects in the **Desktop** folder (`C:\Users\[username]\Desktop`) folder or in your **Documents** (`C:\Users\[username]\Documents`) folder because these folders are indexed by the Microsoft indexing services to improve search performance. The indexing services will have a negative impact on the performance of the build process and for this reason, it is recommended to save your projects in a folder that is not being indexed by the indexing service.
+Don't keep your projects on the **Desktop** or in your **Documents** folder. Windows indexes these folders for search, and OneDrive often synchronizes them to the cloud. Both get in the way when Visual Studio writes hundreds of files during a build: builds become slower, and sometimes fail because a file is in use. A folder like `C:\Projects` avoids all of that.
 :::
 
-Set the *Solution name* to `C++ Fast Track for Games Programming`
+Click the *Create* button to create your new project! You should see something similar to the screenshot below.
 
-Click the *Create* button to create your new project!
-
-You should see something similar to the screenshot below.
-
-<span id="attachment-9716"></span>
-
-![New project in Visual Studio](../../assets/new-project-2.png)
+<img src="/images/cpp-fast-track-1/04-new-project.png" alt="Visual Studio with the new, empty Getting Started project" width="1151" height="655" class="screenshot" />
 
 <div class="caption">
 
-You should have an empty project.
+An empty project: the *Solution Explorer* on the left shows the solution, the project and its (empty) folders.
 
 </div>
 
-## IDE Tidy-Up
+The *Solution Explorer* on the left side of the window shows your *solution* (`C++ Fast Track for Games Programming`) and the *project* inside it (`Getting Started`). The project has a few folders (*filters*, really) that help you organize your files: *Header Files*, *Resource Files* and *Source Files*. They are all empty. If you don't see the Solution Explorer, open it with *View > Solution Explorer* in the main menu.
+
+## Use the Latest C++
+
+C++ is still evolving: a new version of the language appears every three years. The newest version that Visual Studio supports is C++23, and that is the version we use in these articles. A new project uses C++20 by default, so we have to tell Visual Studio to use C++23 instead.
+
+Right-click the *Getting Started* project in the Solution Explorer and select *Properties* (at the bottom of the menu). In the *Property Pages* dialog that appears:
+
+1.  Set *Configuration* (at the top) to *All Configurations*, so the setting applies to the Debug and the Release version of your program.
+2.  Select *Configuration Properties > General* on the left.
+3.  Click the value of *C++ Language Standard*, open the dropdown list, and select *Preview - ISO C++23 Standard (/std:c++23preview)*.
+4.  Click *OK*.
+
+<img src="/images/cpp-fast-track-1/06-language-standard.png" alt="The Property Pages dialog with the C++ Language Standard set to ISO C++23" width="789" height="541" class="screenshot" />
+
+<div class="caption">
+
+Select *Preview - ISO C++23 Standard* for *All Configurations*.
+
+</div>
 
 :::note
-This section is completely optional but it is our preference to tidy up the IDE to make room to view the C++ source code.  
-Optionally, you can skip ahead to the [Hello World](#hello-world) section below.
+Don't let the word *Preview* scare you: Microsoft calls its C++23 support a preview because a few parts of the standard are still missing. Everything we use in these articles works.
 :::
 
-As you can see, there is a lot of stuff on the screen. Let’s make some room:
-
--   Click on *Team Explorer*, then close it to get rid of it. The Team Explorer can also be hidden by selecting *View > Team Explorer* from the main menu.
--   Do the same to *Toolbox* and *Properties*.
--   Drag the *Solution Explorer* to the left of the screen.
--   If you don’t like toolbars and their buttons then on the main menu, click on *View*, go to *Toolbars*, and deselect *Standard*.
-
-You should now have something like this:
-
-<span id="attachment-9713"></span>
-
-![New project in Visual Studio](../../assets/new-project-1.png)
-
-<div class="caption">
-
-Almost there…
-
-</div>
-
-I often see people work on the area of a postage stamp (not just when programming) due to all the toolbars: this layout prevents that. We didn’t remove anything that we need (apart from one thing), and we assumed control of the software in the process.
-
-The one thing we are missing is two drop-down boxes (OK, so two things). We can store these next to the menu bar, so they don’t need their own toolbar.
-
-In the main menu, select *Tools > Customize* and select the *Commands* tab. Now click on *Add Command*, select the *Build* category, and choose the Solution Configurations *command*. This adds the drop-down box to the left of your menu bar; click the *Move Down* button a few times, until it is all the way to the right. Repeat this for the Solution Platforms command.
-
-The top of the screen now looks like this:
-
-<span id="attachment-9402"></span>
-
-![Now your IDE has some space to breath!](../../assets/vs2019setupide.jpg)
-
-<div class="caption">
-
-Now your IDE has some space to breath!
-
-</div>
-
-And the IDE is as tidy as it gets for now.
-
-## Solution Explorer Tidy-Up
-
-Your Solution Explorer should currently look like this:
-
-<span id="attachment-9717"></span>
-
-![Solution Explorer](../../assets/solution-explorer.png)
-
-<div class="caption">
-
-Your ‘solution’ (although you didn’t solve anything, but whatever) should look like this now.
-
-</div>
-
-Now, let’s delete some things we don’t need: Select all three folders (*Header files*, *Resource files* and *Source files* and delete them.
-
-From the main menu, select *Tool > Options* and expand *Text Editor > C/C++ > Advanced* option or search for *“Disable External Dependencies Folder”* in the Search Options (Ctrl+E)
-
-Set the *“Disable External Dependencies Folder”* option to *true*.
-
-Your solution explorer should now look something like this:
-
-<span id="attachment-9718"></span>
-
-![Clean Solution Explorer](../../assets/solution-explorer-clean.png)
-
-<div class="caption">
-
-Your solution explorer should be totally clean now.
-
-</div>
+## Add a Source File
 
 Before we go on:
 
 :::caution
-This is the first and only article in these series that is this boring. Starting with part 2, you will be coding, not downloading + installing + adjusting settings. Promise.
+This is the first and only article in this series that is this boring. Starting with part 2, you will be coding, not downloading + installing + adjusting settings. Promise.
 :::
 
-That being said, let’s get coding!
+That being said, let's get coding! Now it's finally time to add a C++ source file to play with. Right-click the *Source Files* folder of the *Getting Started* project in the Solution Explorer and select *Add > New Item*.
 
-Now it’s finally time to add a C++ source file to play with. Right-click on your project *Getting Started* in the *Solution Explorer* and select *Add > New Item*.
+Type `main.cpp` as the name of the new file (or anything else really, as long as it ends with `.cpp`), and press Enter.
 
-In the *Add New Item* dialog that appears, select *C++ File (.cpp)*, and name it `main.cpp` (or anything else really, as long as it ends with `.cpp`). Then click the *Add* button.
-
-<span id="attachment-9720"></span>
-
-![Add New Item dialog box](../../assets/add-new-item.gif)
+<img src="/images/cpp-fast-track-1/05-add-new-item.png" alt="The Add New Item dialog, with main.cpp as the name of the new file" width="441" height="147" class="screenshot" />
 
 <div class="caption">
 
-We just need the one .cpp file for now.
+We just need the one `.cpp` file for now.
 
 </div>
 
-The new file is immediately opened, and we’re ready for some coding.
+The new file is immediately opened, and we're ready for some coding.
 
 ## Hello World
 
-A tutorial on C++ is not complete without a ‘hello world’ example, so here we go. Enter the following program:
+A tutorial on C++ is not complete without a "Hello world" example, so here we go. Enter the following program:
 
 ```cpp title="main.cpp" showLineNumbers
-#include "stdio.h"
+#include <print>
 
-void main()
+int main()
 {
-   printf( "Hello world!\n" );
-   getchar();
+    std::println("Hello world!");
 }
 ```
 
-You can start the program by hitting F5. Visual Studio will ask you if you want to build the program; you want this so click *yes*.
+<img src="/images/cpp-fast-track-1/07-main-cpp.png" alt="Visual Studio with the Hello World program in main.cpp" width="1151" height="655" class="screenshot" />
+
+<div class="caption">
+
+Your first C++ program. Check that the toolbar says *Debug* and *x64*.
+
+</div>
+
+So what does this program do?
+
+-   `#include <print>` makes the `std::println` function available to your program. It comes with C++ (in the *standard library*), but you have to ask for it.
+-   `int main()` is where every C++ program starts. The code between the curly braces `{` and `}` is executed when you run the program.
+-   `std::println("Hello world!");` prints the text between the quotes, followed by a new line. Note the semicolon at the end: every *statement* in C++ ends with one.
+
+Start the program by pressing **F5**, or by clicking the green *Local Windows Debugger* button on the toolbar. Visual Studio *builds* your program first: it turns your code into an executable file. Then it starts it.
 
 You should see a console window with the text `Hello world!` printed in it.
 
-<span id="attachment-9722"></span>
-
-![Hello world console window](../../assets/hello-world.gif)
+<img src="/images/cpp-fast-track-1/08-hello-world.png" alt="A console window that shows Hello world!" width="1181" height="268" class="screenshot" />
 
 <div class="caption">
 
-You should see a console window with the text “Hello world!” printed in it.
+Your program prints *Hello world!*. The lines below it are added by Visual Studio.
 
 </div>
 
-Press Enter (while the console window has the keyboard focus) to close the console window.
+The text below `Hello world!` is not printed by your program: when your program ends, Visual Studio keeps the console window open, so you can read what your program printed. Press any key (while the console window has the keyboard focus) to close it.
+
+:::note
+If Visual Studio tells you that there were build errors, compare your code with the code above, character by character. C++ is very picky: `Println`, a missing `;` or a missing `"` are all errors. Also check that you selected C++23 in the previous section: `std::println` doesn't exist in C++20.
+:::
 
 ## Discussion
 
-When you go to `D:\Projects\C++ Fast Track for Games Programming` (or wherever you saved your Visual Studio solution files) you will see that Visual Studio created a large amount of files for you. The most interesting one is in the *Debug* folder, and it’s called `Getting Started.exe`. When you start this application, you will see that you created it yourself.
+Open the folder `C:\Projects\C++ Fast Track for Games Programming` (or wherever you saved your Visual Studio solution) in File Explorer. Visual Studio created quite a few files and folders for you:
 
-Apart from this file, we have:
-
--   `C++ Fast Track for Games Programming.sln`: your *solution file*, which points to
--   `Getting Started.vcxproj`: your *project file*, which points to
--   `main.cpp`: the *source code file*.
-
-A project can have multiple source files, and a solution can have multiple projects. Other files:
-
--   `Getting Started.vcxproj.filters`: stores the references to all of the source files in your project;
--   `Getting Started.VC.db` and `opendb`: some internal information for Visual Studio;
--   various other files in the Debug folder: `.obj`, `.ilk`, `.pdb`.
-
-Quite confusing perhaps, but all that matters right now is the `.cpp` file in `Projects\C++ Fast Track for Games Programming\Getting Started` folder and the executable that it was built from it.
-
-<span id="attachment-9724"></span>
-
-![Solution Folder](../../assets/project-folder.gif)
+<img src="/images/cpp-fast-track-1/09-explorer.png" alt="File Explorer showing the solution folder" width="976" height="495" class="screenshot" />
 
 <div class="caption">
 
-It is always good to understand what each file is for – especially when it comes to working out which ones you need on GitHub or Perforce (hint: Never commit compiler generated content to version control!)
+The solution folder.
 
 </div>
 
-:::caution
-If you do not see the `.vs` folder as shown in the screenshot above, make sure you you select *“Show hidden files, folders, or drives”* in *File Explorer Options* in windows control panel.
+-   `C++ Fast Track for Games Programming.slnx`: your *solution file*, which points to
+-   `Getting Started\Getting Started.vcxproj`: your *project file*, which points to
+-   `Getting Started\main.cpp`: the *source code file*.
 
-To change this setting, open the Windows control panel and go to *File Explorer Options*, then the select the *View* tab, and select the *Show hidden files, folders, and drives* radio button.
+A project can have multiple source files, and a solution can have multiple projects. The most interesting file is in the `x64\Debug` folder, and it's called `Getting Started.exe`. That's the program you just made. Double-click it, and you'll see that you created it yourself (if you are fast enough: the console window closes as soon as the program ends, because Visual Studio isn't there to keep it open).
 
-If you don’t see file extensions (`.sln`, `.ccp`, and `.h`) in the File Explorer, make sure the *Hide extensions for known file types* is not checked as shown in the screenshot below.
+The other files:
 
-![File Explorer Options](../../assets/File-Explorer-Options-1.gif)
+-   `Getting Started\Getting Started.vcxproj.filters`: the folders (filters) that you see in the Solution Explorer;
+-   `Getting Started\Getting Started.vcxproj.user`: your own settings for the project, for example for debugging;
+-   `Getting Started\x64\Debug`: files that the compiler creates while it builds your program, such as `.obj` files;
+-   `x64\Debug`: your program (`.exe`) and its debug information (`.pdb`);
+-   `.vs`: a hidden folder with information that Visual Studio keeps for itself, such as which files you had open.
+
+Quite confusing perhaps, but all that matters right now is the `.cpp` file in the `Getting Started` folder and the executable that was built from it.
+
+:::tip
+It is always good to understand what each file is for, especially when it comes to working out which files belong in version control such as Git: never commit the files that Visual Studio or the compiler generates (`.vs`, `x64`, the `Debug` and `Release` folders, and `.vcxproj.user`).
 :::
+
+If you don't see the `.vs` folder, or if you don't see the file extensions (`.slnx`, `.cpp`, `.exe`), tell File Explorer to show them. In Windows 11, open the *View* menu, select *Show*, and check *File name extensions* and *Hidden items*. In Windows 10, check *File name extensions* and *Hidden items* on the *View* tab of the ribbon.
+
+<img src="/images/cpp-fast-track-1/10-explorer-show.png" alt="The View > Show menu of File Explorer in Windows 11" width="400" height="169" class="screenshot" />
+
+<div class="caption">
+
+Programmers want to see everything: show the file name extensions and hidden items.
+
+</div>
 
 ## Assignment
 
-So, here’s your task:
+So, here's your task:
 
-1.  Every article in this series will end with a small practical assignment. You need to complete this assignment. Feel free to share your solution on the 3dgep.com Discord server: ([https://discord.com/invite/gsxxaxc](https://discord.com/invite/gsxxaxc)).
-2.  Create an executable that prints your name 10 times, then waits for a key, then prints *Coding is awesome!* 10 times, then waits for a key again, then exits.
+1.  Every article in this series ends with a small practical assignment. You need to complete this assignment. Feel free to share your solution on the 3dgep.com Discord server: [https://discord.com/invite/gsxxaxc](https://discord.com/invite/gsxxaxc).
+2.  Create a program that prints your name 10 times, then waits for a key, then prints *Coding is awesome!* 10 times, then waits for a key again, then exits.
+
+:::tip[Hint]
+To wait for a key, add `#include <cstdio>` at the top of `main.cpp`, and call `std::getchar();` where the program has to wait. `std::getchar` waits until you press Enter. And yes, you may copy and paste lines for now: in part 4 you will learn a better way.
+:::

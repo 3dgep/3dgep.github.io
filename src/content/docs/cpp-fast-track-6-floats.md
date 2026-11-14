@@ -154,6 +154,28 @@ The same bounce, now with floats. (This demo starts again every 10 seconds.)
 
 </div>
 
+### How Precise Is a Float?
+
+Floats can store fractions, but not every fraction. A `float` is 32 bits, just like an `int`, so it can store about the same number of different values: some four billion. But it spreads them out over a much larger range, from tiny numbers close to zero up to about 3.4 × 10³⁸. The trick is that the values are close together near zero, and further and further apart for larger numbers. A `double` uses 64 bits, so it has many more values, and they are much closer together: it takes much larger numbers before the gaps between them become large.
+
+Zoom into the number line below to see this for yourself. Each lane has a tick for every value that a type can store; where the values are too close together to draw separately, you see a solid band. Scroll (or pinch) to zoom, drag to move, or hold the **+** button to keep zooming in:
+
+<iframe class="embed embed-demo" src="/demos/number-precision.html" title="A zoomable number line that shows which values an int, an unsigned int, a float and a double can store" loading="lazy"></iframe>
+
+<div class="caption">
+
+Every value of `int`, `unsigned int`, `float` and `double`. Point at the number line to see which value each type stores for the number under the cursor, and how far apart the values are there.
+
+</div>
+
+Some places to visit with the buttons below the number line:
+
+-   **0.1**: there is no `float` with the value 0.1. The closest one is 0.100000001… That's why adding `0.1f` ten times gives 1.0000001, and not 1. (A `double` can't store 0.1 exactly either, but it gets much closer.)
+-   **2²⁴** (16,777,216): below this number, a `float` can store every whole number. Above it, the step between two floats is 2, so 16,777,217 can't be stored in a `float`: it becomes 16,777,216. An `int` has no problem with it.
+-   **1 day in ms**: a day has 86,400,000 milliseconds. At that size, the step between two floats is 8: if you count time in milliseconds in a `float`, it can only change in steps of 8 ms after a day. That's half a frame at 60 frames per second. So a `float` is fine for a short time, such as the time of a single frame, but not for a timer that runs for hours.
+-   **10²⁰**: too large for an `int`. A `float` can store it, but the step between two floats is about 8.8 × 10¹².
+-   **near 0**: this is where the float values are closest together.
+
 ## Frames per Second
 
 How fast does our program run? The ball moves by `speed` pixels in every frame, so how fast it moves on the screen depends on how many frames per second (*FPS*) your computer draws. Let's print that in the window. The `deltaTime` value that `Tick` gets is the time since the previous frame, in milliseconds, so `1000.0f / deltaTime` is the number of frames per second. Add `#include <format>` to the top of `game.cpp`:

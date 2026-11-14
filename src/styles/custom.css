@@ -124,6 +124,8 @@
 .sl-markdown-content iframe.embed-video { aspect-ratio: 16 / 9; }
 /* Demos with a control panel need more height. */
 .sl-markdown-content iframe.embed-demo-tall { aspect-ratio: 4 / 3; min-height: 560px; }
+/* The number line demo (part 6): four lanes with room for the bits under the cursor, and two rows of buttons. */
+.sl-markdown-content iframe.embed-number-line { aspect-ratio: auto; height: 470px; min-height: 0; }
 
 
 /* Theme-specific images: <img class="light-only"> / <img class="dark-only"> (e.g. the GitHub mark). */
@@ -355,3 +357,26 @@ dialog.lightbox img {
 	width: fit-content;
 	margin-inline: auto;
 }
+
+/* The bits of a float and a double (C++ Fast Track part 6), in the colours of the number precision demo. */
+:root { --bits-sign: #ff6b8b; --bits-float: #f6ad55; --bits-double: #c49bff; --bits-mant: #8b93a5; }
+:root[data-theme='light'] { --bits-sign: #d0103a; --bits-float: #b55f00; --bits-double: #7b3fc9; --bits-mant: #5d6474; }
+.sl-markdown-content svg.bits-diagram { display: block; width: 100%; max-width: 700px; height: auto; margin: 1.5rem auto 0; }
+.bits-diagram text { font-family: var(--sl-font-system); font-size: 14px; }
+.bits-diagram .title { font-weight: 600; font-size: 15px; }
+.bits-diagram .bit { font-family: var(--__sl-font-mono, consolas, monospace); font-size: 14px; font-weight: 600; }
+.bits-diagram .bit.small { font-size: 9px; }
+.bits-diagram .count { fill: var(--sl-color-gray-3); font-size: 12.5px; }
+.bits-diagram text.sign { fill: var(--bits-sign); }
+.bits-diagram text.float { fill: var(--bits-float); }
+.bits-diagram text.double { fill: var(--bits-double); }
+.bits-diagram text.mant { fill: var(--bits-mant); }
+.bits-diagram .field { stroke-width: 1.5; fill-opacity: 0.12; }
+.bits-diagram .field.sign { fill: var(--bits-sign); stroke: var(--bits-sign); }
+.bits-diagram .field.float { fill: var(--bits-float); stroke: var(--bits-float); }
+.bits-diagram .field.double { fill: var(--bits-double); stroke: var(--bits-double); }
+.bits-diagram .field.mant { fill: var(--bits-mant); stroke: var(--bits-mant); }
+.bits-diagram line.cell { stroke-width: 1; stroke-opacity: 0.35; }
+.bits-diagram line.cell.float { stroke: var(--bits-float); }
+.bits-diagram line.cell.double { stroke: var(--bits-double); }
+.bits-diagram line.cell.mant { stroke: var(--bits-mant); }

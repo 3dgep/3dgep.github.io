@@ -18,6 +18,7 @@
 		--uint: #4fd1c5;
 		--float: #f6ad55;
 		--double: #c49bff;
+		--sign: #ff6b8b;
 		--mono: menlo, consolas, 'DejaVu Sans Mono', monospace;
 		color-scheme: dark;
 	}
@@ -34,6 +35,7 @@
 		--uint: #0b7f74;
 		--float: #b55f00;
 		--double: #7b3fc9;
+		--sign: #d0103a;
 		color-scheme: light;
 	}
 	* { box-sizing: border-box; }
@@ -55,6 +57,9 @@
 	button:hover { border-color: var(--accent); }
 	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 	button.zoom { width: 30px; padding: 3px 0; font-weight: 700; }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
 	/* Fullscreen button (like the template's web builds): top right, faint, hidden while the mouse doesn't move. */
 	#fullscreen {
 		position: absolute; top: 8px; right: 8px; z-index: 1;
@@ -93,6 +98,7 @@
 		<div class="group" id="ranges">
 			<span>Range of:</span>
 		</div>
+		<svg class="made-by" viewBox="0 0 24 24" role="img" aria-label="Made with Claude"><title>Made with Claude</title><path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z" fill="#D97757"/></svg>
 	</div>
 </div>
 <script>
@@ -165,8 +171,8 @@ function expForm(v, digits) {
 }
 // A number with (at most) sig significant digits.
 function fmtNum(v, sig) {
-	if (v === 0) return '0';
-	if (!Number.isFinite(v)) return v > 0 ? '∞' : '−∞';
+	if (v === 0) return Object.is(v, -0) ? '−0' : '0'; // -0: a float that is rounded to 0 from below keeps its sign bit
+	if (!Number.isFinite(v)) return v > 0 ? '+∞' : '−∞';
 	const a = Math.abs(v);
 	if (a >= 1e-5 && a < 1e16) {
 		const s = v.toPrecision(sig);
@@ -177,7 +183,7 @@ function fmtNum(v, sig) {
 // The values on the ruler: as many decimals as the step between them needs.
 function rulerFormat(step, mag) {
 	const p = Math.floor(Math.log10(step) + 1e-9);
-	if (mag < 1e15 && p >= -8) {
+	if (mag < 1e15 && (p >= -8 || (mag >= 1e-4 && p >= -20))) { // plain decimals, also when zoomed in on e.g. 1
 		const decimals = Math.max(0, -p);
 		return (v) => (Math.abs(v) < step / 2 ? '0' : commas(v.toFixed(decimals)));
 	}
@@ -224,7 +230,12 @@ const pxBetween = (a, b) => { const d = a - b; return Number.isFinite(d) ? toPx(
 // neighbouring doubles are 64 px apart, and centre (a double) can only move in such steps: shift keeps the rest.
 let shift = 0;
 const xOf = (v) => W / 2 + shift + pxBetween(v, centre);
-const valueAt = (x) => centre + fromPx(x - W / 2 - shift);
+// The value at x, rounded to a double. Left of 0, a value that rounds to 0 is -0 (like any tiny negative number in C++):
+// 0 + -0 is +0, so the sign is taken from where x is.
+const valueAt = (x) => {
+	const v = centre + fromPx(x - W / 2 - shift);
+	return v === 0 && x - W / 2 - shift < -toPx(centre) ? -0 : v;
+};
 const clampShift = () => { shift = Number.isFinite(shift) ? Math.max(-W / 2, Math.min(W / 2, shift)) : 0; };
 // Move the number line dx pixels to the right: whole steps go into centre, the rest into shift.
 function pan(dx) {
@@ -247,7 +258,7 @@ function currentTheme() {
 function applyTheme() {
 	document.documentElement.dataset.theme = currentTheme();
 	const cs = getComputedStyle(document.documentElement);
-	for (const k of ['--bg', '--panel', '--text', '--muted', '--grid', '--accent', '--border', '--int', '--uint', '--float', '--double'])
+	for (const k of ['--bg', '--panel', '--text', '--muted', '--grid', '--accent', '--border', '--int', '--uint', '--float', '--double', '--sign'])
 		colors[k] = cs.getPropertyValue(k).trim();
 	requestDraw();
 }
@@ -319,7 +330,8 @@ function drawRuler(top, height) {
 function drawLane(t, top, height) {
 	const color = colors[t.color];
 	const L = edge(0), R = edge(W);
-	const baseY = Math.round(top + height * 0.6) + 0.5, tickH = Math.min(20, height * 0.3);
+	// the line: low in the lane when there is room (for the bits and the value under the cursor), with the labels below it
+	const baseY = Math.round(height >= 85 ? top + 61 : top + height * 0.6) + 0.5, tickH = Math.min(20, height * 0.3);
 
 	// title: the type, and how far apart its values are under the cursor (or in the middle of the view)
 	const s = stepAt(t, hoverX === null ? centre : valueAt(hoverX));
@@ -335,21 +347,23 @@ function drawLane(t, top, height) {
 	// the part of the line where this type has no values
 	const inL = Math.max(L, t.lo), inR = Math.min(R, t.hi);
 	ctx.strokeStyle = colors['--muted']; ctx.globalAlpha = 0.6; ctx.setLineDash([3, 4]);
+	// [from x, to x, label]: beyond its range, a float or double becomes -infinity or +infinity; an int has no value there
+	const below = t.kind === 'int' ? 'out of range' : '−∞', above = t.kind === 'int' ? 'out of range' : '+∞';
 	const outParts = [];
-	if (inL > inR) outParts.push([0, W]);
+	if (inL > inR) outParts.push([0, W, R < t.lo ? below : above]);
 	else {
-		if (L < t.lo) outParts.push([0, xOf(t.lo)]);
-		if (R > t.hi) outParts.push([xOf(t.hi), W]);
+		if (L < t.lo) outParts.push([0, xOf(t.lo), below]);
+		if (R > t.hi) outParts.push([xOf(t.hi), W, above]);
 	}
 	for (const [a, b] of outParts) {
 		ctx.beginPath(); ctx.moveTo(Math.max(0, a), baseY); ctx.lineTo(Math.min(W, b), baseY); ctx.stroke();
 	}
 	ctx.setLineDash([]); ctx.globalAlpha = 1;
 	ctx.font = `11px ${FONT}`; ctx.fillStyle = colors['--muted']; ctx.textAlign = 'center';
-	for (const [a, b] of outParts) {
+	for (const [a, b, label] of outParts) {
 		const p = Math.max(0, a), q = Math.min(W, b);
 		const hovered = hoverX !== null && hoverX >= p && hoverX <= q; // then the cursor says it
-		if (q - p > 80 && !hovered) ctx.fillText('out of range', (p + q) / 2, baseY - 7);
+		if (q - p > 80 && !hovered) ctx.fillText(label, (p + q) / 2, baseY - 7);
 	}
 
 	// the values: a tick for each value, or a solid band where they are too close together
@@ -410,8 +424,9 @@ function drawLane(t, top, height) {
 // The value that type t stores for v: the nearest value it can represent (null when v is out of range).
 function nearest(t, v) {
 	if (t.kind === 'int') return v < t.lo - 0.5 || v > t.hi + 0.5 ? null : Math.min(t.hi, Math.max(t.lo, Math.round(v)));
-	if (t.bits === 32) { const f = Math.fround(v); return Number.isFinite(f) ? f : null; }
-	return Number.isFinite(v) ? v : null;
+	// a float or double: beyond the largest value, the value is rounded to +infinity (or -infinity), like in C++
+	if (t.bits === 32) return Math.fround(v);
+	return v;
 }
 // A label with a background, next to the cursor line (on the right side, or on the left near the right edge).
 function pill(text, x, y, color, font) {
@@ -424,8 +439,41 @@ function pill(text, x, y, color, font) {
 	ctx.fillText(text, left + 5, y + 0.5);
 	ctx.textBaseline = 'alphabetic';
 }
+// The bits of value n of type t, in fields: the sign bit, and the exponent and mantissa of a float or double.
+function bitsOf(t, n) {
+	const bin = (u, len) => (u >>> 0).toString(2).padStart(len, '0');
+	if (t.kind === 'int') {
+		const b = bin(n, 32);
+		return t.lo < 0 ? [['sign', b.slice(0, 1)], ['int', b.slice(1)]] : [['int', b]]; // int: the first bit is the sign bit (two's complement)
+	}
+	let b;
+	if (t.bits === 32) b = bin(new Uint32Array(new Float32Array([n]).buffer)[0], 32);
+	else { const u = new Uint32Array(new Float64Array([n]).buffer); b = bin(u[1], 32) + bin(u[0], 32); } // (little endian: u[1] holds the high bits)
+	const e = t.bits === 32 ? 8 : 11;
+	return [['sign', b.slice(0, 1)], ['exponent', b.slice(1, 1 + e)], ['mantissa', b.slice(1 + e)]];
+}
+// A label with the bits, in groups of 4 (like hexadecimal digits). The fields have their own colour: the sign bit
+// (the same colour in every lane), the exponent (the colour of the lane) and the mantissa.
+function bitsPill(fields, x, y, color) {
+	ctx.font = `10.5px ${MONO}`;
+	const cw = ctx.measureText('0').width, gap = cw * 0.45, h = 16;
+	const fieldColor = { sign: colors['--sign'], exponent: color, mantissa: colors['--muted'], int: color };
+	const bits = [];
+	for (const [kind, b] of fields) for (const c of b) bits.push([kind, c]);
+	const w = 10 + bits.length * cw + (bits.length / 4 - 1) * gap;
+	let left = x + 6 + w > W ? x - 6 - w : x + 6;
+	left = Math.max(2, Math.min(W - w - 2, left));
+	ctx.fillStyle = colors['--panel']; ctx.strokeStyle = color; ctx.lineWidth = 1;
+	ctx.beginPath(); ctx.roundRect(Math.round(left) + 0.5, Math.round(y - h / 2) + 0.5, Math.round(w), h, 4); ctx.fill(); ctx.stroke();
+	ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+	bits.forEach(([kind, c], i) => {
+		ctx.fillStyle = fieldColor[kind];
+		ctx.fillText(c, left + 5 + i * cw + Math.floor(i / 4) * gap, y + 0.5);
+	});
+	ctx.textBaseline = 'alphabetic';
+}
 // The cursor: a line through all lanes, the value under the cursor, and the value that each type stores for it.
-function drawCursor(x, rulerH, baselines) {
+function drawCursor(x, rulerH, baselines, tops) {
 	const v = valueAt(x);
 	ctx.strokeStyle = colors['--text']; ctx.globalAlpha = 0.55; ctx.lineWidth = 1;
 	ctx.beginPath(); ctx.moveTo(snap(x), rulerH - 6); ctx.lineTo(snap(x), H - 22); ctx.stroke();
@@ -442,6 +490,7 @@ function drawCursor(x, rulerH, baselines) {
 			ctx.beginPath(); ctx.arc(nx, y, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 		}
 		pill(t.kind === 'int' ? commas(String(n)) : fmtNum(n, t.sig), x, y - 12, color, `600 11px ${MONO}`); // above the line, like "out of range"
+		if (y - 39 >= tops[i] + 21) bitsPill(bitsOf(t, n), x, y - 31, color); // the bits, above the value (when the lane has room)
 	});
 }
 
@@ -455,7 +504,8 @@ function draw() {
 	for (const x of grid) { ctx.moveTo(x, rulerH); ctx.lineTo(x, H - 22); }
 	ctx.stroke();
 	const baselines = TYPES.map((t, i) => drawLane(t, rulerH + i * laneH, laneH));
-	if (hoverX !== null) drawCursor(hoverX, rulerH, baselines);
+	const tops = TYPES.map((t, i) => rulerH + i * laneH);
+	if (hoverX !== null) drawCursor(hoverX, rulerH, baselines, tops);
 	ctx.font = `11.5px ${FONT}`; ctx.fillStyle = colors['--muted']; ctx.textAlign = 'left';
 	ctx.fillText(W < 520 ? 'Pinch or scroll to zoom, drag to move' : 'Scroll or pinch to zoom, drag to move, and point at the number line to see the values that are stored.', 10, H - 7);
 }
@@ -571,12 +621,14 @@ function flyTo(c1, u1) {
 }
 // [label, centre, units per pixel]: computed when the button is clicked, because they depend on the width of the view
 const PLACES = [
+	['0', () => [0, pow2(-149) * 30 / W]],
 	['0 … 10', () => [5, 12 / W]],
 	['0.1', () => [0.1, pow2(-27) * 7 / W]],
 	['2²⁴', () => [16777216, 24 / W]],
 	['1 day in ms', () => [86400000, 160 / W]],
 	['10²⁰', () => [1e20, pow2(43) * 14 / W]],
-	['near 0', () => [0, pow2(-149) * 30 / W]],
+	['FLT_EPSILON', () => [1, pow2(-23) * 10 / W]], // 1: floats are 2^-23 apart above it, 2^-24 below it
+	['DBL_EPSILON', () => [1, pow2(-52) * 10 / W]],
 ];
 const whole = (t) => () => [t.lo / 2 + t.hi / 2, (t.hi / 2 - t.lo / 2) / (W * 0.45)]; // the whole range, with a margin
 const RANGES = TYPES.map((t) => [t.name, whole(t)]);

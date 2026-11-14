@@ -8,20 +8,54 @@ hero:
   image:
     file: ../../assets/logo.png
     alt: 3DGEP logo
+  # Links to the sections below (plain links, not buttons), then GitHub.
   actions:
-    - text: Start with DirectX 12
-      link: /learning-directx-12-1/
-      icon: right-arrow
-    - text: Browse articles
-      link: '#articles'
-      variant: secondary
+    - text: C++ Fast Track
+      link: '#cpp-fast-track'
+      variant: minimal
+      attrs:
+        class: home-section-link
+    - text: C++
+      link: '#more-cpp'
+      variant: minimal
+      attrs:
+        class: home-section-link
+    - text: DirectX 12
+      link: '#directx-12'
+      variant: minimal
+      attrs:
+        class: home-section-link
+    - text: DirectX 11
+      link: '#directx-11'
+      variant: minimal
+      attrs:
+        class: home-section-link
+    - text: OpenGL
+      link: '#opengl'
+      variant: minimal
+      attrs:
+        class: home-section-link
+    - text: Rendering Techniques
+      link: '#rendering-techniques'
+      variant: minimal
+      attrs:
+        class: home-section-link
+    - text: Math
+      link: '#math'
+      variant: minimal
+      attrs:
+        class: home-section-link
+    - text: GPGPU
+      link: '#gpgpu'
+      variant: minimal
+      attrs:
+        class: home-section-link
     - text: GitHub
       link: https://github.com/3dgep
       icon: github
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
 import ArticleCard from '../../components/ArticleCard.astro';
 
 import dx12Lesson1 from '../../assets/DirectX-12-Logo.png';
@@ -48,20 +82,6 @@ import cudaMemory from '../../assets/CUDA-memory-model.gif';
 import cudaOptimizing from '../../assets/shared-memory-bank-conflicts-linear-addressing.png';
 import nBody from '../../assets/N-Body-Simulation.jpg';
 import openCL from '../../assets/OpenCL-Platform-Model1.png';
-
-<div class="home-features">
-<CardGrid>
-	<Card title="Step-by-step series" icon="open-book">
-		Each lesson builds on the previous one, from an empty window to a complete rendering framework.
-	</Card>
-	<Card title="Real, tagged source code" icon="seti:cpp">
-		Code snippets come straight from tagged releases on GitHub, with line numbers that match the files.
-	</Card>
-	<Card title="Rendering techniques" icon="rocket">
-		Forward, deferred and tiled forward rendering, up to volume tiled shading with millions of lights.
-	</Card>
-</CardGrid>
-</div>
 
 <h2 id="course" class="home-section-title">Online course</h2>
 
@@ -110,7 +130,7 @@ import openCL from '../../assets/OpenCL-Platform-Model1.png';
 		description="Implicit and explicit linking of DLLs, exporting classes and functions, and a plug-in system with LoadLibrary." />
 </div>
 
-<h2 id="articles" class="home-section-title">Learning DirectX 12</h2>
+<h2 id="directx-12" class="home-section-title">Learning DirectX 12</h2>
 
 <p class="home-series-intro">
 	Build a DirectX 12 application from scratch: devices, command queues and fences, resources and pipeline state,

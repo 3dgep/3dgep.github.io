@@ -33,7 +33,7 @@ Your `Game::Tick` function should look like this now:
 
 In [the last lesson](/cpp-fast-track-4-sprites-and-loops/), you put a sprite on the screen. Let's do that again, with a ball this time. Add the highlighted lines to `game.hpp`, below the `rotatingGun` sprite:
 
-```cpp source="tmpl8-part-05/game.hpp#L42-L47" {5-6}
+```cpp source="tmpl8-part-05/game.hpp#L43-L48" {5-6}
 ```
 
 The image `ball.png` contains just one ball, so the sprite has just one frame. Make your `Game::Tick` function look like this:

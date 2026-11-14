@@ -130,7 +130,7 @@ By the way, why did the `int x = 100;` line have to move outside the `Tick` func
 
 A function is a piece of code with a name. You have seen three of them so far: `Game::Init`, `Game::Tick`, and `Game::Shutdown`. We can create our own too. Add the highlighted line to the `game.hpp` header file:
 
-```cpp source="tmpl8-part-03/game.hpp#L14-L17" {3}
+```cpp source="tmpl8-part-03/game.hpp#L15-L18" {3}
 ```
 
 You can put it in many correct places, but between the `Shutdown` and `Tick` functions is probably a good place. This line *declares* the function: it tells the compiler that the `Game` has a function called `DrawI`, which needs two whole numbers, `x` and `y`. Everything after `//` is a comment.

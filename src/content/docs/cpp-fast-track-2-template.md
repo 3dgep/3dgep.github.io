@@ -82,7 +82,7 @@ Even though this is just a small program, there's a lot to say about it. Most (a
 -   There's also a `Shutdown` function, which is executed only once: when the program ends (e.g. when you press Escape).
 -   `rotatingGun` (the spinning gun turret) and `frame` (which of its 36 images is shown) are used in `Tick`, but you won't find them in `game.cpp`: they are part of the `Game`, so they are in `game.hpp`, together with `screen`:
 
-    ```cpp source="tmpl8-part-02/game.hpp#L39-L44"
+    ```cpp source="tmpl8-part-02/game.hpp#L40-L45"
     ```
 
     `rotatingGun` is a *sprite*, loaded from the image `assets/aagun.tga`, which contains 36 frames (the turret in 36 directions). `frame` starts at `0`. You'll learn all about classes like `Game` in a later part; for now, remember that this is where they live.

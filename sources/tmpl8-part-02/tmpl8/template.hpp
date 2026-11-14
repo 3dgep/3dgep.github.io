@@ -15,6 +15,10 @@ constexpr int ScreenHeight = 512;
 // Alt+Enter or F11 switches between fullscreen and a window while the game runs.
 constexpr bool StartFullscreen = false;
 
+// VSync: wait for the screen before showing the next frame, so the game runs at the refresh rate of the screen
+// (e.g. 60 frames per second). Set to false to draw as many frames per second as the computer can.
+constexpr bool StartVSync = true;
+
 // Shown in the window title. Make sure you are using the most recent version.
 constexpr const char* TemplateVersion = "Tmpl8 v2026-11";
 
@@ -43,6 +47,12 @@ constexpr float PI = 3.14159265358979323846f;
 void SetFullscreen( bool fullscreen );
 bool IsFullscreen();
 void ToggleFullscreen();
+
+// VSync (see StartVSync). In a browser, the browser always waits for the screen: there, these do nothing,
+// and IsVSync() is always true.
+void SetVSync( bool vsync );
+bool IsVSync();
+void ToggleVSync();
 
 // A 2D vector: a position, a direction or a velocity.
 struct vec2

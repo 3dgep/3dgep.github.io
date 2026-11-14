@@ -33,7 +33,7 @@ Let's see if we can draw something more interesting than a line this time. We'd 
 
 Here's how you make your own. Open `game.hpp`, and add the highlighted lines below the `rotatingGun` sprite:
 
-```cpp source="tmpl8-part-04/game.hpp#L42-L47" {5-6}
+```cpp source="tmpl8-part-04/game.hpp#L43-L48" {5-6}
 ```
 
 This creates a `Sprite` called `tank`, from the image `ctankbase.tga`, which you can find in the `assets` folder of the template. This is what that image looks like:

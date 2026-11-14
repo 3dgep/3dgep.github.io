@@ -2,208 +2,249 @@
 title: "C++ Fast Track for Games Programming Part 6: Floats"
 description: "Floats: calculate with decimal numbers instead of integers, and what that means for movement and precision."
 slug: cpp-fast-track-6-floats
-lastUpdated: 2022-12-05
+lastUpdated: 2026-11-14
 ---
 
-<span id="attachment-8103"></span><img src="/images/cpp-logo.png" alt="C++ Fast-track" width="150" class="thumb" />
+<img src="/images/cpp-logo.png" alt="C++ Fast Track" width="150" class="thumb" />
 
-In this tutorial, we’re going to look at how you can get the computer to calculate with decimal values (numbers like 3.14, called floats), instead of only integral values (numbers like 3, called integers).
+In this tutorial, we're going to look at how you can get the computer to calculate with decimal values (numbers like 3.14, called *floats*), instead of only whole numbers (numbers like 3, called *integers*).
 
 ## Getting the Stuff You Need
 
-If you don’t have it yet, get the template package:
+If you don't have it yet, get the template package:
 
 [<img src="/images/github-mark.svg" alt="GitHub" width="120" class="thumb light-only" /><img src="/images/github-mark-white.svg" alt="GitHub" width="120" class="thumb dark-only" />https://github.com/3dgep/tmpl8](https://github.com/3dgep/tmpl8)
 
 [<img src="/images/zip1.png" alt="Download tmpl8 as a zip file" width="120" class="thumb" />tmpl8-main.zip](https://github.com/3dgep/tmpl8/archive/refs/heads/main.zip)
 
-As usual, extract the package to a fresh directory (say, `C:\Projects\floats` or where ever you keep your projects) and load up the `.sln` file. Remove the *hello world* code in the `Game::Tick` function in `game.cpp`:
+As usual, start with a fresh copy of the template: extract the zip file to `C:\Projects\C++ Fast Track`, and rename the `tmpl8-main` folder to `Part 6`. Open `tmpl8.slnx` in the `C:\Projects\C++ Fast Track\Part 6` folder, and remove the *hello world* code from the `Game::Tick` function in `game.cpp`:
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=27
+```cpp title="game.cpp" showLineNumbers startLineNumber=24
     void Game::Tick(float deltaTime)
     {
-
     }
 ```
 
 ## Balls Again
 
-Before we start working with floats, let’s setup things so we can show something interesting. Let’s load a `Sprite` again!  
-Add a `Sprite` variable **above** the `Tick` function like this:
+Before we start working with floats, let's set things up so that we can show something interesting. Let's load the ball sprite again! Add the highlighted lines to `game.hpp`, below the `rotatingGun` sprite, just like in the [previous part](/cpp-fast-track-5-conditions/):
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=27 {1}
-Sprite theSprite( new Surface("assets/ball.png"), 1 );
-void Game::Tick( float deltaTime )
-{
-    ...
+```cpp source="tmpl8-part-06/game.hpp#L43-L48" {5-6}
 ```
 
 :::note
-You may have noticed that some images are in `.tga` files, while others are in `.png` files. These are image file formats. Other formats are: `.gif`, `.jpg`, `.bmp`, and many others exist. Each format has advantages and disadvantages: `.gif` is small but can store only 256 unique colors; `.jpg` is often even smaller but is *lossy*, which means that it is only an approximation of the original image, `.tga` has a really simple internal layout.
+You may have noticed that some images are `.tga` files, while others are `.png` files. These are image file formats. Other formats are `.gif`, `.jpg` and `.bmp`, and many others exist. Each format has advantages and disadvantages: `.gif` is small, but can store only 256 different colours; `.jpg` is often even smaller, but it is *lossy*, which means that it is only an approximation of the original image; `.png` is not lossy, and is supported by almost every program; `.tga` has a really simple internal layout.
 
-The template loads images using a library, in this case the [FreeImage](https://freeimage.sourceforge.io/) library. A library is a collection of useful code that we can include in our project. Have a look at `Surface::LoadImage` (in surface.cpp, line 51) to see how [FreeImage](https://freeimage.sourceforge.io/) is used to load image files to a surface.
+The template loads images with a library, [stb_image](https://github.com/nothings/stb). A library is a collection of useful code that we can include in our project. Have a look at `Surface::LoadImage` (in `surface.cpp`, line 147) to see how `stbi_load` is used to load an image file into a surface.
 :::
 
-Now make your `Tick` function like this:
+Now make the `Tick` function like this, with two variables above it:
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=28
-int spriteY = 0, speed = 1;
-void Game::Tick( float deltaTime )
-{
-    screen->Clear( 0 );
-    spriteY += speed++;
-    if (spriteY > (512 - 50))
+```cpp title="game.cpp" showLineNumbers startLineNumber=24
+    int spriteY = 0, speed = 1;
+    void Game::Tick(float deltaTime)
     {
-        spriteY = 512 - 50;
-        speed = (-speed * 40) / 50;
+        screen.Clear(0);
+        spriteY += ++speed;
+        if (spriteY > (512 - 50))
+        {
+            spriteY = 512 - 50;
+            speed = (-speed * 40) / 50;
+        }
+        ball.Draw(screen, 20, spriteY);
     }
-    theSprite.Draw( screen, 20, spriteY );
-}
 ```
 
-Some interesting things here: the code to add `speed` to `spriteY` on line 30 are collapsed into a single line by using the increment operation (`speed++`). This translates to: use speed here, and increment it right after obtaining its value. Alternatively, we can write: `++speed`, which first increments the value, and then uses the already incremented value.
+<iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-6-int-bounce/index.html" title="A ball that bounces lower and lower, until it lies still on the bottom" loading="lazy" allowfullscreen></iframe>
 
-The bouncing also contains an interesting construct: the inverted speed is multiplied by `40`, then divided by `50`. Why? To dampen it: the ball will now lose energy. Alternatively, we could have written:
+<div class="caption">
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=36
-speed = -speed * 0.8;
+The ball loses some of its speed at every bounce. (This demo starts again every 10 seconds.)
+
+</div>
+
+Some interesting things here. First, `int spriteY = 0, speed = 1;` declares two variables of the same type in one line.
+
+Then, the two lines from the [previous part](/cpp-fast-track-5-conditions/) that increase `speed` and add it to `spriteY` are collapsed into a single line on line 28, with the *increment* operator: `++speed` first adds 1 to `speed`, and then uses its new value. Just like in the previous part: first the speed, then the position. You can also write `speed++`, but that means something different: use the current value of `speed`, and add 1 to it *after* that. So `spriteY += speed++;` would move the ball first, and increase the speed after that.
+
+The bouncing also contains an interesting construct: the inverted speed is multiplied by `40`, and then divided by `50`. Why? To dampen it: the ball now loses some of its energy at every bounce, so every bounce is lower than the previous one, until the ball lies still. Alternatively, we could have written:
+
+```cpp title="game.cpp" showLineNumbers startLineNumber=32
+            speed = -speed * 0.8;
 ```
 
-But that is not the same thing. Try that line, and instead of hitting F5 to run the application, hit (Ctrl + F7, or select **Build > Compile** from the main menu) to just build the source file that is currently open in the editor. The compiler will give you a warning:
+But that is not the same thing. Try that line, and instead of pressing F5 to run the program, press Ctrl+F7 (or select *Build > Compile* in the main menu) to compile just the source file that is open in the editor. The compiler gives you a warning:
 
-`1>game.cpp(32): warning C4244: '=': conversion from 'double' to 'int', possible loss of data`
+<img src="/images/cpp-fast-track-6/01-warning.png" alt="Visual Studio with warning C4244 in the Error List: conversion from double to int, possible loss of data" width="1151" height="655" class="screenshot" />
 
-The `speed` variable is of type `int` (integer, $\mathbb{Z}$), which means that it can store whole numbers only. So when we perform a calculation that involves a *real* number ($\mathbb{R}$), the processor has to truncate the result to the nearest whole number, which is a potential loss of precision; hence the warning.
+<div class="caption">
+
+Warning C4244: `'=': conversion from 'double' to 'int', possible loss of data`.
+
+</div>
+
+The `speed` variable is an `int` (an integer, $\mathbb{Z}$), which means that it can store whole numbers only. `0.8` is a *real* number ($\mathbb{R}$) with a fraction (in C++, a `double`), so `-speed * 0.8` has a fraction too. When that result is stored in `speed`, the fraction has to be dropped (the value is *truncated*: `-12.8` becomes `-12`), which is a potential loss of precision; hence the warning. If you don't see the warning in the *Error List* at the bottom of the window, click its *Warnings* button: the warnings may be hidden.
 
 ## Switching to Floats
 
-Let’s convert our program so that it uses `float`s. Here is the code:
+Let's convert our program so that it uses `float` variables. Here is the code:
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=28 {1,5,6,10}
-float spriteY = 0, speed = 1;
-void Game::Tick( float deltaTime )
-{
-    screen->Clear( 0 );
-    spriteY += speed;
-    speed += 1.0f;
-    if (spriteY > (512 - 50))
+```cpp title="game.cpp" showLineNumbers startLineNumber=24 {1,5-6,10}
+    float spriteY = 0, speed = 1;
+    void Game::Tick(float deltaTime)
     {
-        spriteY = 512 - 50;
-        speed = -speed * 0.8f;
+        screen.Clear(0);
+        speed += 1.0f;
+        spriteY += speed;
+        if (spriteY > (512 - 50))
+        {
+            spriteY = 512 - 50;
+            speed = -speed * 0.8f;
+        }
+        ball.Draw(screen, 20, spriteY);
     }
-    theSprite.Draw( screen, 20, spriteY );
-}
 ```
 
-Not a lot changed: incrementing speed with `++` doesn’t work with floats, so it was put back on its own on line 33, and the damping now done using `0.8f` on line 37. The code also still does the same thing. So what’s the big deal?
+Not a lot changed: `speed` gets larger with `+= 1.0f` on line 28 (the `f` makes `1.0f` a `float` number instead of a `double`), and the damping is now done by multiplying with `0.8f` on line 33. The code still does the same thing. So what's the big deal?
 
-Well, in the previous version, speed could only be an integer value (1, 2, 3, etc…), making the ball bounce slower than 1 would be a bit of a problem. With floats, we totally have that option. We can for instance have a low gravity bounce by adding `0.1f` to speed. Or, we can adapt to the current frame rate.
+Well, in the previous version, `speed` could only be a whole number (1, 2, 3, ...), so making the ball fall slower than 1 pixel per frame would be a bit of a problem. With floats, we totally have that option. We can for instance have a low gravity bounce by adding `0.1f` to `speed`:
 
-:::caution
-We fixed the warning that was occuring on line 32, but now we are getting a warning on line 39 where the sprite is drawn. Why?
-
-`Sprite::Draw` expects integer coordinates for the sprite. Sending it a `float` value where it is expecting an `int` forces the processor to truncate the value. To prevent the warning, we can do the truncation ourselves, so that it is clear that the loss of precision is intentional. We do this by *casting* the `float` value to an `int` by adding `(int)` in front of `spriteY` on line 39:
-
-```cpp title="game.cpp" showLineNumbers startLineNumber=39
-        theSprite.Draw(screen, 20, (int)spriteY);
+```cpp title="game.cpp" showLineNumbers startLineNumber=28
+        speed += 0.1f;
 ```
 
-Likewise, we can *cast* an `int` value to a `float`:
+<iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-6-low-gravity/index.html" title="A ball that falls and bounces slowly, as if on the moon" loading="lazy" allowfullscreen></iframe>
 
-```cpp showLineNumbers
+<div class="caption">
+
+Low gravity: the speed increases by only 0.1 pixels per frame in every frame. (This demo starts again every 30 seconds.)
+
+</div>
+
+Or, we can adapt the speed to the frame rate. More about that below.
+
+:::caution[Another warning]
+We fixed the warning on line 32, but now there is a warning on line 35, where the ball is drawn: `'argument': conversion from 'float' to 'int', possible loss of data`. Why?
+
+`Sprite::Draw` expects integer coordinates (a pixel position on the screen). Giving it a `float` value where it expects an `int` makes the compiler drop the fraction. To prevent the warning, we can drop the fraction ourselves, so that it is clear that the loss of precision is intentional. We do this by *casting* the `float` value to an `int` with `static_cast<int>(...)`:
+
+```cpp title="game.cpp" showLineNumbers startLineNumber=35
+        ball.Draw(screen, 20, static_cast<int>(spriteY));
+```
+
+You will also see the older way of writing a cast: `(int)spriteY`. It does the same thing here, but `static_cast` is easier to spot in your code, and the compiler checks it more strictly.
+
+Likewise, we can cast an `int` value to a `float`:
+
+```cpp
 int a = 300;
-float b = (float)a;
+float b = static_cast<float>(a);
 ```
 
-This seems useless: the compiler would not warn us of such a conversion (since no precision is lost). However, you need to be aware that this conversion is happening: conversions take time, and can be a performance issue once we start executing complex applications.
+This seems useless: the compiler doesn't warn us about this conversion, even without the cast. However, you need to be aware that this conversion happens: conversions take time, and they can become a performance issue once we start writing complex applications.
 :::
 
-## Fraps
+With the cast, the float version bounces like this:
 
-The bouncing ball application probably runs at 60 Frames Per Second (FPS) on your machine. You can verify this using a tool called [Fraps](https://fraps.com/).
-
-You can download Fraps for free here: [https://fraps.com/](https://fraps.com/). When you start the application, it looks like this:
-
-<span id="attachment-9769"></span>
-
-![Fraps](../../assets/FRAPS.png)
+<iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-6-float-bounce/index.html" title="A ball that bounces lower and lower, calculated with floats" loading="lazy" allowfullscreen></iframe>
 
 <div class="caption">
 
-Also great for recording videos of your work for educational evidence or for your game programming portfolio.
+The same bounce, now with floats. (This demo starts again every 10 seconds.)
 
 </div>
 
-Click on the *99 FPS* tab. Now start your application again. Fraps adds a framerate counter, which should confirm that you are indeed running at 60 frames per second. This is not a limit of the template; typically this is limited by the refresh rate of your screen. Let’s remove this restriction. For that, we need to modify the template somewhat. This is going to get ugly…
+## Frames per Second
 
-Open `template.cpp` and locate the `main` function. This is where a template application starts. Right after the opening bracket of this function we are going to add a line:
+How fast does our program run? The ball moves by `speed` pixels in every frame, so how fast it moves on the screen depends on how many frames per second (*FPS*) your computer draws. Let's print that in the window. The `deltaTime` value that `Tick` gets is the time since the previous frame, in milliseconds, so `1000.0f / deltaTime` is the number of frames per second. Add `#include <format>` to the top of `game.cpp`:
 
-```cpp title="template.cpp" showLineNumbers startLineNumber=301 {3}
-int main( int argc, char **argv ) 
-{  
-    SDL_SetHintWithPriority(SDL_HINT_RENDER_VSYNC, "0", SDL_HINT_OVERRIDE);
+```cpp source="tmpl8-part-06/game.cpp#L1-L4" {3}
 ```
 
-This line tells **SDL2** (another library the template uses) to disable the *VSync*.
+and add this line right below `screen.Clear(0);` in the `Tick` function:
 
-What is *VSync* anyways? Well, old-skool monitors produced images by aiming an electron beam at a glass plate (and then your eyes). This beam zig-zagged over the pixels to light them up. At the bottom of the screen, this beam stops, and returns to the top-left corner. This is called the *vertical retrace*. This is the perfect moment to start displaying a new image; only during the retrace swapping can be done without tearing. So *synchronising* frames to this retrace is useful. Modern monitors simulate this retrace, typically at 60 Hz. Synchronising to the refresh rate of your screen limits your framerate to 60 (or 120 Hz if you have a 120 Hz monitor).
+```cpp source="tmpl8-part-06/game.cpp#L31"
+```
 
-<span id="attachment-9770"></span>
+`std::format` makes a piece of text in which the `{}` is replaced by the value after it. The `:.0f` inside the `{}` means: show the `float` value with 0 digits after the decimal point.
 
-![Unlocked frame rates](../../assets/1500FPS.png)
+<iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-6-fps/index.html" title="The bouncing ball, with the frame rate in the top-left corner" loading="lazy" allowfullscreen></iframe>
 
 <div class="caption">
 
-By disabling VSync, we can achieve unlocked frame rates.
+The frame rate in the top-left corner. (This demo starts again every 10 seconds.)
 
 </div>
 
-Now that we have lifted the limitation we can reach much higher framerates: on my system, I get ~1500 FPS. But there’s more. 🙂
+You will probably see 60 FPS (or 120, or 144, if you have a fast monitor). This is not a limit of your computer: the template waits for your screen before it shows the next frame, and your screen shows a fixed number of frames per second (60 Hz, 120 Hz or 144 Hz). This is called *VSync*, and you can switch it off. Add this line at the top of the `Tick` function:
 
-In the file `template.h` you will find a line that reads:
-
-```cpp title="template.h" showLineNumbers startLineNumber=14
-// #define ADVANCEDGL
+```cpp source="tmpl8-part-06/game.cpp#L29"
 ```
 
-The start of this line indicates that it is a comment. This is a popular way to leave functionality in a source file without enabling it. We can apply the setting by removing the slashes:
+`GetKeyPressed` is `true` in the frame in which you press a key (you saw it in [part 2](/cpp-fast-track-2-template/), with the space bar), and `ToggleVSync()` switches VSync on when it's off, and off when it's on. Run the program, and press V to switch VSync off (and press V again to switch it back on).
 
-```cpp title="template.h" showLineNumbers startLineNumber=14
-#define ADVANCEDGL
+The template has more functions like this: `SetVSync(false)` switches VSync off, and `IsVSync()` tells you whether it's on. If you want the template to start without VSync, set `StartVSync` to `false` in `template.hpp`:
+
+```cpp source="tmpl8-part-06/tmpl8/template.hpp#L18-L20"
 ```
 
-Now run the application again. This setting enables a faster internal code path of the template. Sadly, this code path is not compatible with all graphics adaptors, and in some cases you may see a reduced frame rate, like I did, which is why it is disabled by default. On my machine it works, but now I get ~600 FPS.
+What is *VSync* anyway? Well, old-skool monitors produced images by aiming an electron beam at a glass plate (and then your eyes). This beam zig-zagged over the pixels to light them up. At the bottom of the screen, this beam stops and returns to the top-left corner. This is called the *vertical retrace*. This is the perfect moment to start showing a new image: only during the retrace can the image be swapped without *tearing* (showing half of the old image and half of the new one). So *synchronising* frames to this retrace is useful. Modern monitors don't have an electron beam, but they still show a new image at a fixed rate, typically 60 times per second (60 Hz). Synchronising to the refresh rate of your screen limits your frame rate to 60 frames per second (or 120 if you have a 120 Hz monitor).
 
-<span id="attachment-9771"></span>
+Without VSync (press V), the template doesn't wait for your screen any more, so it can reach much higher frame rates: hundreds or even thousands of frames per second, depending on your computer.
 
-![](../../assets/600FPS.png)
+<img src="/images/cpp-fast-track-6/02-vsync-off.png" alt="The game window with VSync off: thousands of frames per second in the top-left corner, and the ball already lying still on the bottom" width="800" height="512" class="screenshot" />
 
 <div class="caption">
 
-When enabling OpenGL, the screen’s framebuffer is copied to the GPU for direct display. Depending on your CPU and operating system, you may or may not see a performance improvement.
+With VSync off, the ball has bounced to a stop before you know it. (Your frame rate will be different: it depends on your computer.)
 
 </div>
 
-It is important to continually monitor the performance of your application so that you know if a change you have made had a positive or negative impact on the performance. But keep in mind that what works well on your PC, may not work the same way on everyone’s PC.
+:::note
+This only works on your computer: in a web browser, the browser decides when a frame is shown, and that's always in step with your screen. That's why the demos on this page show your screen's refresh rate.
+:::
+
+It is important to keep an eye on the performance of your program, so that you know whether a change you made had a positive or a negative impact on the performance. But keep in mind that what works well on your PC may not work the same way on everyone's PC.
 
 ## Too Fast to be Fun
 
-By now, the ball sprite is bouncing frantically on your screen. We could easily reduce its speed, but by how much? One system runs at 450 FPS, another at 700 FPS, and perhaps your ancient Asus EEE is barely able to achieve 60 FPS…
+By now, the ball is bouncing frantically on your screen. We could easily reduce its speed, but by how much? One computer runs at a few hundred FPS, another at thousands, and perhaps an old laptop barely reaches 60 FPS...
 
 We can solve that.
 
 Add the following line at the top of your `Game::Tick` function:
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=29 {2}
-    void Game::Tick(float deltaTime)
-    {
-        printf("%f\n", deltaTime);
+```cpp source="tmpl8-part-06/game.cpp#L26-L29" {3}
 ```
 
-This prints the value of the mysterious `deltaTime` variable that we had available since the start of this course. The numbers that you see in the console window are the frame durations, in milliseconds. In other words: we know how much time has elapsed since the previous call to the `Tick` function.
+Run the program, and press V to switch VSync off.
 
-And that is very useful if you want something to move over the screen at a constant speed, regardless of framerate. Which takes us directly to the…
+This prints the value of the mysterious `deltaTime` variable that the `Tick` function has had since the start of this course:
+
+<img src="/images/cpp-fast-track-6/03-deltatime-console.png" alt="The console window, with numbers around 0.3 printed below each other" width="976" height="268" class="screenshot" />
+
+<div class="caption">
+
+The time per frame, in milliseconds. (Your numbers will be different: they depend on your computer.)
+
+</div>
+
+The numbers in the console window are the frame durations, in milliseconds. In other words: we know how much time has passed since the previous call to the `Tick` function.
+
+And that is very useful if you want something to move over the screen at a constant speed, regardless of the frame rate. If the ball should move 0.06 pixels per millisecond, it should move `0.06f * deltaTime` pixels in this frame: few pixels in a short frame, more pixels in a long frame. The same goes for the speed: gravity should change it by a certain amount per millisecond. Which takes us directly to the...
 
 ## Assignment
 
-Convert the bouncing ball application to floating point. Make sure that the ball moves at a constant speed, regardless of frame-rate. Make sure your code compiles without compiler warnings.
+Convert the bouncing ball program to floats, with the speed and the gravity per millisecond instead of per frame. Make sure that the ball moves at the same speed, regardless of the frame rate: try it with VSync on and off. And make sure that your code compiles without compiler warnings.
+
+When it works, it looks like this, at any frame rate:
+
+<iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-6-assignment/index.html" title="The bouncing ball, moving at the same speed at any frame rate" loading="lazy" allowfullscreen></iframe>
+
+<div class="caption">
+
+The ball bounces at the same speed, whatever the frame rate. (This demo starts again every 10 seconds.)
+
+</div>
+
+Once you have completed this assignment, you may continue with the next part.

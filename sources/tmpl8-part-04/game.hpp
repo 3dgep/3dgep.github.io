@@ -1,6 +1,7 @@
 #pragma once
 
 #include "surface.hpp"
+#include "template.hpp" // ScreenWidth/Height, Rand, vec2, fullscreen and VSync
 
 #include <SDL3/SDL_scancode.h>
 #include <bitset>

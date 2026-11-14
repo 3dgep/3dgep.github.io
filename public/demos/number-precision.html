@@ -55,6 +55,17 @@
 	button:hover { border-color: var(--accent); }
 	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 	button.zoom { width: 30px; padding: 3px 0; font-weight: 700; }
+	/* Fullscreen button (like the template's web builds): top right, faint, hidden while the mouse doesn't move. */
+	#fullscreen {
+		position: absolute; top: 8px; right: 8px; z-index: 1;
+		width: 34px; height: 34px; padding: 6px; border-radius: 6px;
+		background: var(--panel); color: var(--text); opacity: 0.45; transition: opacity 0.3s;
+	}
+	#fullscreen:hover, #fullscreen:focus-visible { opacity: 0.95; }
+	#fullscreen.idle:not(:hover):not(:focus-visible) { opacity: 0; pointer-events: none; }
+	#fullscreen svg { display: block; width: 100%; height: 100%; }
+	#fullscreen .exit, :fullscreen #fullscreen .enter { display: none; }
+	:fullscreen #fullscreen .exit { display: block; }
 </style>
 </head>
 <body>
@@ -62,6 +73,14 @@
 	<div id="view">
 		<canvas id="canvas" tabindex="0" role="img"
 			aria-label="Zoomable number line with a lane for int, unsigned int, float and double, showing every value each type can store"></canvas>
+		<button id="fullscreen" type="button" title="Fullscreen (F11)" aria-label="Toggle fullscreen" hidden>
+			<svg class="enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+				<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>
+			</svg>
+			<svg class="exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+				<path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/>
+			</svg>
+		</button>
 	</div>
 	<div id="bar">
 		<div class="group">
@@ -571,6 +590,29 @@ function addButtons(box, list) {
 }
 addButtons(document.getElementById('presets'), PLACES);
 addButtons(document.getElementById('ranges'), RANGES);
+
+// Fullscreen: the button, or F11 (only when the browser allows fullscreen, e.g. not in an iframe without allowfullscreen).
+(function () {
+	const button = document.getElementById('fullscreen');
+	if (!document.fullscreenEnabled) return;
+	button.hidden = false;
+	const toggle = () => {
+		if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+		else document.documentElement.requestFullscreen().catch(() => {});
+	};
+	button.addEventListener('click', () => { toggle(); button.blur(); canvas.focus(); });
+	document.addEventListener('keydown', (e) => { if (e.key === 'F11') { e.preventDefault(); toggle(); } });
+	// Hide the button when the mouse hasn't moved for a few seconds.
+	let timer = 0;
+	const show = () => {
+		button.classList.remove('idle');
+		clearTimeout(timer);
+		timer = setTimeout(() => button.classList.add('idle'), 2500);
+	};
+	window.addEventListener('pointermove', show);
+	window.addEventListener('pointerdown', show);
+	show();
+})();
 
 applyTheme();
 resize();

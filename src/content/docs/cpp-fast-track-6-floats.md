@@ -160,7 +160,7 @@ Floats can store fractions, but not every fraction. A `float` is 32 bits, just l
 
 Zoom into the number line below to see this for yourself. Each lane has a tick for every value that a type can store; where the values are too close together to draw separately, you see a solid band. Scroll (or pinch) to zoom, drag to move, or hold the **+** button to keep zooming in:
 
-<iframe class="embed embed-demo" src="/demos/number-precision.html" title="A zoomable number line that shows which values an int, an unsigned int, a float and a double can store" loading="lazy"></iframe>
+<iframe class="embed embed-demo" src="/demos/number-precision.html" title="A zoomable number line that shows which values an int, an unsigned int, a float and a double can store" loading="lazy" allowfullscreen></iframe>
 
 <div class="caption">
 

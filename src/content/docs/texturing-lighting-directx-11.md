@@ -1638,7 +1638,7 @@ First, let’s update the camera.
 ```cpp source="LearningDirectX11-v2.0.0/TextureAndLightingDemo.cpp#L394-L407"
 ```
 
-We’ll translate the camera (in local space) if the user presses the W, A, S, or D keys on the keyboard and we’ll pan the camera in the vertical axis if the user presses the Q, or E key on the keyboard. The **m\_Pitch** and **m\_Yaw** parameters are updated when the users drags with the mouse over the render window.
+We’ll translate the camera (in local space) if the user presses <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd>, or <kbd>D</kbd> on the keyboard and we’ll pan the camera in the vertical axis if the user presses <kbd>Q</kbd> or <kbd>E</kbd> on the keyboard. The **m\_Pitch** and **m\_Yaw** parameters are updated when the users drags with the mouse over the render window.
 
 On line 407, we update the **EyePosition** parameter with the world space position of the camera. This parameter is required to compute specular reflections correctly.
 

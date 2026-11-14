@@ -1925,9 +1925,9 @@ The `OnKeyPressed` method is called on the `Game` class whenever the user presse
 
 Admittedly this not a very interesting function but keyboard events need to be handled somewhere. The following keyboard keys are handled:
 
--   Esc: Pressing Escape causes the application to quit.
--   Alt+Enter, F11: Pressing either Alt+Enter or F11 toggles the fullscreen state of the window.
--   V: Pressing the V key toggles V-sync mode.
+-   <kbd>Esc</kbd>: Pressing <kbd>Esc</kbd> causes the application to quit.
+-   <kbd>Alt</kbd>+<kbd>Enter</kbd>, <kbd>F11</kbd>: Pressing either <kbd>Alt</kbd>+<kbd>Enter</kbd> or <kbd>F11</kbd> toggles the fullscreen state of the window.
+-   <kbd>V</kbd>: Pressing <kbd>V</kbd> toggles V-sync mode.
 
 In addition to handling keyboard events, the mouse scroll wheel events are also handled.
 

@@ -25,7 +25,6 @@
 	width: 0.7em;
 	height: 0.7em;
 	margin-inline-start: 0.15em;
-	vertical-align: 0.05em;
 	background-color: currentColor;
 	-webkit-mask: var(--external-link-icon) no-repeat center / contain;
 	mask: var(--external-link-icon) no-repeat center / contain;
@@ -314,3 +313,21 @@ dialog.lightbox img {
 
 /* Web builds of the tmpl8 template: the 800x512 screen (25:16). */
 .sl-markdown-content iframe.embed-tmpl8 { aspect-ratio: 25 / 16; }
+
+/* Keyboard keys: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> styles each key as its own keycap. */
+.sl-markdown-content kbd {
+	padding: 0.1em 0.4em 0;
+	font-family: var(--sl-font-system);
+	font-size: 0.8em;
+	font-weight: 600;
+	white-space: nowrap;
+	color: var(--sl-color-white);
+	background: var(--sl-color-gray-6);
+	border: 1px solid var(--sl-color-gray-4);
+	border-bottom-width: 2px;
+	border-radius: 0.3rem;
+}
+:root[data-theme='light'] .sl-markdown-content kbd {
+	background: var(--sl-color-gray-7);
+	border-color: var(--sl-color-gray-5);
+}

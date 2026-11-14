@@ -73,7 +73,7 @@ The bouncing also contains an interesting construct: the inverted speed is multi
             speed = -speed * 0.8;
 ```
 
-But that is not the same thing. Try that line, and instead of pressing F5 to run the program, press Ctrl+F7 (or select *Build > Compile* in the main menu) to compile just the source file that is open in the editor. The compiler gives you a warning:
+But that is not the same thing. Try that line, and instead of pressing <kbd>F5</kbd> to run the program, press <kbd>Ctrl</kbd>+<kbd>F7</kbd> (or select *Build > Compile* in the main menu) to compile just the source file that is open in the editor. The compiler gives you a warning:
 
 <img src="/images/cpp-fast-track-6/01-warning.png" alt="Visual Studio with warning C4244 in the Error List: conversion from double to int, possible loss of data" width="1151" height="655" class="screenshot" />
 
@@ -181,7 +181,7 @@ You will probably see 60 FPS (or 120, or 144, if you have a fast monitor). This 
 ```cpp source="tmpl8-part-06/game.cpp#L29"
 ```
 
-`GetKeyPressed` is `true` in the frame in which you press a key (you saw it in [part 2](/cpp-fast-track-2-template/), with the space bar), and `ToggleVSync()` switches VSync on when it's off, and off when it's on. Run the program, and press V to switch VSync off (and press V again to switch it back on).
+`GetKeyPressed` is `true` in the frame in which you press a key (you saw it in [part 2](/cpp-fast-track-2-template/), with <kbd>Space</kbd>), and `ToggleVSync()` switches VSync on when it's off, and off when it's on. Run the program, and press <kbd>V</kbd> to switch VSync off (and press <kbd>V</kbd> again to switch it back on).
 
 The template has more functions like this: `SetVSync(false)` switches VSync off, and `IsVSync()` tells you whether it's on. If you want the template to start without VSync, set `StartVSync` to `false` in `template.hpp`:
 
@@ -190,7 +190,7 @@ The template has more functions like this: `SetVSync(false)` switches VSync off,
 
 What is *VSync* anyway? Well, old-skool monitors produced images by aiming an electron beam at a glass plate (and then your eyes). This beam zig-zagged over the pixels to light them up. At the bottom of the screen, this beam stops and returns to the top-left corner. This is called the *vertical retrace*. This is the perfect moment to start showing a new image: only during the retrace can the image be swapped without *tearing* (showing half of the old image and half of the new one). So *synchronising* frames to this retrace is useful. Modern monitors don't have an electron beam, but they still show a new image at a fixed rate, typically 60 times per second (60 Hz). Synchronising to the refresh rate of your screen limits your frame rate to 60 frames per second (or 120 if you have a 120 Hz monitor).
 
-Without VSync (press V), the template doesn't wait for your screen any more, so it can reach much higher frame rates: hundreds or even thousands of frames per second, depending on your computer.
+Without VSync (press <kbd>V</kbd>), the template doesn't wait for your screen any more, so it can reach much higher frame rates: hundreds or even thousands of frames per second, depending on your computer.
 
 <img src="/images/cpp-fast-track-6/02-vsync-off.png" alt="The game window with VSync off: thousands of frames per second in the top-left corner, and the ball already lying still on the bottom" width="800" height="512" class="screenshot" />
 
@@ -217,7 +217,7 @@ Add the following line at the top of your `Game::Tick` function:
 ```cpp source="tmpl8-part-06/game.cpp#L26-L29" {3}
 ```
 
-Run the program, and press V to switch VSync off.
+Run the program, and press <kbd>V</kbd> to switch VSync off.
 
 This prints the value of the mysterious `deltaTime` variable that the `Tick` function has had since the start of this course:
 

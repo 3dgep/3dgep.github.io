@@ -74,7 +74,7 @@ The first time you start Visual Studio, it asks you to sign in with a Microsoft 
 
 You are then greeted by the start window:
 
-<img src="/images/cpp-fast-track-1/01-start-window.png" alt="The Visual Studio 2026 start window" width="881" height="571" class="screenshot" />
+<img src="/images/cpp-fast-track-1/01-start-window.png" alt="The Visual Studio 2026 start window" width="771" height="533" class="screenshot" />
 
 <div class="caption">
 
@@ -109,12 +109,14 @@ You may choose any folder you want for your new project.
 </div>
 
 1.  Set the *Project name* to `Getting Started`.
-2.  Set the *Location* to `C:\Projects` (or whichever folder you keep all of your programming projects in).
-3.  Set the *Solution name* to `C++ Fast Track for Games Programming`.
+2.  Set the *Location* to `C:\Projects\C++ Fast Track`. You'll make a new project for each part of this series, and they all go in this folder. Visual Studio creates the folder if it doesn't exist yet.
+3.  Set the *Solution name* to `Part 1`.
 4.  Leave *Place solution and project in the same directory* unchecked.
 
+Below the settings, Visual Studio shows where your project ends up: `C:\Projects\C++ Fast Track\Part 1\Getting Started\`.
+
 :::danger
-Don't keep your projects on the **Desktop** or in your **Documents** folder. Windows indexes these folders for search, and OneDrive often synchronizes them to the cloud. Both get in the way when Visual Studio writes hundreds of files during a build: builds become slower, and sometimes fail because a file is in use. A folder like `C:\Projects` avoids all of that.
+Don't keep your projects on the **Desktop** or in your **Documents** folder. Windows indexes these folders for search, and OneDrive often synchronizes them to the cloud. Both get in the way when Visual Studio writes hundreds of files during a build: builds become slower, and sometimes fail because a file is in use. A folder like `C:\Projects\C++ Fast Track` avoids all of that.
 :::
 
 Click the *Create* button to create your new project! You should see something similar to the screenshot below.
@@ -127,7 +129,7 @@ An empty project: the *Solution Explorer* on the left shows the solution, the pr
 
 </div>
 
-The *Solution Explorer* on the left side of the window shows your *solution* (`C++ Fast Track for Games Programming`) and the *project* inside it (`Getting Started`). The project has a few folders (*filters*, really) that help you organize your files: *Header Files*, *Resource Files* and *Source Files*. They are all empty. If you don't see the Solution Explorer, open it with *View > Solution Explorer* in the main menu.
+The *Solution Explorer* on the left side of the window shows your *solution* (`Part 1`) and the *project* inside it (`Getting Started`). The project has a few folders (*filters*, really) that help you organize your files: *Header Files*, *Resource Files* and *Source Files*. They are all empty. If you don't see the Solution Explorer, open it with *View > Solution Explorer* in the main menu.
 
 ## Use the Latest C++
 
@@ -137,20 +139,16 @@ Right-click the *Getting Started* project in the Solution Explorer and select *P
 
 1.  Set *Configuration* (at the top) to *All Configurations*, so the setting applies to the Debug and the Release version of your program.
 2.  Select *Configuration Properties > General* on the left.
-3.  Click the value of *C++ Language Standard*, open the dropdown list, and select *Preview - ISO C++23 Standard (/std:c++23preview)*.
+3.  Click the value of *C++ Language Standard*, open the dropdown list, and select *ISO C++23 Standard (/std:c++23)*.
 4.  Click *OK*.
 
 <img src="/images/cpp-fast-track-1/06-language-standard.png" alt="The Property Pages dialog with the C++ Language Standard set to ISO C++23" width="789" height="541" class="screenshot" />
 
 <div class="caption">
 
-Select *Preview - ISO C++23 Standard* for *All Configurations*.
+Select *ISO C++23 Standard* for *All Configurations*.
 
 </div>
-
-:::note
-Don't let the word *Preview* scare you: Microsoft calls its C++23 support a preview because a few parts of the standard are still missing. Everything we use in these articles works.
-:::
 
 ## Add a Source File
 
@@ -162,7 +160,7 @@ This is the first and only article in this series that is this boring. Starting 
 
 That being said, let's get coding! Now it's finally time to add a C++ source file to play with. Right-click the *Source Files* folder of the *Getting Started* project in the Solution Explorer and select *Add > New Item*.
 
-Type `main.cpp` as the name of the new file (or anything else really, as long as it ends with `.cpp`), and press Enter.
+Type `main.cpp` as the name of the new file (or anything else really, as long as it ends with `.cpp`), and press <kbd>Enter</kbd>.
 
 <img src="/images/cpp-fast-track-1/05-add-new-item.png" alt="The Add New Item dialog, with main.cpp as the name of the new file" width="441" height="147" class="screenshot" />
 
@@ -201,11 +199,11 @@ So what does this program do?
 -   `int main()` is where every C++ program starts. The code between the curly braces `{` and `}` is executed when you run the program.
 -   `std::println("Hello world!");` prints the text between the quotes, followed by a new line. Note the semicolon at the end: every *statement* in C++ ends with one.
 
-Start the program by pressing **F5**, or by clicking the green *Local Windows Debugger* button on the toolbar. Visual Studio *builds* your program first: it turns your code into an executable file. Then it starts it.
+Start the program by pressing <kbd>F5</kbd>, or by clicking the green *Local Windows Debugger* button on the toolbar. Visual Studio *builds* your program first: it turns your code into an executable file. Then it starts it.
 
 You should see a console window with the text `Hello world!` printed in it.
 
-<img src="/images/cpp-fast-track-1/08-hello-world.png" alt="A console window that shows Hello world!" width="1181" height="268" class="screenshot" />
+<img src="/images/cpp-fast-track-1/08-hello-world.png" alt="A console window that shows Hello world!" width="1241" height="214" class="screenshot" />
 
 <div class="caption">
 
@@ -221,9 +219,9 @@ If Visual Studio tells you that there were build errors, compare your code with 
 
 ## Discussion
 
-Open the folder `C:\Projects\C++ Fast Track for Games Programming` (or wherever you saved your Visual Studio solution) in File Explorer. Visual Studio created quite a few files and folders for you:
+Open the folder `C:\Projects\C++ Fast Track\Part 1` in File Explorer. Visual Studio created quite a few files and folders for you:
 
-<img src="/images/cpp-fast-track-1/09-explorer.png" alt="File Explorer showing the solution folder" width="976" height="495" class="screenshot" />
+<img src="/images/cpp-fast-track-1/09-explorer.png" alt="File Explorer showing the Part 1 solution folder" width="721" height="367" class="screenshot" />
 
 <div class="caption">
 
@@ -231,7 +229,7 @@ The solution folder.
 
 </div>
 
--   `C++ Fast Track for Games Programming.slnx`: your *solution file*, which points to
+-   `Part 1.slnx`: your *solution file*, which points to
 -   `Getting Started\Getting Started.vcxproj`: your *project file*, which points to
 -   `Getting Started\main.cpp`: the *source code file*.
 
@@ -269,5 +267,5 @@ So, here's your task:
 2.  Create a program that prints your name 10 times, then waits for a key, then prints *Coding is awesome!* 10 times, then waits for a key again, then exits.
 
 :::tip[Hint]
-To wait for a key, add `#include <cstdio>` at the top of `main.cpp`, and call `std::getchar();` where the program has to wait. `std::getchar` waits until you press Enter. And yes, you may copy and paste lines for now: in part 4 you will learn a better way.
+To wait for a key, add `#include <cstdio>` at the top of `main.cpp`, and call `std::getchar();` where the program has to wait. `std::getchar` waits until you press <kbd>Enter</kbd>. And yes, you may copy and paste lines for now: in part 4 you will learn a better way.
 :::

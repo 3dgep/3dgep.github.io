@@ -43,10 +43,10 @@ void Game::Tick( float deltaTime )
 }
 ```
 
-Set a breakpoint at on line 35 (the `i++` line) and start the application. Use the debugger to view the value of variable `i` and `b`. At the breakpoint position, `i` and `b` both contain `255`, but when you proceed one line (F10), `i` is `256` as expected, but `b` is now `0`.
+Set a breakpoint at on line 35 (the `i++` line) and start the application. Use the debugger to view the value of variable `i` and `b`. At the breakpoint position, `i` and `b` both contain `255`, but when you proceed one line (<kbd>F10</kbd>), `i` is `256` as expected, but `b` is now `0`.
 
 :::note
-To view the contents of a variable, make sure turn on the **Locals** window in the Visual Studio IDE. While running the program in Debug mode, select **Debug > Windows > Locals** from the main menu (or use the shortcut key Ctrl+Alt+V,L).
+To view the contents of a variable, make sure turn on the **Locals** window in the Visual Studio IDE. While running the program in Debug mode, select **Debug > Windows > Locals** from the main menu (or use the shortcut key <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd>, <kbd>L</kbd>).
 :::
 
 A word about this weird ‘twinning’ of variables: `i` and `b` are in a `union`. You can use a union so that two (or more) variables that share the same memory location. The result is that changing one of them will change the other as well.

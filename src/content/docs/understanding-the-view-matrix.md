@@ -574,11 +574,11 @@ view matrix $\mathbf{V}$. The small world view shows the camera itself (its axes
 world with the camera's transformation matrix $\mathbf{M}=\mathbf{V}^{-1}$. Both matrices are shown next to the
 view, so you can see how the rows of $\mathbf{V}$ and the columns of $\mathbf{M}$ change as the camera moves.
 
--   **Look At**: move the target (the look-at point) with **W**, **A**, **S**, **D**, up and down with **Q** and **E**;
+-   **Look At**: move the target (the look-at point) with <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd>, <kbd>D</kbd>, up and down with <kbd>Q</kbd> and <kbd>E</kbd>;
     the eye stays where it is and the camera turns to follow. Drag in the view to move the eye around the target, or use
     the sliders for the eye and target positions.
--   **FPS**: drag to change the pitch and yaw; move with **W**, **A**, **S**, **D**, up and down with **Q** and **E**,
-    and hold **Shift** to move faster (click the view first).
+-   **FPS**: drag to change the pitch and yaw; move with <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd>, <kbd>D</kbd>, up and down with <kbd>Q</kbd> and <kbd>E</kbd>,
+    and hold <kbd>Shift</kbd> to move faster (click the view first).
 -   **Arcball**: drag to rotate the camera around the selected object; the mouse wheel changes the distance.
 
 Drag in the world view to look at the scene from another angle.

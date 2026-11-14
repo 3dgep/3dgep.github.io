@@ -891,7 +891,7 @@ And takes the following arguments:
     Set this parameter to `NULL` if you don’t want to restrict content to an output target.
 -   [`IDXGISwapChain1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nn-dxgi1_2-idxgiswapchain1) `**ppSwapChain`: A pointer to a variable that receives a pointer to the [`IDXGISwapChain1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nn-dxgi1_2-idxgiswapchain1) interface for the swap chain that [`CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd) creates.
 
-Switching to a full screen state will be handled manually using a full-screen borderless window. In order to prevent DXGI from switching to a full screen state automatically when pressing the Alt+Enter key combination on the keyboard, the [`IDXGIFactory::MakeWindowAssociation`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-makewindowassociation) method is used specifying the `DXGI_MWA_NO_ALT_ENTER` flag. This effectively prevents DXGI from responding to the Alt+Enter keyboard sequence.
+Switching to a full screen state will be handled manually using a full-screen borderless window. In order to prevent DXGI from switching to a full screen state automatically when pressing the <kbd>Alt</kbd>+<kbd>Enter</kbd> key combination on the keyboard, the [`IDXGIFactory::MakeWindowAssociation`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-makewindowassociation) method is used specifying the `DXGI_MWA_NO_ALT_ENTER` flag. This effectively prevents DXGI from responding to the <kbd>Alt</kbd>+<kbd>Enter</kbd> keyboard sequence.
 
 On line 350, the swap chain is converted to the [`IDXGISwapChain4`](https://learn.microsoft.com/windows/win32/api/dxgi1_5/nn-dxgi1_5-idxgiswapchain4) interface type using the [`ComPtr::As`](https://learn.microsoft.com/cpp/cppcx/wrl/comptr-class?view=msvc-170) method and returned to the calling function.
 
@@ -1310,7 +1310,7 @@ If tearing is supported, it is recommended to always use the [`DXGI_PRESENT_ALLO
 
 -   The swap chain must be created with the [`DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_chain_flag) flag.
 -   The sync interval passed into [`Present`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present) (or [`Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1)) must be 0.
--   The [`DXGI_PRESENT_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present#DXGI_PRESENT_ALLOW_TEARING) flag cannot be used in an application that is currently in full screen exclusive mode (set by calling [`SetFullscreenState`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-setfullscreenstate)`(TRUE)`). It can only be used in windowed mode. To use this flag in full screen Win32 apps, the application should present to a fullscreen borderless window and disable automatic Alt+Enter fullscreen switching using [`IDXGIFactory::MakeWindowAssociation`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-makewindowassociation).
+-   The [`DXGI_PRESENT_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present#DXGI_PRESENT_ALLOW_TEARING) flag cannot be used in an application that is currently in full screen exclusive mode (set by calling [`SetFullscreenState`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-setfullscreenstate)`(TRUE)`). It can only be used in windowed mode. To use this flag in full screen Win32 apps, the application should present to a fullscreen borderless window and disable automatic <kbd>Alt</kbd>+<kbd>Enter</kbd> fullscreen switching using [`IDXGIFactory::MakeWindowAssociation`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-makewindowassociation).
 
 Immediately after presenting the rendered frame to the screen, a signal is inserted into the queue using the [`Signal`](#signal-the-fence) function described earlier. The fence value returned from the `Signal` function is used to stall the CPU thread until any (writeable – such as render targets) resources are finished being used.
 
@@ -1466,17 +1466,17 @@ Next a few keyboard keys are handled.
 ```cpp source="LearningDirectX12-v0.0.1/main.cpp#L621-L648"
 ```
 
-The [`WM_SYSKEYDOWN`](https://learn.microsoft.com/windows/win32/inputdev/wm-syskeydown) message is sent to the window procedure function when the Alt key is held while pressing another key combination (for example, Alt+Enter). The [`WM_KEYDOWN`](https://learn.microsoft.com/windows/win32/inputdev/wm-keydown) message is sent when any non-system key is pressed (a key is pressed without Alt being held down).
+The [`WM_SYSKEYDOWN`](https://learn.microsoft.com/windows/win32/inputdev/wm-syskeydown) message is sent to the window procedure function when the Alt key is held while pressing another key combination (for example, <kbd>Alt</kbd>+<kbd>Enter</kbd>). The [`WM_KEYDOWN`](https://learn.microsoft.com/windows/win32/inputdev/wm-keydown) message is sent when any non-system key is pressed (a key is pressed without Alt being held down).
 
 The demo application handles the following keys:
 
 | Key | Action |
 | --- | --- |
 | V | Toggle V-Sync. |
-| Esc | Exit the application. |
-| Alt+Enter, F11 | Toggle fullscreen mode. |
+| <kbd>Esc</kbd> | Exit the application. |
+| <kbd>Alt</kbd>+<kbd>Enter</kbd>, <kbd>F11</kbd> | Toggle fullscreen mode. |
 
-On line 647 the [`WM_SYSCHAR`](https://learn.microsoft.com/windows/win32/menurc/wm-syschar) message is also being handled but nothing is done with it. The [`WM_SYSCHAR`](https://learn.microsoft.com/windows/win32/menurc/wm-syschar) message is posted to the window when a [`WM_SYSKEYDOWN`](https://learn.microsoft.com/windows/win32/inputdev/wm-syskeydown) message is translated by the [`TranslateMessage`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-translatemessage) function. If the [`WM_SYSCHAR`](https://learn.microsoft.com/windows/win32/menurc/wm-syschar) message is not handled then the default window procedure will handle it and play an annoying system notification sound when pressing Alt+Enter while the window has keyboard focus.
+On line 647 the [`WM_SYSCHAR`](https://learn.microsoft.com/windows/win32/menurc/wm-syschar) message is also being handled but nothing is done with it. The [`WM_SYSCHAR`](https://learn.microsoft.com/windows/win32/menurc/wm-syschar) message is posted to the window when a [`WM_SYSKEYDOWN`](https://learn.microsoft.com/windows/win32/inputdev/wm-syskeydown) message is translated by the [`TranslateMessage`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-translatemessage) function. If the [`WM_SYSCHAR`](https://learn.microsoft.com/windows/win32/menurc/wm-syschar) message is not handled then the default window procedure will handle it and play an annoying system notification sound when pressing <kbd>Alt</kbd>+<kbd>Enter</kbd> while the window has keyboard focus.
 
 <audio controls preload="none" src="/audio/Windows-Background.wav"></audio>
 

@@ -106,7 +106,7 @@ void Game::Tick( float deltaTime )
 }
 ```
 
-Put a breakpoint (F9) on line 31 (`int* c = &a;`), and run the code. Your program will stop right before it executes line 31.
+Put a breakpoint (<kbd>F9</kbd>) on line 31 (`int* c = &a;`), and run the code. Your program will stop right before it executes line 31.
 
 Now, open a *watch* window (**Debug > Windows > Watch > Watch 1**), and inspect the following values:
 

@@ -17,7 +17,7 @@ Get the latest template package:
 
 [<img src="/images/zip1.png" alt="Download tmpl8 as a zip file" width="120" class="thumb" />tmpl8-main.zip](https://github.com/3dgep/tmpl8/archive/refs/heads/main.zip)
 
-You'll make a new project for each part of this series, so let's keep them together in one folder: `C:\Projects\C++ Fast Track`. Right-click the zip file, select *Extract All...*, type `C:\Projects\C++ Fast Track` as the destination, and click *Extract*. This gives you the folder `C:\Projects\C++ Fast Track\tmpl8-main`. Rename it to `Part 2` (right-click it and select *Rename*, or select it and press F2). Open it, and double-click the `tmpl8.slnx` file to open the template in Visual Studio.
+Each part of this series gets its own project in `C:\Projects\C++ Fast Track`, next to the `Part 1` folder that you made in the first article. Right-click the zip file, select *Extract All...*, type `C:\Projects\C++ Fast Track` as the destination, and click *Extract*. This gives you the folder `C:\Projects\C++ Fast Track\tmpl8-main`. Rename it to `Part 2` (right-click it and select *Rename*, or select it and press <kbd>F2</kbd>). Open it, and double-click the `tmpl8.slnx` file to open the template in Visual Studio.
 
 <img src="/images/cpp-fast-track-2/01-folder.png" alt="File Explorer showing the files of the template, with tmpl8.slnx selected" width="976" height="634" class="screenshot" />
 
@@ -51,17 +51,17 @@ The tmpl8 solution in Visual Studio.
 
 The files that you will work on are `game.hpp` and `game.cpp`. The template itself is in the *template code* folder: `surface.hpp` and `surface.cpp` (images, sprites and text), `template.hpp` and `template.cpp` (the window, the keyboard and the mouse, and some math), and `web-shell.html` (for web builds, more about that later).
 
-If you click the *Local Windows Debugger* button (<img src="/images/cpp-fast-track-2/local-windows-debugger.png" alt="Local Windows Debugger" width="183" height="25" class="inline-ui" />) or press F5, you should see a beautiful window with the text "HELLO WORLD" printed in the top-left corner. To emphasise the magnitude of this accomplishment, there is a spinning gun turret drawn on the screen as well.
+If you click the *Local Windows Debugger* button (<img src="/images/cpp-fast-track-2/local-windows-debugger.png" alt="Local Windows Debugger" width="183" height="25" class="inline-ui" />) or press <kbd>F5</kbd>, you should see a beautiful window with the text "HELLO WORLD" printed in the top-left corner. To emphasise the magnitude of this accomplishment, there is a spinning gun turret drawn on the screen as well.
 
 <iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-2/index.html" title="The template: HELLO WORLD and a spinning gun turret" loading="lazy" allowfullscreen></iframe>
 
 <div class="caption">
 
-You should see a beautiful window with a spinning gun turret. (The template also runs in a web browser: this is the template itself, running right on this page. Click it, and press F11 or the button in the top-right corner for fullscreen.)
+You should see a beautiful window with a spinning gun turret. (The template also runs in a web browser: this is the template itself, running right on this page. Click it, and press <kbd>F11</kbd> or the button in the top-right corner for fullscreen.)
 
 </div>
 
-Press Escape to close the window (or click the close button). You can also switch between a window and fullscreen with Alt+Enter or F11.
+Press <kbd>Esc</kbd> to close the window (or click the close button). You can also switch between a window and fullscreen with <kbd>Alt</kbd>+<kbd>Enter</kbd> or <kbd>F11</kbd>.
 
 The code that you should be interested in right now is in `game.cpp`. Here are its contents:
 
@@ -79,7 +79,7 @@ Even though this is just a small program, there's a lot to say about it. Most (a
 -   There are some things that happen just once. We specify those in the `Game::Init` function.
 -   This particular program does nothing in the `Init` function.
 -   Other things are done for each frame: these are listed in `Game::Tick`.
--   There's also a `Shutdown` function, which is executed only once: when the program ends (e.g. when you press Escape).
+-   There's also a `Shutdown` function, which is executed only once: when the program ends (e.g. when you press <kbd>Esc</kbd>).
 -   `rotatingGun` (the spinning gun turret) and `frame` (which of its 36 images is shown) are used in `Tick`, but you won't find them in `game.cpp`: they are part of the `Game`, so they are in `game.hpp`, together with `screen`:
 
     ```cpp source="tmpl8-part-02/game.hpp#L40-L45"
@@ -114,7 +114,7 @@ And finally, there are numbers: `0xffffff` (or capitals: `0xFFFFFF`) is a number
 
 You probably noticed that a console window opens too, behind the window of the game. This seems quite useless now that we can produce proper graphics, but it may come in handy later. We will use it for printing information that is not supposed to be seen by the player. This will be useful for debugging.
 
-The template prints a line to the console when you press the space bar (lines 31-34): `std::cout` prints the text between the quotes, and `\n` starts a new line. Press the space bar a few times while the game window has the keyboard focus, and look at the console:
+The template prints a line to the console when you press <kbd>Space</kbd> (lines 31-34): `std::cout` prints the text between the quotes, and `\n` starts a new line. Press <kbd>Space</kbd> a few times while the game window has the keyboard focus, and look at the console:
 
 <img src="/images/cpp-fast-track-2/05-console.png" alt="The console window, with You pressed the space bar printed twice" width="976" height="268" class="screenshot" />
 

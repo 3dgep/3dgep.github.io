@@ -889,7 +889,7 @@ I hope that after reading this article, you have a better understanding of how t
 
 ## Code Sample
 
-The following OpenCL code sample demonstrates a fluid solver that can execute both on the CPU and GPU (toggle with the ‘C’ key) using OpenCL. The mouse (click and drag) is used to introduce some smoke (density) into the simulation that is integrated in the OpenCL kernel functions.
+The following OpenCL code sample demonstrates a fluid solver that can execute both on the CPU and GPU (toggle with <kbd>C</kbd>) using OpenCL. The mouse (click and drag) is used to introduce some smoke (density) into the simulation that is integrated in the OpenCL kernel functions.
 
 You can download the source file for the Fluid Simulation including project and solution files for Microsoft Visual Studio 2008 here:
 

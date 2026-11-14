@@ -331,3 +331,27 @@ dialog.lightbox img {
 	background: var(--sl-color-gray-7);
 	border-color: var(--sl-color-gray-5);
 }
+
+/* Inline SVG diagram of memory (C++ Fast Track part 8): theme colours, so it works in light and dark mode. */
+.sl-markdown-content svg.memory-diagram {
+	display: block;
+	width: 100%;
+	max-width: 700px;
+	height: auto;
+	margin: 1.5rem auto 0;
+}
+.memory-diagram text { fill: var(--sl-color-white); font-family: var(--sl-font-system); font-size: 17px; }
+.memory-diagram .mono { font-family: var(--__sl-font-mono, consolas, monospace); }
+.memory-diagram .value { font-size: 19px; font-weight: 600; }
+.memory-diagram .dim { fill: var(--sl-color-gray-3); font-size: 15px; }
+.memory-diagram .var { fill: var(--sl-color-accent-low); stroke: var(--sl-color-accent); stroke-width: 2; }
+.memory-diagram .ptr { fill: var(--sl-color-gray-6); stroke: var(--sl-color-gray-3); stroke-width: 2; }
+.memory-diagram .byte { stroke: var(--sl-color-gray-4); stroke-dasharray: 3 3; }
+.memory-diagram .arrow { fill: none; stroke: var(--sl-color-accent-high); stroke-width: 2; }
+.memory-diagram .arrow-head { fill: var(--sl-color-accent-high); }
+
+/* Wrap a Markdown table in <div class="centered-table"> to center it (instead of left-aligning it). */
+.sl-markdown-content .centered-table table {
+	width: fit-content;
+	margin-inline: auto;
+}

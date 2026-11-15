@@ -82,7 +82,7 @@ namespace Tmpl8
         }
         void Move(float dx, float dy);
         void Update(float deltaTime);
-        void Draw(Surface& target);
+        void Draw(Surface& target) const;
         float x, y;     // the middle of the tank
         int frame;      // the direction: 0 is up, 4 is right, 8 is down, 12 is left
         int color;      // the row in tank.png: 0 is green, 1 is red
@@ -102,7 +102,7 @@ namespace Tmpl8
         if (x > MapWidth * TileSize + 32) x = -32;
     }
 
-    void Tank::Draw(Surface& target)
+    void Tank::Draw(Surface& target) const
     {
         tank.SetFrame(frame, color);
         barrel.SetFrame(frame, color);

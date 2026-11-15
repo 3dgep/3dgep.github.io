@@ -80,7 +80,7 @@ namespace Tmpl8
             frame = startFrame;
         }
         void Move(float dx, float dy);
-        void Draw(Surface& target);
+        void Draw(Surface& target) const;
         float x, y;     // the middle of the tank
         int frame;      // the direction: 0 is up, 4 is right, 8 is down, 12 is left
     };
@@ -92,7 +92,7 @@ namespace Tmpl8
         if (TankFits(x, y + dy)) y += dy;
     }
 
-    void Tank::Draw(Surface& target)
+    void Tank::Draw(Surface& target) const
     {
         tank.SetFrame(frame);
         barrel.SetFrame(frame);

@@ -51,6 +51,7 @@
 	button:hover { border-color: var(--accent); }
 	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 	button.zoom { width: 30px; padding: 3px 0; font-weight: 700; }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
 	/* A small signature at the right end of the bar: this demo was made with Claude. */
 	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
 	.made-by:hover { opacity: 0.9; }
@@ -96,6 +97,11 @@
 		</div>
 		<div class="group" id="views">
 			<span>Range of:</span>
+		</div>
+		<div class="group" id="scale" role="group" aria-label="Scale">
+			<span>Scale:</span>
+			<button id="scaleLog" type="button" aria-pressed="true" title="Both axes logarithmic: every power of two is the same distance">logarithmic</button>
+			<button id="scaleLin" type="button" aria-pressed="false" title="Both axes linear: the real sizes of the steps">linear</button>
 		</div>
 		<svg class="made-by" viewBox="0 0 24 24" role="img" aria-label="Made with Claude"><title>Made with Claude</title><path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z" fill="#D97757"/></svg>
 	</div>
@@ -170,26 +176,49 @@ const ctx = canvas.getContext('2d');
 const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
 const MONO = 'menlo, consolas, "DejaVu Sans Mono", monospace';
 let W = 800, H = 400, DPR = 1;
-const M = { l: 58, r: 10, t: 10, b: 34 }; // the plot area's margins (room for the axis labels)
+const M = { l: 58, r: 10, t: 10, b: 34 }; // the plot area's margins (room for the axis labels; on a linear scale, the
+// left one is wider: see setScale)
 const pw = () => W - M.l - M.r, ph = () => H - M.t - M.b;
-// The view: the log2 values in the middle of the plot area, and the pixels per log2 unit on each axis.
-let cx = 20, cy = -17, sx = 7, sy = 3.3;
-const X = (lx) => M.l + pw() / 2 + (lx - cx) * sx;
-const Y = (ly) => M.t + ph() / 2 - (ly - cy) * sy;
-const LX = (x) => cx + (x - M.l - pw() / 2) / sx;
-const LY = (y) => cy - (y - M.t - ph() / 2) / sy;
+// The view, in view units: log2 of the values (logarithmic scale), or the values themselves (linear scale). cx and cy
+// are the view units in the middle of the plot area; zx and zy the zoom, as log2 of the pixels per view unit. (On a
+// linear scale near DBL_MIN, the pixels per unit don't fit in a double, so the zoom is applied in two halves.)
+let linear = false;
+let cx = 20, cy = -17, zx = 3, zy = 2;
+const MAXV = Number.MAX_VALUE;
+const val = (l) => (l >= 1024 ? MAXV : Math.pow(2, l)); // 2^l (DBL_MAX for the end of the double line)
+const U = (l) => (linear ? val(l) : l); // log2 units to view units
+const scaleBy = (d, z) => d * Math.pow(2, z / 2) * Math.pow(2, z - z / 2);
+const unscale = (p, z) => p * Math.pow(2, -z / 2) * Math.pow(2, -(z - z / 2));
+const Xu = (u) => M.l + pw() / 2 + scaleBy(u - cx, zx);
+const Yu = (u) => M.t + ph() / 2 - scaleBy(u - cy, zy);
+const X = (lx) => Xu(U(lx));
+const Y = (ly) => Yu(U(ly));
+const LX = (x) => cx + unscale(x - M.l - pw() / 2, zx); // view units at x
+const LY = (y) => cy - unscale(y - M.t - ph() / 2, zy);
 // A view given as the log2 ranges to show.
 const VIEWS = [
 	['Everyday numbers', [-35, 75], [-75, 40]],
 	['float', [-170, 150], [-185, 120]],
 	['double', [-1140, 1130], [-1480, 1180]],
 ];
-const viewOf = ([, [x0, x1], [y0, y1]]) => ({ cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, sx: pw() / (x1 - x0), sy: ph() / (y1 - y0) });
+const viewOf = ([, [x0, x1], [y0, y1]]) => ({ cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, zx: Math.log2(pw() / (x1 - x0)), zy: Math.log2(ph() / (y1 - y0)) });
+// A linear view from (a little left of) 0 to xTop, and from 0 to yTop. (Computed without xTop - x0: that can overflow.)
+// (Below 0, a little more room: for the title of the x axis.)
+const linViewOf = (xTop, yTop) => ({ cx: xTop * 0.485, cy: yTop * 0.45, zx: Math.log2(pw()) - Math.log2(xTop) - Math.log2(1.03), zy: Math.log2(ph()) - Math.log2(yTop) - Math.log2(1.1) });
 function clampView() {
-	sx = Math.max(pw() / 2600, Math.min(pw() / 3, sx));
-	sy = Math.max(ph() / 2600, Math.min(ph() / 3, sy));
-	cx = Math.max(-1200, Math.min(1150, cx));
-	cy = Math.max(-1250, Math.min(1100, cy));
+	if (!linear) {
+		zx = Math.max(Math.log2(pw() / 2600), Math.min(Math.log2(pw() / 3), zx));
+		zy = Math.max(Math.log2(ph() / 2600), Math.min(Math.log2(ph() / 3), zy));
+		cx = Math.max(-1200, Math.min(1150, cx));
+		cy = Math.max(-1250, Math.min(1100, cy));
+		return;
+	}
+	// Linear: from 16 times the smallest double up to all of them across; never more than 15% left of (or below) 0.
+	const lim = (z, px) => Math.max(Math.log2(px) - 1024.05, Math.min(Math.log2(px) + 1070, z));
+	zx = lim(zx, pw()); zy = lim(zy, ph());
+	const half = (z, px) => unscale(px / 2, z);
+	cx = Math.min(MAXV, Math.max(half(zx, pw()) * 0.7, cx));
+	cy = Math.min(MAXV, Math.max(half(zy, ph()) * 0.7, cy));
 }
 let pending = false;
 function requestDraw() { if (!pending) { pending = true; requestAnimationFrame(draw); } }
@@ -200,8 +229,8 @@ function resize() {
 	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
 	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
 	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-	if (first) { ({ cx, cy, sx, sy } = viewOf(VIEWS[0])); first = false; }
-	else { sx *= pw() / oldW; sy *= ph() / oldH; } // keep the same part of the graph in view
+	if (first) { ({ cx, cy, zx, zy } = viewOf(VIEWS[0])); first = false; }
+	else { zx += Math.log2(pw() / oldW); zy += Math.log2(ph() / oldH); } // keep the same part of the graph in view
 	clampView(); requestDraw();
 }
 new ResizeObserver(resize).observe(canvas);
@@ -253,6 +282,31 @@ function pill(text, x, y, color, align) {
 	ctx.fillText(text, left + 5, digitsBaseline(y));
 	return { x: left, y: y - 9, w, h: 18 };
 }
+// Linear ticks: f (1, 2 or 5) times 10^p, at least minPx pixels apart. (Kept as f and p: near the smallest doubles,
+// 10^p itself isn't exact, or even 0.)
+function niceStep(z, minPx) {
+	const l = Math.log10(unscale(minPx, z)), p = Math.floor(l), r = Math.pow(10, l - p);
+	return r <= 1 ? { f: 1, p } : r <= 2 ? { f: 2, p } : r <= 5 ? { f: 5, p } : { f: 1, p: p + 1 };
+}
+// The ticks k * f * 10^p from lo to hi, at or above 0, with labels in one format for the whole axis: plain numbers, or
+// all with the same power of ten (0.5, 1.0, 1.5 × 10⁻⁷). [view units, label, is it 0?]
+function linearTicks(z, minPx, lo, hi) {
+	const { f, p } = niceStep(z, minPx), st = f * Math.pow(10, p);
+	const k0 = Math.max(0, Math.ceil(lo / st)), k1 = Math.floor(hi / st);
+	if (!(st > 0) || !Number.isFinite(k0) || !Number.isFinite(k1) || k1 - k0 > 100) return []; // (never loop forever)
+	const E = p + Math.floor(Math.log10(Math.max(1, k1) * f) + 1e-9); // the power of ten of the largest tick
+	const plain = E < 7 && p >= -4;
+	const out = [];
+	for (let i = 0; i <= k1 - k0; i++) { // (counted with an index: above 2^53, k + 1 can be equal to k)
+		const k = k0 + i, m = k * f; // the tick is m * 10^p
+		let label;
+		if (k === 0) label = '0';
+		else if (plain) label = commas((m * Math.pow(10, p)).toFixed(Math.max(0, -p)));
+		else label = `${(m * Math.pow(10, p - E)).toFixed(Math.min(20, E - p))} × 10${sup(E)}`; // (at most 20 decimals: far from 0)
+		out.push([k * st, label, k === 0]);
+	}
+	return out;
+}
 const overlaps = (a, list) => list.some((b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h);
 
 function draw() {
@@ -260,24 +314,40 @@ function draw() {
 	const c = colors;
 	ctx.fillStyle = c['--bg']; ctx.fillRect(0, 0, W, H);
 	const x0 = M.l, x1 = W - M.r, y0 = M.t, y1 = H - M.b;
-	const lxMin = LX(x0), lxMax = LX(x1), lyMin = LY(y1), lyMax = LY(y0);
+	// The view, in view units. (Linear: at the largest double, the right edge can be beyond it, which would be +Infinity:
+	// that hid the double line.)
+	const cap = (u) => (linear ? Math.min(MAXV, u) : u);
+	const uxMin = LX(x0), uxMax = cap(LX(x1)), uyMin = LY(y1), uyMax = cap(LY(y0));
+	// The same in log2 units (on a linear scale: the largest value in view, and 70 powers of two below it; the steps
+	// below those are all squeezed against 0).
+	const lxMax = linear ? Math.log2(Math.max(uxMax, 0)) : uxMax;
+	const lxMin = linear ? (uxMin > 0 ? Math.log2(uxMin) : lxMax - 70) : uxMin;
 
-	// Grid and axis labels at powers of ten.
+	// Grid and axis labels: at powers of ten (logarithmic), or at round numbers (linear).
 	ctx.font = `11px ${FONT}`; ctx.lineWidth = 1;
-	const dx = decadeStep(sx, 64), dy = decadeStep(sy, 26);
+	const ticksX = [], ticksY = [];
+	if (!linear) {
+		const dx = decadeStep(Math.pow(2, zx), 64), dy = decadeStep(Math.pow(2, zy), 26);
+		for (let n = Math.ceil(uxMin * LOG10_2 / dx) * dx; n <= uxMax * LOG10_2; n += dx) ticksX.push([n * LOG2_10, fmtDecade(n), n === 0]);
+		for (let n = Math.ceil(uyMin * LOG10_2 / dy) * dy; n <= uyMax * LOG10_2; n += dy) ticksY.push([n * LOG2_10, fmtDecade(n), n === 0]);
+	} else {
+		ticksX.push(...linearTicks(zx, 90, uxMin, uxMax));
+		ticksY.push(...linearTicks(zy, 30, uyMin, uyMax));
+	}
 	ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-	for (let n = Math.ceil(lxMin * LOG10_2 / dx) * dx; n <= lxMax * LOG10_2; n += dx) {
-		const x = snap(X(n * LOG2_10));
-		ctx.strokeStyle = n === 0 ? c['--border'] : c['--grid'];
+	for (const [u, label, axis] of ticksX) {
+		const x = snap(Xu(u));
+		ctx.strokeStyle = axis ? c['--border'] : c['--grid'];
 		ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1 + 4); ctx.stroke();
-		ctx.fillStyle = c['--muted']; ctx.fillText(fmtDecade(n), x, y1 + 6);
+		if (x + ctx.measureText(label).width / 2 > W - 2) continue; // (doesn't fit)
+		ctx.fillStyle = c['--muted']; ctx.fillText(label, x, y1 + 6);
 	}
 	ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-	for (let n = Math.ceil(lyMin * LOG10_2 / dy) * dy; n <= lyMax * LOG10_2; n += dy) {
-		const y = snap(Y(n * LOG2_10));
-		ctx.strokeStyle = n === 0 ? c['--border'] : c['--grid'];
+	for (const [u, label, axis] of ticksY) {
+		const y = snap(Yu(u));
+		ctx.strokeStyle = axis ? c['--border'] : c['--grid'];
 		ctx.beginPath(); ctx.moveTo(x0 - 4, y); ctx.lineTo(x1, y); ctx.stroke();
-		ctx.fillStyle = c['--muted']; ctx.fillText(fmtDecade(n), x0 - 7, y);
+		ctx.fillStyle = c['--muted']; ctx.fillText(label, x0 - 7, y);
 	}
 	// Axis titles.
 	ctx.fillStyle = c['--muted']; ctx.font = `italic 11px ${FONT}`;
@@ -290,22 +360,30 @@ function draw() {
 	ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, y1 - y0); ctx.clip();
 	ctx.lineJoin = 'round'; ctx.lineCap = 'round';
 
-	// float and double: a staircase, one step at every power of two.
+	// float and double: a staircase, one step at every power of two. (Linear: starting at 0, where the steps below the
+	// ones in view are all squeezed together.)
 	for (const t of FLOATS) {
+		if (!(lxMax > -Infinity)) continue; // linear, and nothing above 0 in view
 		const a = Math.max(t.from, Math.floor(lxMin) - 1), b = Math.min(t.to, Math.ceil(lxMax) + 1);
 		if (a >= b) continue;
 		ctx.strokeStyle = c[t.color]; ctx.lineWidth = 2.5;
 		ctx.beginPath();
 		for (let e = a; e < b; e++) {
 			const y = Y(gapExp(t, e));
-			if (e === a) ctx.moveTo(X(e), y); else ctx.lineTo(X(e), y);
+			if (e === a) ctx.moveTo(linear ? Xu(0) : X(e), y);
+			ctx.lineTo(X(e), y);
 			ctx.lineTo(X(e + 1), y);
 		}
 		ctx.stroke();
 	}
 
 	// The points, each with a label (see options below). The dots are drawn first, so that the labels go over them.
-	const visible = MARKS.filter((m) => { const x = X(m.lx), y = Y(m.ly); return x >= x0 - 6 && x <= x1 + 6 && y >= y0 - 6 && y <= y1 + 6; });
+	// (Linear: not the points that are squeezed against 0, a few pixels from it.)
+	const visible = MARKS.filter((m) => {
+		const x = X(m.lx), y = Y(m.ly);
+		if (linear && x - Xu(0) < 4 && Yu(0) - y < 4) return false;
+		return x >= x0 - 6 && x <= x1 + 6 && y >= y0 - 6 && y <= y1 + 6;
+	});
 	for (const m of visible) {
 		ctx.fillStyle = c[m.t.color]; ctx.strokeStyle = c['--bg']; ctx.lineWidth = 2;
 		ctx.beginPath(); ctx.arc(X(m.lx), Y(m.ly), 4.5, 0, 7); ctx.fill(); ctx.stroke();
@@ -318,7 +396,7 @@ function draw() {
 	ctx.font = `italic 11px ${FONT}`;
 	const titleW = ctx.measureText(Y_TITLE).width;
 	const taken = [{ x: x0, y: y0, w: 150, h: 24 }, { x: x0, y: y0 + 24, w: titleW + 12, h: 18 }, { x: W - 50, y: 0, w: 50, h: 50 }];
-	const wide = lxMax - lxMin > 400;
+	const wide = !linear && uxMax - uxMin > 400;
 	// The constants first (they matter most), then the places, which only get a label where it fits between them.
 	const along = (t, c) => visible.filter((m) => m.t === t && !m.constant === !c).sort((a, b) => (t === FLT ? a.lx - b.lx : b.lx - a.lx));
 	const lines = wide ? [DBL, FLT] : [FLT, DBL];
@@ -370,13 +448,14 @@ function draw() {
 
 	// The cursor: the gap of each type at the size under the pointer.
 	if (mouse && mouse.x >= x0 && mouse.x <= x1 && mouse.y >= y0 && mouse.y <= y1) {
-		const lx = LX(mouse.x), e = Math.floor(lx);
+		const lx = linear ? Math.log2(LX(mouse.x)) : LX(mouse.x), e = Math.floor(lx); // (linear, at or left of 0: -Infinity or NaN)
 		const xs = snap(mouse.x);
 		ctx.strokeStyle = c['--muted']; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
 		ctx.beginPath(); ctx.moveTo(xs, y0); ctx.lineTo(xs, y1); ctx.stroke(); ctx.setLineDash([]);
-		const lines = [[`value: ${fmtPow2(lx)}`, c['--text']]];
+		const lines = [[`value: ${lx > -Infinity ? fmtPow2(lx) : '0'}`, c['--text']]];
 		for (const t of FLOATS) {
-			if (lx < t.from) lines.push([`${t.name}: too small, becomes 0`, c[t.color]]);
+			if (!(lx > -Infinity)) lines.push([`${t.name}: gap ${fmtGap(t.from)} (the smallest)`, c[t.color]]);
+			else if (lx < t.from) lines.push([`${t.name}: too small, becomes 0`, c[t.color]]);
 			else if (lx >= t.to) lines.push([`${t.name}: too large, becomes ∞`, c[t.color]]);
 			else {
 				const k = gapExp(t, e);
@@ -402,9 +481,9 @@ function draw() {
 let anim = null;
 const stopAnim = () => { anim = null; };
 function zoomAt(px, py, f) {
-	const lx = LX(px), ly = LY(py);
-	sx *= f; sy *= f; clampView();
-	cx += lx - LX(px); cy += ly - LY(py); clampView();
+	const ux = LX(px), uy = LY(py);
+	zx += Math.log2(f); zy += Math.log2(f); clampView();
+	cx += ux - LX(px); cy += uy - LY(py); clampView();
 	requestDraw();
 }
 canvas.addEventListener('wheel', (e) => {
@@ -426,7 +505,7 @@ canvas.addEventListener('pointerdown', (e) => {
 canvas.addEventListener('pointermove', (e) => {
 	const p = pointers.get(e.pointerId);
 	if (p) {
-		if (pointers.size === 1) { cx -= (e.offsetX - p.x) / sx; cy += (e.offsetY - p.y) / sy; clampView(); }
+		if (pointers.size === 1) { cx -= unscale(e.offsetX - p.x, zx); cy += unscale(e.offsetY - p.y, zy); clampView(); }
 		p.x = e.offsetX; p.y = e.offsetY;
 		if (pointers.size === 2 && pinch) {
 			const [a, b] = [...pointers.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
@@ -449,10 +528,10 @@ canvas.addEventListener('keydown', (e) => {
 	const step = 40;
 	if (e.key === '+' || e.key === '=') zoomAt(M.l + pw() / 2, M.t + ph() / 2, 1.5);
 	else if (e.key === '-') zoomAt(M.l + pw() / 2, M.t + ph() / 2, 1 / 1.5);
-	else if (e.key === 'ArrowLeft') cx -= step / sx;
-	else if (e.key === 'ArrowRight') cx += step / sx;
-	else if (e.key === 'ArrowUp') cy += step / sy;
-	else if (e.key === 'ArrowDown') cy -= step / sy;
+	else if (e.key === 'ArrowLeft') cx -= unscale(step, zx);
+	else if (e.key === 'ArrowRight') cx += unscale(step, zx);
+	else if (e.key === 'ArrowUp') cy += unscale(step, zy);
+	else if (e.key === 'ArrowDown') cy -= unscale(step, zy);
 	else return;
 	e.preventDefault(); stopAnim(); clampView(); requestDraw();
 });
@@ -462,7 +541,7 @@ document.getElementById('zoomOut').addEventListener('click', () => { stopAnim();
 // Move to a view, zooming on a log scale. The start time is the first frame's timestamp (the requestAnimationFrame
 // clock can differ from performance.now() in an iframe that loaded lazily).
 function flyTo(v) {
-	const a = { cx, cy, lsx: Math.log(sx), lsy: Math.log(sy) }, b = { cx: v.cx, cy: v.cy, lsx: Math.log(v.sx), lsy: Math.log(v.sy) };
+	const a = { cx, cy, zx, zy }, b = v;
 	let t0 = null;
 	const me = {}; anim = me;
 	const step = (now) => {
@@ -470,14 +549,15 @@ function flyTo(v) {
 		if (t0 === null) t0 = now;
 		const t = Math.min(1, (now - t0) / 900), k = t * t * (3 - 2 * t);
 		cx = a.cx + (b.cx - a.cx) * k; cy = a.cy + (b.cy - a.cy) * k;
-		sx = Math.exp(a.lsx + (b.lsx - a.lsx) * k); sy = Math.exp(a.lsy + (b.lsy - a.lsy) * k);
+		zx = a.zx + (b.zx - a.zx) * k; zy = a.zy + (b.zy - a.zy) * k;
 		clampView(); requestDraw();
 		if (t < 1) requestAnimationFrame(step); else anim = null;
 	};
 	requestAnimationFrame(step);
 }
 // Go to a point on a line, zoomed in so that the steps of the staircase are visible (about 30 powers of two; a place
-// 16, so that the places close to it are far enough apart for their labels):
+// 16, so that the places close to it are far enough apart for their labels). On a linear scale: from 0 to 2.5 times
+// the value, which shows the last steps before it (each twice as high as the one before):
 // [button, the start of the point's label, row].
 const GOTO = [
 	['FLT_MIN', 'FLT_MIN', 'constants'], ['FLT_EPSILON', 'FLT_EPSILON', 'constants'], ['FLT_MAX', 'FLT_MAX', 'constants'],
@@ -491,16 +571,46 @@ for (const [label, prefix, row] of GOTO) {
 	b.textContent = label;
 	// A place is on both lines (29 powers of two apart): the view shows both, so it's a bit taller.
 	const lys = marks.map((m) => m.ly), lo = Math.min(...lys), hi = Math.max(...lys);
-	const across = row === 'places' ? 16 : 30;
-	b.addEventListener('click', () => flyTo({ cx: marks[0].lx, cy: (lo + hi) / 2, sx: pw() / across, sy: ph() / (hi - lo + 44) }));
+	const across = row === 'places' ? 16 : 30, m = marks[0];
+	b.addEventListener('click', () => {
+		if (!linear) return flyTo({ cx: m.lx, cy: (lo + hi) / 2, zx: Math.log2(pw() / across), zy: Math.log2(ph() / (hi - lo + 44)) });
+		const xTop = Math.min(MAXV, 2.5 * val(m.lx));
+		flyTo(linViewOf(xTop, 1.15 * val(gapExp(m.t, Math.min(m.t.to - 1, Math.floor(Math.log2(xTop)))))));
+	});
 	document.getElementById(row).appendChild(b);
 }
 for (const view of VIEWS.slice(1)) { // the first view is the one at the start
 	const b = document.createElement('button');
 	b.textContent = view[0];
-	b.addEventListener('click', () => flyTo(viewOf(view)));
+	const t = view[0] === 'float' ? FLT : DBL;
+	b.addEventListener('click', () => flyTo(linear ? linViewOf(Math.min(MAXV, 1.05 * val(t.to)), 1.1 * val(gapExp(t, t.to - 1))) : viewOf(view)));
 	document.getElementById('views').appendChild(b);
 }
+
+// The scale: logarithmic or linear. Switching to linear shows the values from 0 to 2.5 times the value in the middle
+// of the view (on the float line, or on the double line beyond the floats); switching back returns to the last
+// logarithmic view.
+let lastLog = null;
+function setScale(lin) {
+	if (lin === linear) return;
+	stopAnim();
+	M.l = lin ? 76 : 58; // (room for labels like 2.5 × 10⁻⁴⁵; the log view is restored with the same margin it had)
+	if (lin) {
+		lastLog = { cx, cy, zx, zy };
+		const t = cx < FLT.to ? FLT : DBL, lx = Math.max(t.from + 2, Math.min(t.to - 1, cx));
+		const xTop = Math.min(MAXV, 2.5 * val(lx));
+		linear = true;
+		({ cx, cy, zx, zy } = linViewOf(xTop, 1.15 * val(gapExp(t, Math.min(t.to - 1, Math.floor(Math.log2(xTop)))))));
+	} else {
+		linear = false;
+		({ cx, cy, zx, zy } = lastLog || viewOf(VIEWS[0]));
+	}
+	clampView(); requestDraw();
+	document.getElementById('scaleLog').setAttribute('aria-pressed', String(!lin));
+	document.getElementById('scaleLin').setAttribute('aria-pressed', String(lin));
+}
+document.getElementById('scaleLog').addEventListener('click', () => setScale(false));
+document.getElementById('scaleLin').addEventListener('click', () => setScale(true));
 
 // Fullscreen: the button, or F11.
 (function () {

@@ -415,7 +415,7 @@ Point at the number line, and each lane also shows the *bits* that store the val
 
 Try it at **2²⁴**: just below 16,777,216, the exponent is `10010110` (the range from 2²³ to 2²⁴, with one float for every whole number). Just above it, the exponent is `10010111` (from 2²⁴ to 2²⁵: the same number of floats in a range that is twice as large, so one float for every two whole numbers). And at **0**, the exponent is all zeros: these are the smallest floats, without the "1 +". You will learn more about binary numbers in [part 9](/cpp-fast-track-9-colours/).
 
-The graph below puts all of this together. It shows the gap between two neighbouring values (the precision) against the value (the range), for `float` and `double`. Both axes are *logarithmic*: every grid line is ten times larger than the one before it, or else the whole range of a `double` wouldn't fit. Point at the graph to read the gaps, and scroll (or pinch) to zoom:
+The graph below puts all of this together. It shows the gap between two neighbouring values (the precision) against the value (the range), for `float` and `double`. Both axes are *logarithmic*: every grid line is ten times larger than the one before it, or else the whole range of a `double` wouldn't fit. Point at the graph to read the gaps, and scroll (or pinch) to zoom. Set the *Scale* to *linear* to see the real size of the steps, where each step is twice as high as the one before it:
 
 <iframe class="embed embed-demo embed-precision-graph" src="/demos/float-precision-graph.html" title="A log-log graph of the gap between two neighbouring values against the value, for float and double" loading="lazy" allowfullscreen></iframe>
 

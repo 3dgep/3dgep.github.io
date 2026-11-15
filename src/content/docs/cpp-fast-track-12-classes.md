@@ -1,242 +1,201 @@
 ---
 title: "C++ Fast Track for Games Programming Part 12: Classes"
-description: "Classes: restructure the tile code into reusable, easier to understand objects."
+description: "Classes: restructure the tank code into reusable, easier to understand objects."
 slug: cpp-fast-track-12-classes
-lastUpdated: 2022-12-05
+lastUpdated: 2026-11-15
 ---
 
-<span id="attachment-8103"></span><img src="/images/cpp-logo.png" alt="C++ Fast-track" width="150" class="thumb" />
+<img src="/images/cpp-logo.png" alt="C++ Fast Track" width="150" class="thumb" />
 
-In this part, we will build on the code from our work with [Tiles](/cpp-fast-track-11-tiles/). We aim to place this in a more reusable and understandable structure – this is where classes come in.
+In this part, we will build on the code from our work with [Tiles](/cpp-fast-track-11-tiles/). We aim to give it a more reusable and understandable structure: this is where *classes* come in.
 
 ## Getting Started
 
-For this tutorial, we’ll be using the same template from the [2nd tutorial](/cpp-fast-track-2-template/):
+For this tutorial, you will start where [part 11](/cpp-fast-track-11-tiles/) ended: the template with the tile map and the tank. Download it here:
 
-[<img src="/images/github-mark.svg" alt="GitHub" width="120" class="thumb light-only" /><img src="/images/github-mark-white.svg" alt="GitHub" width="120" class="thumb dark-only" />https://github.com/3dgep/tmpl8](https://github.com/3dgep/tmpl8)
+[<img src="/images/zip1.png" alt="Download the starting point for part 12 as a zip file" width="120" class="thumb" />part-12.zip](/downloads/part-12.zip)
 
-[<img src="/images/zip1.png" alt="Download tmpl8 as a zip file" width="120" class="thumb" />tmpl8-main.zip](https://github.com/3dgep/tmpl8/archive/refs/heads/main.zip)
+Extract the zip file to `C:\Projects\C++ Fast Track`: it contains a `Part 12` folder. Open `tmpl8.slnx` in the `C:\Projects\C++ Fast Track\Part 12` folder.
 
-In case you need a starting point, here is some code that will do for today:
+The code is the code from the end of part 11, with two small differences. Two trees on the right are gone (they made a dead end, in which a tank that drives by itself would get stuck). And `tank.png` and `barrel.png` now have a second row of frames, with a red tank. That's why the sprites have 16 columns and 2 rows of frames:
 
-If you didn’t download the [nc2tiles.png](/downloads/nc2tiles.png) image file from the [previous tutorial](/cpp-fast-track-11-tiles/), then don’t forget to download the image below and save it in the assets folder where you extracted the template zip file.
+```cpp source="tmpl8-part-12/start/game.cpp#L11-L13" {3}
+```
 
-<span id="attachment-9831"></span>
+Run it, and you will see the map and the green tank of part 11, which you can drive with the arrow keys (or <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd> and <kbd>D</kbd>).
 
-![Tilemap for a sprite based game.](../../assets/nc2tiles.png)
+<iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-12-start/index.html" title="The tile map of part 11, with the green tank that drives with the arrow keys or W, A, S and D" loading="lazy" allowfullscreen></iframe>
 
 <div class="caption">
 
-nc2tiles.png Tilemap. Right-click image to download file to the template's **assets** folder.
+The starting point: the tile map and the tank from part 11. (Click the demo first, so that it gets the keys.)
 
 </div>
 
-Open the `game.cpp` file and replace the contents of the file with the following source code:
-
-```cpp title="game.cpp" showLineNumbers
-#include "game.h"
-#include "surface.h"
-#include "windows.h"
-
-namespace Tmpl8
-{
-    Surface tiles("assets/nc2tiles.png");
-    Sprite tank(new Surface("assets/ctankbase.tga"), 16);
-    int px = 0, py = 0;
-
-    void Game::Init() {}
-    void Game::Shutdown() {}
-
-    char map[5][30] = {
-        "kc kc kc kc kc kc kc kc kc kc",
-        "kc fb fb fb kc kc kc kc kc kc",
-        "kc fb fb fb fb fb kc kc kc kc",
-        "kc lc lc fb fb fb kc kc kc kc",
-        "kc kc kc lc lc lc kc kc kc kc" };
-
-    void DrawTile(int tx, int ty, Surface* screen, int x, int y)
-    {
-        Pixel* src = tiles.GetBuffer() + 1 + tx * 33 + (1 + ty * 33) * 595;
-        Pixel* dst = screen->GetBuffer() + x + y * 800;
-        for (int i = 0; i < 32; i++, src += 595, dst += 800)
-            for (int j = 0; j < 32; j++)
-                dst[j] = src[j];
-    }
-
-    void Game::Tick(float deltaTime)
-    {
-        screen->Clear(0);
-        for (int y = 0; y < 5; y++)
-            for (int x = 0; x < 10; x++)
-            {
-                int tx = map[y][x * 3] - 'a', ty = map[y][x * 3 + 1] - 'a';
-                DrawTile(tx, ty, screen, x * 32, y * 32);
-            }
-        if (GetAsyncKeyState(VK_LEFT)) { px--; tank.SetFrame(12); }
-        if (GetAsyncKeyState(VK_RIGHT)) { px++; tank.SetFrame(4); }
-        if (GetAsyncKeyState(VK_UP)) { py--; tank.SetFrame(0); }
-        if (GetAsyncKeyState(VK_DOWN)) { py++; tank.SetFrame(8); }
-        tank.Draw(screen, px, py);
-    }
-};
-```
-
-There are some problems with this code, and we’ll fix these problems using *classes*, which allow us to encapsulate functionality.
-
 ## Objects
 
-Your game world consists of **objects**. Take the [last episode](/cpp-fast-track-11-tiles/) for example: we have a player **tank**, a **backdrop** (which consists of **tile**s), a **screen** that we draw to. Later on, we might want to add **bullet**s, enemies (**enemy**), more **level**s and so on. This is a list of *things*, not a list of operations.
+Your game world consists of *objects*. Take the last part for example: we have a *tank*, a *map* (which consists of *tiles*), and a *screen* that we draw to. Later on, we might want to add *bullets*, *enemies*, more *levels*, and so on. This is a list of *things*, not a list of operations.
 
-You could actually argue that the most logical way to start thinking about what a game will do is actually: what *objects* do I need? And, slightly more detailed: what do these objects *do*? What *properties* do these objects have? And what is the *relationship* between objects?
+You could argue that the most logical way to start thinking about a game is: what *objects* do I need? And, slightly more detailed: what do these objects *do*? What *properties* do they have? And how are they *related*?
 
-Note that this is something you have already been using. Consider the default code in the `Game::Tick` method:
+Note that this is something you have already been using. Have a look at `Game::Tick`:
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=30
-void Game::Tick( float deltaTime )
-{
-    // clear the graphics window
-    screen->Clear( 0 );
-    ...
-}
+```cpp source="tmpl8-part-12/start/game.cpp#L93-L95" {3}
 ```
 
-When you open up `game.h` you will see that your game has a `screen` variable, which is an object. The type of this object is `Surface`. In the default template code we are telling this surface to do things: it’s asked to clear itself, and to print something. A `Surface` can do more: you can find out what by looking at `surface.h`, line `37`. There you will see that a `Surface` can also `Resize` itself, amongst other things. A `Surface` also has some properties: `width`, `height`, `Pixel` buffer, and some other things. The things that the `Surface` can do are called *methods*. The properties of an object are called *member variables*, or just *properties*.
+The game has a `screen` variable, which is an object: its type is `Surface`. We tell this surface to do things: `screen.Clear(0)` asks it to clear itself, and `screen.Print` asks it to print text (you printed the frame rate with it in [part 6](/cpp-fast-track-6-floats/)). A `Surface` can do more: open `surface.hpp` (in the *template code* folder) and look for `class Surface`. There, you can see that a surface can also draw lines (`Line`), boxes (`Box` and `Bar`), and more. A surface also has *properties*: its width, its height, and its pixels.
 
-## Tank Object
+The things that an object can do are called *methods*. The properties of an object are called *member variables*.
 
-Let’s apply this in a more interesting way. In the previous tutorial, you added a player-controlled tank, with collision detection, to a tile-based backdrop. In this tutorial, we’ll make the tank move by itself, using three simple rules:
+## A Tank Class
 
-### Tank Rules
+The tank is an object too, but our code doesn't say so: it's just three loose variables, `tankX`, `tankY` and `tankFrame`. Let's change that. A *class* describes what a kind of object looks like. Replace those three variables:
 
-1.  If the tank *can* move to the right, it will
-2.  If the tank *cannot* move the the right, it will:
-    1.  Move up, if it is in the lower half of the screen;
-    2.  Move down, if it is in the top half of the screen.
-3.  When the tank reaches the right side of the screen, it is respawned at the left side.
-
-The main object that we will be working on is a `Tank`:
-
-```cpp title="game.cpp" showLineNumbers startLineNumber=11
-class Tank
-{
-public:
-
-};
+```cpp source="tmpl8-part-12/start/game.cpp#L43-L44"
 ```
 
-Put this code in `game.cpp`, right above the `Game::Init()` method. Once you have that in place, you can create your tank:
+by this, *below* the function `TankFits` (you will see why in a moment):
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=16
-    Tank mytank;
+```cpp source="tmpl8-part-12/1-class/game.cpp#L73-L86" {1-14}
 ```
 
-So now you can make variables of type `Tank`. The object does not yet have any properties though, and it can’t do anything yet… Our particular tank will need to perform one task: Move. We want to draw it once every time the `Game::Tick` method is executed, so when it moves, it should do one step.
+The class `Tank` describes what a tank is: it has a position (`x` and `y`) and a direction (`frame`). `public:` means that the rest of the program can use these: we will get back to that.
 
-In terms of properties for our tank, there are a few obvious ones: position (`x` and `y`), and orientation (`rotation`). Considering this, the tank class now becomes:
+The function with the same name as the class is a *constructor*. A constructor has no return type (not even `void`), and it runs automatically when a tank is created. That makes it the `Init` of the class: it gives the member variables their first values. Our constructor takes *parameters* (the start position and direction), so creating a tank looks like calling a function:
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=11 {4,5}
-class Tank
-{
-public:
-     void Move();
-     int x, y, rotation;
-};
+```cpp
+Tank player(3 * TileSize + 32, 2 * TileSize + 32, 0);
 ```
 
-When we first create a tank, we need to set its `x` and `y` and `rotation` properties. Until now, you would have done this in the `Game::Init()` function, but now there is a better way. It is called a *constructor*, and it looks like this:
+This creates an instance of a `Tank` called `player`, in the middle of the tile in column 3 and row 2, pointing up. Note the difference: `Tank` is the class, the description of a tank. `player` is an actual tank: an *instance* of the class. You can make as many instances as you like, and each one has its own `x`, `y` and `frame` variables.
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=11 {4,5,6,7,8,9}
-class Tank
-{
-public:
-    Tank()
-    {
-        x = 0;
-        y = 4 * 64;
-        rotation = 0;
-    }
-    void Move();
-    int x, y, rotation;
-};
+Now use the player's member variables in `Tick`, with a dot: `player.x` is the `x` of the player.
+
+```cpp source="tmpl8-part-12/1-class/game.cpp#L119-L131" {2-13}
 ```
 
-A *constructor* has the same name as the class and it has no return value. A constructor can take arguments in which case it is called a *parameterized constructor*. In this case, the constructor doesn’t take any arguments and in this case it’s called a *default constructor*.
+Run the program: it does exactly the same as before. But the variables of the tank are now together, in one place.
 
-The good thing is that when you create your tank (by creating a variable of type `Tank`), the constructor is executed. So, basically the constructor is the `Init` method of your class. And, best of all, each class can have its own, and it’s executed automatically for you.
+## Methods
 
-### Tank Behavior
+The tank still doesn't *do* anything: moving and drawing happens in `Tick`, which uses the tank's variables. That code belongs to the tank. Let's give the tank two methods: `Move` and `Draw`. Add them to the class:
 
-Now that we have a `Tank` variable (called `mytank`), we can use it. First of all, we can access its properties: `mytank.x`, `mytank.y` and `mytank.rotation`. We can also make it do something. Add the following line to your `Game::Tick` function:
-
-```cpp title="game.cpp" showLineNumbers startLineNumber=58
-    mytank.Move();
+```cpp source="tmpl8-part-12/2-methods/game.cpp#L82-L83" {1-2}
 ```
 
-When you compile the program, you will get a linker error ([LNK2019](https://learn.microsoft.com/cpp/error-messages/tool-errors/linker-tools-error-lnk2019)). We told C++ that there exists a `Tank` object, and that it can be moved using the `Move` method, but we didn’t specify what happens when the `Move` method is called. Let’s fix that. In the `Tank` class, replace `void Move();` by:
+This *declares* the methods: it tells C++ that a tank can `Move` and `Draw`, but not yet *how*. Now replace the movement code in `Tick`:
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=20
-void Tank::Move()
-{
-    x++;
-    if (x > 800) x = 0;
-    tank.Draw( screen, x, y );
-}
+```cpp source="tmpl8-part-12/2-methods/game.cpp#L136-L144" {2-9}
 ```
 
-Note that this does not implement all the rules [specified earlier](#tank-rules), we’ll save that for the assignment. 🙂
+When you build this, you will get a linker error, [LNK2019](https://learn.microsoft.com/cpp/error-messages/tool-errors/linker-tools-error-lnk2019):
 
-When you try to compile this code, you will get another error. This time, a compiler error ([C2065](https://learn.microsoft.com/cpp/error-messages/compiler-errors-1/compiler-error-c2065)). The above code assumes that `screen` member variable can be used in the `Tank` class, but apparently it cannot… There is a reason for that: `screen` belongs to another object, which is called `Game`, and we can’t just access it. Even though this is annoying right now, this is actually good: member variables belong to their own object. This allows us to use `x` and `y` in a `Tank` class, and `x` and `y` in a `Bullet` class as well: the `Tank`‘s `x` and `y` variables will be referred to (in our program) as `mytank.x` and `mytank.y`; `x` for a `Bullet` might be `mightybullet.x`. And, if there are multiple bullets, they all have their own `x` and `y` variables: `bullet1.x`, `bullet2.x`, and so on.
-
-Where and how a variable can be accessed is referred to as the *scope* of the variable. Refer to [Scope](https://en.cppreference.com/cpp/language/scope) for more information about scope in a C++ program.
-
-That doesn’t solve the `screen` problem, obviously. Luckily, the solution is not hard. The game does know about `screen`, and the game moves the tank. So, the game should tell the tank about the `Surface` as well. Like this:
-
-```cpp title="game.cpp" showLineNumbers startLineNumber=63
-    mytank.Move( screen );
+```
+error LNK2019: unresolved external symbol "public: void __cdecl Tmpl8::Tank::Move(float,float)" ... referenced in function "public: void __cdecl Tmpl8::Game::Tick(float)"
 ```
 
-And, the tank should listen to that. Update the `Tank`‘s `Move` method to this:
+We told C++ that a tank can `Move`, and `Tick` calls it, but we never said what `Move` does. (In a *Release* build, the same error is called LNK2001.) Let's fix that. Add the *definitions* of the methods below the class:
 
-```cpp title="game.cpp" showLineNumbers startLineNumber=20 {1,5}
-void Tank::Move( Surface* gameScreen )
-{
-    x++;
-    if (x > 800) x = 0;
-    tank.Draw( gameScreen, x, y );
-}
+```cpp source="tmpl8-part-12/2-methods/game.cpp#L88-L101" {1-14}
 ```
 
-Note that it’s not called `screen` anymore, because it is a different variable now: it’s a function argument. This time, all is well, and the tank does its limited behaviour, which you get to fix in the assignment.
+`Tank::Move` means "the method `Move` of the class `Tank`". Inside a method, `x`, `y` and `frame` are the member variables of the tank that the method is called for: `player.Move(dx, dy)` moves the player. This is also why the class is below `TankFits`: `Move` uses it, and in C++, you can only use a function below the place where it's declared.
+
+Now look at `Draw`. Why does it have a parameter `target`, instead of drawing to `screen`, like `Tick` does? Try it: change `Draw` to draw to `screen`, and you get a compiler error, [C2065](https://learn.microsoft.com/cpp/error-messages/compiler-errors-1/compiler-error-c2065): `'screen': undeclared identifier`. The variable `screen` belongs to *another* object: the `Game`. Only the methods of the `Game` (like `Tick`) can use it directly. That may seem annoying, but it's actually good: the member variables of an object belong to that object. That's why a `Tank` can have an `x` and a `y`, a `Bullet` can have an `x` and a `y` too, and they don't get mixed up.
+
+Where a variable can be used is called the *scope* of the variable (see [Scope](https://en.cppreference.com/w/cpp/language/scope) for the details). The solution is simple: the game knows the `screen`, and the game asks the tank to draw itself, so the game passes the screen along: `player.Draw(screen)`. Inside `Draw`, it's called `target`: it's a parameter of the method.
+
+Run the program, and again it does exactly the same. But the code of the tank is now in the tank, and `Tick` only says *what* happens: the player moves, and the player is drawn.
+
+## A Second Tank
+
+Now that we have a class, a second tank is easy. Let's add an enemy: a red tank that drives by itself. Give the class a `color` (the row in `tank.png`: 0 is green, 1 is red), and a method `Update` for the enemy's behaviour:
+
+```cpp source="tmpl8-part-12/game.cpp#L73-L111" {4,9,12,16,26-31,35-36}
+```
+
+Then create the enemy next to the player (the player is green, the enemy red, and it starts just left of the map, pointing right):
+
+```cpp source="tmpl8-part-12/game.cpp#L113-L114" {1-2}
+```
+
+And update and draw it in `Tick`:
+
+```cpp source="tmpl8-part-12/game.cpp#L153-L157" {2,5}
+```
+
+<iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-12-two-tanks/index.html" title="The green player tank, and a red enemy tank that drives from left to right along the edge of the grass" loading="lazy" allowfullscreen></iframe>
+
+<div class="caption">
+
+The player (green) and an enemy (red), two instances of the same class. Drive the player with the arrow keys or <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd> and <kbd>D</kbd>. (Click the demo first, so that it gets the keys.)
+
+</div>
+
+Both tanks run the same code, but each has its own position, direction and colour. The enemy's `Update` is very simple: it drives to the right (without looking at the obstacles!), and when it has left the map, it starts again on the left. You will improve that in the assignment.
 
 ## Conclusion
 
-A few final words before you start hacking away: You have been using classes without knowing it. There is a `Game` class, a `Surface` class, and a `Sprite` class. And the template has a few more objects, which you didn’t use yet.
+A few final words before you start hacking away. You have been using classes without knowing it: there is a `Game` class, a `Surface` class and a `Sprite` class. And the template has a few more, which you didn't use yet.
 
-Having a class means nothing by the way; you merely tell C++ what something looks like. To actually create something, you create a variable of that type, such as `mytank`. This variable is called an *instance*. Each instance has its own set of *member variables*, as defined in the *class definition*.
+Having a class means nothing by itself: it only tells C++ what something looks like. To actually make something, you create a variable of that type, such as `player`. This variable is an *instance* of the class, and each instance has its own set of member variables.
 
 You use classes for many reasons:
 
--   It allows you to think in high-level concepts before you get to the details;
--   It groups data on a per-object basis rather than in one big messy pool;
--   It groups data and the code that operates on that data.
+-   They allow you to think in high-level concepts (tanks, maps, bullets) before you get to the details;
+-   They group data per object, instead of in one big messy pool of variables;
+-   They group data and the code that works with that data.
 
-We will dive deeper in the subject at a later time. For now, you know enough for the…
+We will dive deeper into this subject later. For now, you know enough for the assignment.
 
 ## Assignment
 
 There are three challenge levels for this assignment. You are encouraged to tackle the basic task first. When you are up for a greater challenge, you can move on to the intermediate and hard challenges.
 
-### Basic:
+### Basic
 
-1.  Using what you learned from [Part 11](/cpp-fast-track-11-tiles/), correctly implement the three rules for the tank object [described above](#tank-rules), using the collision code and full-screen map from episode 11.
-2.  Using what you learned from [Part 10](/cpp-fast-track-10-arrays/), make an array of tanks. Each tank starts at a random tile, and executes the same rules.
+1.  Make the enemy drive with these three rules, using `TankFits` to see where it can go:
+    1.  If the tank *can* move to the right, it does.
+    2.  If the tank *can't* move to the right, it moves up when it's in the lower half of the map, and down when it's in the upper half. It keeps going that way until it can move to the right again (and turns around when that way is blocked too).
+    3.  At the right side of the map, the tank drives off the screen. When it's completely gone, it comes back in from the left side (starting completely off the screen too), at a random height where it isn't blocked.
 
-### Intermediate:
+    :::tip[Hint]
+    The tank has to remember which way it is going around an obstacle: otherwise, a tank near the middle of the map goes up, is then in the upper half, goes down, is in the lower half again, and so on. Give the class a member variable for it.
+    :::
+2.  Make an array of tanks (remember [part 10](/cpp-fast-track-10-arrays/)?). Each tank starts on a random tile without an obstacle, and follows the same rules.
 
-1.  Expand task 2 so that no two tanks start at the same tile.
-2.  Move the tank class to its own set of files: a `tank.h` for the class definition, and a `tank.cpp` for the implementation of the functions.
+    :::tip[Hint]
+    An array of tanks needs a constructor without parameters, a *default constructor*. A class can have more than one constructor.
+    :::
 
-### Hard:
+<iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-12-assignment-basic/index.html" title="Six red tanks that drive to the right, and go around obstacles" loading="lazy" allowfullscreen></iframe>
 
-1.  Expand task 3 so that no two tanks occupy the same tile while walking the scene. In other words: tanks should detect each other and not be allowed to intersect.
-2.  Make a class for the tile map rendering code so that you can separate its data (tiles, width, height, …) and functionality (draw, collisions, …) from the game code. Doing this will allow you to easily reuse the tile map code in another project.
+<div class="caption">
+
+The result: six enemies that follow the three rules.
+
+</div>
+
+### Intermediate
+
+1.  Make sure that no two tanks start on the same tile.
+2.  Move the `Tank` class to its own files: a `tank.hpp` for the class (with the declarations of its methods), and a `tank.cpp` for the definitions of the methods.
+
+    :::tip[Hint]
+    The methods use a few things from `game.cpp`. Move the `tank` and `barrel` sprites to `tank.cpp`: only `Draw` uses them. `Move` needs `TankFits`, which can stay in `game.cpp`: add a *forward declaration* of it to `tank.cpp`, `bool TankFits(float x, float y);` (inside `namespace Tmpl8`, like everything else), just like the declarations of the methods in the class. And `Update` needs the size of the map: use `ScreenWidth` from `template.hpp`, or move the constants to a header that both files include. Put the new files next to `game.cpp`.
+    :::
+
+### Hard
+
+1.  Make sure that no two tanks ever overlap: a tank must not drive into another tank (or into the player).
+2.  Make a class for the tile map: `TileMap`. It holds the layers, and has methods to draw the map and to check whether a place is free. Separating the map from the rest of the game lets you reuse it in another project.
+
+<iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-12-assignment-hard/index.html" title="Six red tanks that drive around without ever overlapping each other or the player" loading="lazy" allowfullscreen></iframe>
+
+<div class="caption">
+
+The result: tanks that never overlap. A tank that is blocked by another tank waits, or goes around it. (Click the demo first to drive the green tank.)
+
+</div>
+
+Once you have completed these, you may continue with the next part.

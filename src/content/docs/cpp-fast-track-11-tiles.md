@@ -136,15 +136,15 @@ Remember from [part 4](/cpp-fast-track-4-sprites-and-loops/) that a sprite can h
 
 Now that we have a world, we need a player to explore it. `tank.png` has 16 frames of the tank, one for each direction: frame 0 points up, frame 4 points right, frame 8 down, and frame 12 left. `barrel.png` has the barrel, in the same 16 directions. Add the sprites, and a position and a frame for the tank:
 
-```cpp source="tmpl8-part-11/3-tank/game.cpp#L13" {1}
+```cpp source="tmpl8-part-11/3-tank/game.cpp#L13"
 ```
 
-```cpp source="tmpl8-part-11/3-tank/game.cpp#L37-L38" {1-2}
+```cpp source="tmpl8-part-11/3-tank/game.cpp#L37-L38"
 ```
 
 And let the arrow keys (or <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd> and <kbd>D</kbd>) drive it, at the end of `Tick`:
 
-```cpp source="tmpl8-part-11/3-tank/game.cpp#L85-L94" {1-10}
+```cpp source="tmpl8-part-11/3-tank/game.cpp#L85-L94"
 ```
 
 <iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-11-tank/index.html" title="A green tank on the tile map, which drives with the arrow keys or W, A, S and D" loading="lazy" allowfullscreen></iframe>
@@ -175,12 +175,12 @@ The tank drives right through the trees. One of the nicest things about a tile m
 
 Which objects block the tank? Trees, crates, sandbags, barrels and barricades do, but the tank can drive over the oil and the twigs. That is a property of the *kind* of object, not of a place in the map: every tree blocks the tank. So we store it once for each object, in an array with an element for each of the 16 objects (a tile editor lets you set *properties* for each tile of a tile sheet in the same way):
 
-```cpp source="tmpl8-part-11/game.cpp#L37-L41" {1-5}
+```cpp source="tmpl8-part-11/game.cpp#L37-L41"
 ```
 
 The tank is not a single point: we need to make sure that *no part* of the tank drives into an obstacle. An easy way to do that is to treat the tank (for collisions) as a square of 36 × 36 pixels around its middle, and check its four corners. Add these two functions, below `DrawTile`:
 
-```cpp source="tmpl8-part-11/game.cpp#L60-L74" {1-15}
+```cpp source="tmpl8-part-11/game.cpp#L60-L74"
 ```
 
 `IsFree` turns a position in pixels into a place in the map: divide by the size of a tile. A tank at pixel 200 is in column `200 / 64 = 3`. The place is free when there is no object (`-1`), or when the object is not solid. And outside the map, it's never free: that keeps the tank on the map.

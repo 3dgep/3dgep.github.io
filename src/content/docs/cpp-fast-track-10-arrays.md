@@ -105,7 +105,7 @@ Now run the program, press <kbd>V</kbd> to switch VSync off, and increase the nu
 
 Let's try another program. Remove the particles from `game.cpp` again (the arrays, and the code in `Init` and `Tick`), so that you have empty functions like in a fresh template. Then make the highlighted changes to `game.hpp`, so that the game knows where the mouse is:
 
-```cpp source="tmpl8-part-10/3-crosshair/game.hpp#L20" {1}
+```cpp source="tmpl8-part-10/3-crosshair/game.hpp#L20"
 ```
 
 ```cpp source="tmpl8-part-10/3-crosshair/game.hpp#L43-L47" {5}

@@ -56,7 +56,7 @@ The tank is an object too, but our code doesn't say so: it's just three loose va
 
 by this, *below* the function `TankFits` (you will see why in a moment):
 
-```cpp source="tmpl8-part-12/1-class/game.cpp#L73-L86" {1-14}
+```cpp source="tmpl8-part-12/1-class/game.cpp#L73-L86"
 ```
 
 The class `Tank` describes what a tank is: it has a position (`x` and `y`) and a direction (`frame`). `public:` means that the rest of the program can use these: we will get back to that.
@@ -80,7 +80,7 @@ Run the program: it does exactly the same as before. But the variables of the ta
 
 The tank still doesn't *do* anything: moving and drawing happens in `Tick`, which uses the tank's variables. That code belongs to the tank. Let's give the tank two methods: `Move` and `Draw`. Add them to the class:
 
-```cpp source="tmpl8-part-12/2-methods/game.cpp#L82-L83" {1-2}
+```cpp source="tmpl8-part-12/2-methods/game.cpp#L82-L83"
 ```
 
 This *declares* the methods: it tells C++ that a tank can `Move` and `Draw`, but not yet *how*. Now replace the movement code in `Tick`:
@@ -96,7 +96,7 @@ error LNK2019: unresolved external symbol "public: void __cdecl Tmpl8::Tank::Mov
 
 We told C++ that a tank can `Move`, and `Tick` calls it, but we never said what `Move` does. (In a *Release* build, the same error is called LNK2001.) Let's fix that. Add the *definitions* of the methods below the class:
 
-```cpp source="tmpl8-part-12/2-methods/game.cpp#L88-L101" {1-14}
+```cpp source="tmpl8-part-12/2-methods/game.cpp#L88-L101"
 ```
 
 `Tank::Move` means "the method `Move` of the class `Tank`". Inside a method, `x`, `y` and `frame` are the member variables of the tank that the method is called for: `player.Move(dx, dy)` moves the player. This is also why the class is below `TankFits`: `Move` uses it, and in C++, you can only use a function below the place where it's declared.
@@ -116,7 +116,7 @@ Now that we have a class, a second tank is easy. Let's add an enemy: a red tank 
 
 Then create the enemy next to the player (the player is green, the enemy red, and it starts just left of the map, pointing right):
 
-```cpp source="tmpl8-part-12/game.cpp#L113-L114" {1-2}
+```cpp source="tmpl8-part-12/game.cpp#L113-L114"
 ```
 
 And update and draw it in `Tick`:

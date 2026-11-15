@@ -517,7 +517,7 @@ canvas.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
 canvas.addEventListener('blur', () => keys.clear());
 
 // ---- Rendering -------------------------------------------------------------------------------------------------
-let pending = false, last = performance.now();
+let pending = false, last = null; // null: the next frame starts the clock (requestAnimationFrame time)
 function requestRender() { if (!pending && gl) { pending = true; requestAnimationFrame(frame); } }
 function frame(now) {
 	pending = false;
@@ -558,7 +558,7 @@ function frame(now) {
 	}
 	render();
 	if ((mode === 'fps' || mode === 'lookat') && [...keys].some((k) => k !== 'shift')) requestRender();
-	else last = performance.now();
+	else last = null;
 }
 
 function drawScene(proj, view, extra) {

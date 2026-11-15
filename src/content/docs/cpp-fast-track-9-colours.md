@@ -122,7 +122,7 @@ Every shift to the left doubles the number.
 
 </div>
 
-`std::println` (which you know from [part 1](/cpp-fast-track-1-getting-started/)) replaces each `{}` with the next value. You can say how: `{:3}` makes the number at least 3 characters wide, and `{:016b}` prints it in binary (`b`), 16 digits wide, with zeros in front (`0`).
+`std::println` (which you know from [part 1](/cpp-fast-track-1-getting-started/)) replaces each `{}` with the next value. Inside the braces, you can add a format to control how the value is printed: `{:3}` makes the number at least 3 characters wide, and `{:016b}` prints it in binary (`b`), 16 digits wide, with zeros in front (`0`). You can find all the options in the [format specification](https://en.cppreference.com/w/cpp/utility/format/spec) on cppreference.
 
 There's also *shift right*: `>>`. It moves the bits to the right, which divides the number by 2 for every place. The bits that fall off on the right are gone: `5 >> 1` is `2`.
 
@@ -141,7 +141,7 @@ The nice thing about hexadecimal is that every hexadecimal digit is exactly 4 bi
 
 So you can read the bits right from a hexadecimal number: `0xC8` is `1100 1000`, and a byte is always two hexadecimal digits (`0x00` to `0xFF`). The debugger can show values in hexadecimal too: right-click the *Watch 1* window and select *Hexadecimal Display*:
 
-<img src="/images/cpp-fast-track-9/05-watch-hex.png" alt="The Watch 1 window in hexadecimal: i is 0x00000100 and b is 0x00" width="1141" height="651" class="screenshot" />
+<img src="/images/cpp-fast-track-9/05-watch-hex.png" alt="The right-click menu of the Watch 1 window with Hexadecimal Display checked; i is 0x00000100 and b is 0x00" width="1141" height="651" class="screenshot" />
 
 <div class="caption">
 

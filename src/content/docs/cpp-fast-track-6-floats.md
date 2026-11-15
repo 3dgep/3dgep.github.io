@@ -177,6 +177,7 @@ Some places to visit with the buttons below the number line:
 -   **10²⁰**: too large for an `int`. A `float` can store it, but the step between two floats is about 8.8 × 10¹².
 -   **FLT_EPSILON**: zoomed in on 1. Just above 1, two floats are 2⁻²³ ≈ 0.000000119 apart: this is the value of `FLT_EPSILON` (or `std::numeric_limits<float>::epsilon()`), the distance between 1.0f and the next float. The next float after 1 is 1.00000012. Just below 1, the floats are twice as close together.
 -   **DBL_EPSILON**: the same for `double`. Just above 1, two doubles are 2⁻⁵² ≈ 0.000000000000000222 apart: this is `DBL_EPSILON` (or `std::numeric_limits<double>::epsilon()`), and the next double after 1 is 1.0000000000000002. That's about 16 decimal digits of precision, against about 7 for a `float`. At this zoom level, the `float` lane has just one value, 1: the floats around 1 are 2²⁹ (more than 500 million) times further apart.
+-   **Radius**: the radius of the Earth, Jupiter, the Sun and the Solar system, in metres. Positions in a game are often stored as floats in metres. On the surface of the Earth (6,371 km from its centre), two floats are 0.5 m apart; at the radius of Jupiter it's 8 m, and at the radius of the Sun 64 m. At the orbit of Neptune, the edge of the Solar system (about 4.5 × 10¹² m), the step is 524,288 m: over 500 km. That's why games with very large worlds use doubles for positions, or keep the numbers small by moving the origin of the world along with the player. A `double` still has a step of about 1 mm at Neptune.
 
 Point at the number line, and each lane also shows the *bits* that store the value under the cursor, with the *sign bit* in red:
 
@@ -413,6 +414,22 @@ Point at the number line, and each lane also shows the *bits* that store the val
     </div>
 
 Try it at **2²⁴**: just below 16,777,216, the exponent is `10010110` (the range from 2²³ to 2²⁴, with one float for every whole number). Just above it, the exponent is `10010111` (from 2²⁴ to 2²⁵: the same number of floats in a range that is twice as large, so one float for every two whole numbers). And at **0**, the exponent is all zeros: these are the smallest floats, without the "1 +". You will learn more about binary numbers in [part 9](/cpp-fast-track-9-colours/).
+
+The graph below puts all of this together. It shows the gap between two neighbouring values (the precision) against the value (the range), for `float` and `double`. Both axes are *logarithmic*: every grid line is ten times larger than the one before it, or else the whole range of a `double` wouldn't fit. Point at the graph to read the gaps, and scroll (or pinch) to zoom:
+
+<iframe class="embed embed-demo embed-precision-graph" src="/demos/float-precision-graph.html" title="A log-log graph of the gap between two neighbouring values against the value, for float and double" loading="lazy" allowfullscreen></iframe>
+
+<div class="caption">
+
+The precision of `float` and `double`. The higher the line, the larger the gaps between the values.
+
+</div>
+
+-   The `float` and `double` lines are staircases: the gap doubles at every power of two. Zoomed out, the steps form a straight diagonal line: the gap is always about the number divided by 2²³ for a `float`, and divided by 2⁵² for a `double`. So a `float` always has about 7 significant digits, whether the number is tiny or huge, and a `double` about 16. The `double` line is the same line, 29 powers of two lower, and much longer.
+-   The points on the lines are the limits of each type, which you can find in `<cfloat>`. Each line ends at the largest value of its type (`FLT_MAX` and `DBL_MAX`): beyond it, the result is infinity.
+-   Below the smallest *normal* value (`FLT_MIN` and `DBL_MIN`), the line goes flat: these are the *subnormal* numbers (exponent 0), which all have the same gap. That gap is also the smallest value above 0 (`FLT_TRUE_MIN` and `DBL_TRUE_MIN`).
+-   `FLT_EPSILON` and `DBL_EPSILON` are the gaps at 1.
+-   The other dots are the places from the number line above, on both lines. Read off the gap at the size of your numbers to see whether a `float` is precise enough: a position in metres near the edge of the Solar system is only precise to about 500 km in a `float`, and to about 1 mm in a `double`.
 
 ### Infinity and NaN
 

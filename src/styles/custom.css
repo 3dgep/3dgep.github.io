@@ -125,7 +125,8 @@
 /* Demos with a control panel need more height. */
 .sl-markdown-content iframe.embed-demo-tall { aspect-ratio: 4 / 3; min-height: 560px; }
 /* The number line demo (part 6): four lanes with room for the bits under the cursor, and two rows of buttons. */
-.sl-markdown-content iframe.embed-number-line { aspect-ratio: auto; height: 470px; min-height: 0; }
+.sl-markdown-content iframe.embed-number-line { aspect-ratio: auto; height: 510px; min-height: 0; }
+.sl-markdown-content iframe.embed-precision-graph { aspect-ratio: auto; height: 540px; min-height: 0; }
 
 
 /* Theme-specific images: <img class="light-only"> / <img class="dark-only"> (e.g. the GitHub mark). */
@@ -400,3 +401,13 @@ dialog.lightbox img {
 .bits-diagram line.cell.red { stroke: var(--bits-red); }
 .bits-diagram line.cell.green { stroke: var(--bits-green); }
 .bits-diagram line.cell.blue { stroke: var(--bits-blue); }
+
+/* A row of pixels in grey levels (C++ Fast Track part 10): the pixels have their own colours, the labels follow the theme. */
+.sl-markdown-content svg.pixel-diagram { display: block; width: 100%; max-width: 700px; height: auto; margin: 1.5rem auto 0; }
+.pixel-diagram text { fill: var(--sl-color-white); font-family: var(--sl-font-system); font-size: 14px; }
+.pixel-diagram .head { font-weight: 600; }
+.pixel-diagram .label { fill: var(--sl-color-gray-3); font-family: var(--__sl-font-mono, consolas, monospace); font-size: 13px; }
+.pixel-diagram text.pct { font-size: 11px; }
+.pixel-diagram .cell { stroke: var(--sl-color-gray-4); stroke-width: 1; }
+.pixel-diagram text.pct.dark { fill: #000; }
+.pixel-diagram text.pct.light { fill: #fff; }

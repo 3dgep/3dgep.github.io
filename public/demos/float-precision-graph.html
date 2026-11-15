@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Precision Graph</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--grid: #262c39;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--float: #f6ad55;
+		--double: #c49bff;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--grid: #e3e6ec;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		--float: #b55f00;
+		--double: #7b3fc9;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; outline: none; }
+	canvas.dragging { cursor: grabbing; }
+	#bar {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+		padding: 6px 8px; border-top: 1px solid var(--border); background: var(--panel);
+	}
+	.group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+	.break { flex-basis: 100%; height: 0; } /* one row each: the constants, the places, and zoom and range */
+	.group > span { color: var(--muted); margin-right: 2px; }
+	button {
+		font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border);
+		border-radius: 5px; padding: 3px 8px; cursor: pointer; touch-action: none; user-select: none;
+	}
+	button:hover { border-color: var(--accent); }
+	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	button.zoom { width: 30px; padding: 3px 0; font-weight: 700; }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+	/* Fullscreen button: top right, faint, hidden while the mouse doesn't move. */
+	#fullscreen {
+		position: absolute; top: 8px; right: 8px; z-index: 1;
+		width: 34px; height: 34px; padding: 6px; border-radius: 6px;
+		background: var(--panel); color: var(--text); opacity: 0.45; transition: opacity 0.3s;
+	}
+	#fullscreen:hover, #fullscreen:focus-visible { opacity: 0.95; }
+	#fullscreen.idle:not(:hover):not(:focus-visible) { opacity: 0; pointer-events: none; }
+	#fullscreen svg { display: block; width: 100%; height: 100%; }
+	#fullscreen .exit, :fullscreen #fullscreen .enter { display: none; }
+	:fullscreen #fullscreen .exit { display: block; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" tabindex="0" role="img"
+			aria-label="A log-log graph of the gap between two neighbouring values against the value, for float and double"></canvas>
+		<button id="fullscreen" type="button" title="Fullscreen (F11)" aria-label="Toggle fullscreen" hidden>
+			<svg class="enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+				<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>
+			</svg>
+			<svg class="exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+				<path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/>
+			</svg>
+		</button>
+	</div>
+	<div id="bar">
+		<div class="group" id="constants">
+			<span>Go to:</span>
+		</div>
+		<div class="break"></div>
+		<div class="group" id="places">
+			<span>Places:</span>
+		</div>
+		<div class="break"></div>
+		<div class="group">
+			<button class="zoom" id="zoomOut" title="Zoom out (-)" aria-label="Zoom out">−</button>
+			<button class="zoom" id="zoomIn" title="Zoom in (+)" aria-label="Zoom in">+</button>
+		</div>
+		<div class="group" id="views">
+			<span>Range of:</span>
+		</div>
+		<svg class="made-by" viewBox="0 0 24 24" role="img" aria-label="Made with Claude"><title>Made with Claude</title><path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z" fill="#D97757"/></svg>
+	</div>
+</div>
+<script>
+'use strict';
+
+// ---- The types -------------------------------------------------------------------------------------------------
+// Everything is in log2 units: lx = log2 of the size of a number, ly = log2 of the gap between two neighbouring values.
+// A float with exponent e (the range from 2^e to 2^(e+1)) has 2^mant values in that range: the gap is 2^(e - mant).
+// Below the smallest normal exponent (subnormal numbers) the gap stays 2^(minE - mant).
+const FLOATS = [
+	{ name: 'float', mant: 23, minE: -126, maxE: 127, max: 'FLT_MAX', color: '--float' },
+	{ name: 'double', mant: 52, minE: -1022, maxE: 1023, max: 'DBL_MAX', color: '--double' },
+];
+for (const t of FLOATS) { t.from = t.minE - t.mant; t.to = t.maxE + 1; } // smallest value 2^from, largest just below 2^to
+const gapExp = (t, e) => Math.max(e, t.minE) - t.mant;
+const LOG2_10 = Math.log2(10), LOG10_2 = Math.log10(2);
+
+// ---- Formatting ------------------------------------------------------------------------------------------------
+const SUP = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+const sup = (n) => String(n).split('').map((c) => SUP[c]).join('');
+const commas = (s) => s.replace(/^(\d+)/, (i) => i.replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+// 2^l as text, with 3 significant digits (also far outside the range of a double).
+function fmtPow2(l) {
+	const e10 = l * LOG10_2;
+	let n = Math.floor(e10 + 1e-9), m = Math.pow(10, e10 - n);
+	if (m >= 9.995) { m /= 10; n++; }
+	if (n >= -4 && n <= 15) {
+		const v = m * Math.pow(10, n);
+		return commas(n >= 2 ? String(Math.round(v)) : v.toPrecision(3).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, ''));
+	}
+	return `${m.toFixed(2)} × 10${sup(n)}`;
+}
+// A gap of exactly 2^k.
+function fmtGap(k) {
+	if (k >= 0 && k <= 53) return k === 0 ? '1' : `2${sup(k)} = ${commas(String(Math.pow(2, k)))}`;
+	if (k < 0 && k >= -8) return `2${sup(k)} = ${Math.pow(2, k)}`;
+	return `2${sup(k)} ≈ ${fmtPow2(k)}`;
+}
+// A tick label for 10^n.
+function fmtDecade(n) {
+	if (n >= 0 && n <= 6) return commas('1' + '0'.repeat(n));
+	if (n < 0 && n >= -3) return '0.' + '0'.repeat(-n - 1) + '1';
+	return `10${sup(n)}`;
+}
+
+// The points on the lines: { text, type, lx (log2 of the size), ly (log2 of the gap) }. Labels that would overlap are
+// left out, in order: the constants of <cfloat> first, then the places from the number line (on both lines).
+const [FLT, DBL] = FLOATS;
+const MARKS = [];
+for (const [t, p] of [[FLT, 'FLT'], [DBL, 'DBL']]) {
+	MARKS.push(
+		{ text: `${p}_EPSILON = 2${sup(-t.mant)}: the gap at 1`, t, constant: true, lx: 0, ly: -t.mant },
+		{ text: `${p}_MIN = 2${sup(t.minE)} ≈ ${fmtPow2(t.minE)}`, t, constant: true, lx: t.minE, ly: gapExp(t, t.minE) },
+		{ text: `${p}_TRUE_MIN = 2${sup(t.from)} ≈ ${fmtPow2(t.from)}`, t, constant: true, lx: t.from, ly: gapExp(t, t.from) },
+		{ text: `${p}_MAX ≈ ${fmtPow2(t.to)}, then ∞`, t, constant: true, lx: t.to, ly: gapExp(t, t.to - 1) },
+	);
+}
+for (const [label, v] of [['0.1', 0.1], ['2²⁴', 16777216], ['Earth', 6371000], ['1 day in ms', 86400000],
+	['Sun', 695700000], ['Neptune', 4.4984e12]]) { // radii in metres (Neptune: the radius of its orbit)
+	const lx = Math.log2(v);
+	for (const t of [FLT, DBL]) {
+		const ly = gapExp(t, Math.floor(lx));
+		MARKS.push({ text: `${label}: ${fmtGap(ly).replace(/^2\S* [=≈] /, '')}`, t, lx, ly });
+	}
+}
+
+// ---- View --------------------------------------------------------------------------------------------------------
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+const MONO = 'menlo, consolas, "DejaVu Sans Mono", monospace';
+let W = 800, H = 400, DPR = 1;
+const M = { l: 58, r: 10, t: 10, b: 34 }; // the plot area's margins (room for the axis labels)
+const pw = () => W - M.l - M.r, ph = () => H - M.t - M.b;
+// The view: the log2 values in the middle of the plot area, and the pixels per log2 unit on each axis.
+let cx = 20, cy = -17, sx = 7, sy = 3.3;
+const X = (lx) => M.l + pw() / 2 + (lx - cx) * sx;
+const Y = (ly) => M.t + ph() / 2 - (ly - cy) * sy;
+const LX = (x) => cx + (x - M.l - pw() / 2) / sx;
+const LY = (y) => cy - (y - M.t - ph() / 2) / sy;
+// A view given as the log2 ranges to show.
+const VIEWS = [
+	['Everyday numbers', [-35, 75], [-75, 40]],
+	['float', [-170, 150], [-185, 120]],
+	['double', [-1140, 1130], [-1480, 1180]],
+];
+const viewOf = ([, [x0, x1], [y0, y1]]) => ({ cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, sx: pw() / (x1 - x0), sy: ph() / (y1 - y0) });
+function clampView() {
+	sx = Math.max(pw() / 2600, Math.min(pw() / 3, sx));
+	sy = Math.max(ph() / 2600, Math.min(ph() / 3, sy));
+	cx = Math.max(-1200, Math.min(1150, cx));
+	cy = Math.max(-1250, Math.min(1100, cy));
+}
+let pending = false;
+function requestDraw() { if (!pending) { pending = true; requestAnimationFrame(draw); } }
+let first = true;
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	const oldW = pw(), oldH = ph();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	if (first) { ({ cx, cy, sx, sy } = viewOf(VIEWS[0])); first = false; }
+	else { sx *= pw() / oldW; sy *= ph() / oldH; } // keep the same part of the graph in view
+	clampView(); requestDraw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+// ---- Theme (follows the embedding page) -------------------------------------------------------------------------
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--panel', '--text', '--muted', '--grid', '--accent', '--border', '--float', '--double'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	requestDraw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+// ---- Drawing -----------------------------------------------------------------------------------------------------
+let mouse = null; // the pointer position over the plot, or null
+const Y_TITLE = '↑ gap to the next value (lower is more precise)';
+const snap = (v) => (Math.round(v * DPR) + 0.5) / DPR;
+// The step between two ticks, in decades: at least minPx pixels apart.
+function decadeStep(pxPerLog2, minPx) {
+	const per = pxPerLog2 * LOG2_10;
+	for (const d of [1, 2, 5, 10, 20, 50, 100, 200, 500]) if (d * per >= minPx) return d;
+	return 1000;
+}
+// The baseline that centres digits vertically on y, in the current font. (textBaseline 'middle' centres the font's em box,
+// and the digits are higher than that: they would sit almost a pixel too high in a label.)
+function digitsBaseline(y) {
+	const m = ctx.measureText('0');
+	return y + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+}
+function pill(text, x, y, color, align) {
+	ctx.font = `600 11px ${MONO}`;
+	const w = ctx.measureText(text).width + 10;
+	const left = align === 'right' ? x - w : x;
+	ctx.fillStyle = colors['--panel']; ctx.strokeStyle = color; ctx.lineWidth = 1;
+	ctx.beginPath(); ctx.roundRect(left, y - 9, w, 18, 4); ctx.fill(); ctx.stroke();
+	ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+	ctx.fillText(text, left + 5, digitsBaseline(y));
+	return { x: left, y: y - 9, w, h: 18 };
+}
+const overlaps = (a, list) => list.some((b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h);
+
+function draw() {
+	pending = false;
+	const c = colors;
+	ctx.fillStyle = c['--bg']; ctx.fillRect(0, 0, W, H);
+	const x0 = M.l, x1 = W - M.r, y0 = M.t, y1 = H - M.b;
+	const lxMin = LX(x0), lxMax = LX(x1), lyMin = LY(y1), lyMax = LY(y0);
+
+	// Grid and axis labels at powers of ten.
+	ctx.font = `11px ${FONT}`; ctx.lineWidth = 1;
+	const dx = decadeStep(sx, 64), dy = decadeStep(sy, 26);
+	ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+	for (let n = Math.ceil(lxMin * LOG10_2 / dx) * dx; n <= lxMax * LOG10_2; n += dx) {
+		const x = snap(X(n * LOG2_10));
+		ctx.strokeStyle = n === 0 ? c['--border'] : c['--grid'];
+		ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1 + 4); ctx.stroke();
+		ctx.fillStyle = c['--muted']; ctx.fillText(fmtDecade(n), x, y1 + 6);
+	}
+	ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+	for (let n = Math.ceil(lyMin * LOG10_2 / dy) * dy; n <= lyMax * LOG10_2; n += dy) {
+		const y = snap(Y(n * LOG2_10));
+		ctx.strokeStyle = n === 0 ? c['--border'] : c['--grid'];
+		ctx.beginPath(); ctx.moveTo(x0 - 4, y); ctx.lineTo(x1, y); ctx.stroke();
+		ctx.fillStyle = c['--muted']; ctx.fillText(fmtDecade(n), x0 - 7, y);
+	}
+	// Axis titles.
+	ctx.fillStyle = c['--muted']; ctx.font = `italic 11px ${FONT}`;
+	ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+	ctx.fillText('value (negative values have the same gaps) →', x1, y1 - 3);
+	ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+	ctx.fillText(Y_TITLE, x0 + 8, y0 + 34);
+
+	ctx.save();
+	ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, y1 - y0); ctx.clip();
+	ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+	// float and double: a staircase, one step at every power of two.
+	for (const t of FLOATS) {
+		const a = Math.max(t.from, Math.floor(lxMin) - 1), b = Math.min(t.to, Math.ceil(lxMax) + 1);
+		if (a >= b) continue;
+		ctx.strokeStyle = c[t.color]; ctx.lineWidth = 2.5;
+		ctx.beginPath();
+		for (let e = a; e < b; e++) {
+			const y = Y(gapExp(t, e));
+			if (e === a) ctx.moveTo(X(e), y); else ctx.lineTo(X(e), y);
+			ctx.lineTo(X(e + 1), y);
+		}
+		ctx.stroke();
+	}
+
+	// The points, each with a label (see options below). The dots are drawn first, so that the labels go over them.
+	const visible = MARKS.filter((m) => { const x = X(m.lx), y = Y(m.ly); return x >= x0 - 6 && x <= x1 + 6 && y >= y0 - 6 && y <= y1 + 6; });
+	for (const m of visible) {
+		ctx.fillStyle = c[m.t.color]; ctx.strokeStyle = c['--bg']; ctx.lineWidth = 2;
+		ctx.beginPath(); ctx.arc(X(m.lx), Y(m.ly), 4.5, 0, 7); ctx.fill(); ctx.stroke();
+	}
+	// Keep the labels off the legend and the fullscreen button. A point right next to one that has a label gets none
+	// (unless it's a constant). The labels are placed in order along each line, so that the label of a smaller value is
+	// always below the labels of larger values, and no line to a label crosses another label: float labels (above-left
+	// of their points) from small to large, double labels (below-right) from large to small. When the whole double
+	// range is in view, the doubles go first.
+	ctx.font = `italic 11px ${FONT}`;
+	const titleW = ctx.measureText(Y_TITLE).width;
+	const taken = [{ x: x0, y: y0, w: 150, h: 24 }, { x: x0, y: y0 + 24, w: titleW + 12, h: 18 }, { x: W - 50, y: 0, w: 50, h: 50 }];
+	const wide = lxMax - lxMin > 400;
+	// The constants first (they matter most), then the places, which only get a label where it fits between them.
+	const along = (t, c) => visible.filter((m) => m.t === t && !m.constant === !c).sort((a, b) => (t === FLT ? a.lx - b.lx : b.lx - a.lx));
+	const lines = wide ? [DBL, FLT] : [FLT, DBL];
+	const order = [...lines.flatMap((t) => along(t, true)), ...lines.flatMap((t) => along(t, false))];
+	const labelled = [], placed = [];
+	for (const m of visible) taken.push({ x: X(m.lx) - 6, y: Y(m.ly) - 6, w: 12, h: 12 }); // no label over a dot
+	// On each line, the label of a larger value is always higher than the label of a smaller value.
+	const inOrder = (m, ay) => placed.every((p) => p.m.t !== m.t || (p.m.lx < m.lx ? ay <= p.ay - 18 : p.m.lx > m.lx ? ay >= p.ay + 18 : true));
+	ctx.font = `600 11px ${MONO}`;
+	for (const m of order) {
+		const x = X(m.lx), y = Y(m.ly), col = c[m.t.color];
+		if (!m.constant && labelled.some((p) => Math.hypot(p.x - x, p.y - y) < 14)) continue;
+		const w = ctx.measureText(m.text).width + 10;
+		// [left or right, above or below, distance]: float labels above the line (above-left is the empty side of the
+		// staircase), double labels below it (below-right), also a bit further out; the other side only for the constants
+		// of <cfloat>, when there's no room at all (a place on the line then has no label).
+		const side = m.t === FLT ? -1 : 1;
+		// (Below-left or above-right of a point would cross the line, which rises to the right.)
+		const options = [22, 44, 66, 88, 110].map((d) => [side, side, d]);
+		if (m.constant) options.push([-side, side, 22], [-side, side, 44], [side, -side, 22], [-side, -side, 22]);
+		for (const [h, v, d] of options) {
+			const ax = x + h * 8, ay = y + v * d;
+			const box = { x: h < 0 ? ax - w : ax, y: ay - 9, w, h: 18 };
+			if (box.x < x0 || box.x + box.w > x1 || box.y < y0 || box.y + box.h > y1 || overlaps(box, taken)) continue;
+			if (!inOrder(m, ay)) continue;
+			taken.push(box); labelled.push({ x, y });
+			placed.push({ m, col, from: [x + h * 3, y + v * 3], ax, ay, align: h < 0 ? 'right' : 'left' });
+			break;
+		}
+	}
+	// The lines to the labels first, then the labels on top of them.
+	for (const p of placed) {
+		ctx.strokeStyle = p.col; ctx.lineWidth = 1;
+		ctx.beginPath(); ctx.moveTo(...p.from); ctx.lineTo(p.ax, p.ay + (p.ay > p.from[1] ? -9 : 9)); ctx.stroke();
+	}
+	for (const p of placed) pill(p.m.text, p.ax, p.ay, p.col, p.align);
+	ctx.restore();
+
+	// Legend.
+	const legend = [['float', '--float'], ['double', '--double']];
+	ctx.font = `600 12px ${FONT}`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+	let lxp = x0 + 8;
+	for (const [name, k] of legend) {
+		ctx.strokeStyle = c[k]; ctx.lineWidth = 2.5;
+		ctx.beginPath(); ctx.moveTo(lxp, y0 + 14); ctx.lineTo(lxp + 16, y0 + 14); ctx.stroke();
+		ctx.fillStyle = c[k]; ctx.fillText(name, lxp + 21, y0 + 14);
+		lxp += 21 + ctx.measureText(name).width + 16;
+	}
+
+	// The cursor: the gap of each type at the size under the pointer.
+	if (mouse && mouse.x >= x0 && mouse.x <= x1 && mouse.y >= y0 && mouse.y <= y1) {
+		const lx = LX(mouse.x), e = Math.floor(lx);
+		const xs = snap(mouse.x);
+		ctx.strokeStyle = c['--muted']; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+		ctx.beginPath(); ctx.moveTo(xs, y0); ctx.lineTo(xs, y1); ctx.stroke(); ctx.setLineDash([]);
+		const lines = [[`value: ${fmtPow2(lx)}`, c['--text']]];
+		for (const t of FLOATS) {
+			if (lx < t.from) lines.push([`${t.name}: too small, becomes 0`, c[t.color]]);
+			else if (lx >= t.to) lines.push([`${t.name}: too large, becomes ∞`, c[t.color]]);
+			else {
+				const k = gapExp(t, e);
+				lines.push([`${t.name}: gap ${fmtGap(k)}${e < t.minE ? ' (subnormal)' : ''}`, c[t.color]]);
+				const y = Y(k);
+				if (y >= y0 && y <= y1) { ctx.fillStyle = c[t.color]; ctx.beginPath(); ctx.arc(mouse.x, y, 4, 0, 7); ctx.fill(); }
+			}
+		}
+		// The box next to the pointer (on the other side when it doesn't fit).
+		ctx.font = `600 11px ${MONO}`;
+		const w = Math.max(...lines.map(([s]) => ctx.measureText(s).width)) + 16, h = lines.length * 17 + 10;
+		let bx = mouse.x + 14, by = mouse.y + 14;
+		if (bx + w > x1) bx = mouse.x - 14 - w;
+		if (by + h > y1) by = Math.max(y0, mouse.y - 14 - h);
+		ctx.fillStyle = c['--panel']; ctx.strokeStyle = c['--border']; ctx.lineWidth = 1;
+		ctx.beginPath(); ctx.roundRect(bx, by, w, h, 5); ctx.fill(); ctx.stroke();
+		ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+		lines.forEach(([s, col], i) => { ctx.fillStyle = col; ctx.fillText(s, bx + 8, digitsBaseline(by + 13.5 + i * 17)); });
+	}
+}
+
+// ---- Interaction -------------------------------------------------------------------------------------------------
+let anim = null;
+const stopAnim = () => { anim = null; };
+function zoomAt(px, py, f) {
+	const lx = LX(px), ly = LY(py);
+	sx *= f; sy *= f; clampView();
+	cx += lx - LX(px); cy += ly - LY(py); clampView();
+	requestDraw();
+}
+canvas.addEventListener('wheel', (e) => {
+	e.preventDefault(); stopAnim();
+	const r = canvas.getBoundingClientRect();
+	zoomAt(e.clientX - r.left, e.clientY - r.top, Math.pow(2, -e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.0015)));
+}, { passive: false });
+const pointers = new Map();
+let pinch = null;
+canvas.addEventListener('pointerdown', (e) => {
+	stopAnim(); canvas.setPointerCapture(e.pointerId); canvas.focus();
+	pointers.set(e.pointerId, { x: e.offsetX, y: e.offsetY });
+	if (pointers.size === 2) {
+		const [a, b] = [...pointers.values()];
+		pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) };
+	}
+	canvas.classList.add('dragging');
+});
+canvas.addEventListener('pointermove', (e) => {
+	const p = pointers.get(e.pointerId);
+	if (p) {
+		if (pointers.size === 1) { cx -= (e.offsetX - p.x) / sx; cy += (e.offsetY - p.y) / sy; clampView(); }
+		p.x = e.offsetX; p.y = e.offsetY;
+		if (pointers.size === 2 && pinch) {
+			const [a, b] = [...pointers.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+			if (pinch.d > 0) zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, d / pinch.d);
+			pinch.d = d;
+		}
+	}
+	mouse = e.pointerType === 'mouse' || pointers.size === 1 ? { x: e.offsetX, y: e.offsetY } : null;
+	requestDraw();
+});
+const up = (e) => {
+	pointers.delete(e.pointerId);
+	if (pointers.size < 2) pinch = null;
+	if (!pointers.size) canvas.classList.remove('dragging');
+};
+canvas.addEventListener('pointerup', up);
+canvas.addEventListener('pointercancel', up);
+canvas.addEventListener('pointerleave', () => { if (!pointers.size) { mouse = null; requestDraw(); } });
+canvas.addEventListener('keydown', (e) => {
+	const step = 40;
+	if (e.key === '+' || e.key === '=') zoomAt(M.l + pw() / 2, M.t + ph() / 2, 1.5);
+	else if (e.key === '-') zoomAt(M.l + pw() / 2, M.t + ph() / 2, 1 / 1.5);
+	else if (e.key === 'ArrowLeft') cx -= step / sx;
+	else if (e.key === 'ArrowRight') cx += step / sx;
+	else if (e.key === 'ArrowUp') cy += step / sy;
+	else if (e.key === 'ArrowDown') cy -= step / sy;
+	else return;
+	e.preventDefault(); stopAnim(); clampView(); requestDraw();
+});
+document.getElementById('zoomIn').addEventListener('click', () => { stopAnim(); zoomAt(M.l + pw() / 2, M.t + ph() / 2, 1.5); });
+document.getElementById('zoomOut').addEventListener('click', () => { stopAnim(); zoomAt(M.l + pw() / 2, M.t + ph() / 2, 1 / 1.5); });
+
+// Move to a view, zooming on a log scale. The start time is the first frame's timestamp (the requestAnimationFrame
+// clock can differ from performance.now() in an iframe that loaded lazily).
+function flyTo(v) {
+	const a = { cx, cy, lsx: Math.log(sx), lsy: Math.log(sy) }, b = { cx: v.cx, cy: v.cy, lsx: Math.log(v.sx), lsy: Math.log(v.sy) };
+	let t0 = null;
+	const me = {}; anim = me;
+	const step = (now) => {
+		if (anim !== me) return;
+		if (t0 === null) t0 = now;
+		const t = Math.min(1, (now - t0) / 900), k = t * t * (3 - 2 * t);
+		cx = a.cx + (b.cx - a.cx) * k; cy = a.cy + (b.cy - a.cy) * k;
+		sx = Math.exp(a.lsx + (b.lsx - a.lsx) * k); sy = Math.exp(a.lsy + (b.lsy - a.lsy) * k);
+		clampView(); requestDraw();
+		if (t < 1) requestAnimationFrame(step); else anim = null;
+	};
+	requestAnimationFrame(step);
+}
+// Go to a point on a line, zoomed in so that the steps of the staircase are visible (about 30 powers of two; a place
+// 16, so that the places close to it are far enough apart for their labels):
+// [button, the start of the point's label, row].
+const GOTO = [
+	['FLT_MIN', 'FLT_MIN', 'constants'], ['FLT_EPSILON', 'FLT_EPSILON', 'constants'], ['FLT_MAX', 'FLT_MAX', 'constants'],
+	['DBL_MIN', 'DBL_MIN', 'constants'], ['DBL_EPSILON', 'DBL_EPSILON', 'constants'], ['DBL_MAX', 'DBL_MAX', 'constants'],
+	['0.1', '0.1:', 'places'], ['2²⁴', '2²⁴:', 'places'], ['Earth', 'Earth:', 'places'], ['1 day in ms', '1 day in ms', 'places'],
+	['Sun', 'Sun:', 'places'], ['Neptune', 'Neptune:', 'places'],
+];
+for (const [label, prefix, row] of GOTO) {
+	const marks = MARKS.filter((k) => k.text.startsWith(prefix));
+	const b = document.createElement('button');
+	b.textContent = label;
+	// A place is on both lines (29 powers of two apart): the view shows both, so it's a bit taller.
+	const lys = marks.map((m) => m.ly), lo = Math.min(...lys), hi = Math.max(...lys);
+	const across = row === 'places' ? 16 : 30;
+	b.addEventListener('click', () => flyTo({ cx: marks[0].lx, cy: (lo + hi) / 2, sx: pw() / across, sy: ph() / (hi - lo + 44) }));
+	document.getElementById(row).appendChild(b);
+}
+for (const view of VIEWS.slice(1)) { // the first view is the one at the start
+	const b = document.createElement('button');
+	b.textContent = view[0];
+	b.addEventListener('click', () => flyTo(viewOf(view)));
+	document.getElementById('views').appendChild(b);
+}
+
+// Fullscreen: the button, or F11.
+(function () {
+	const button = document.getElementById('fullscreen');
+	if (!document.fullscreenEnabled) return;
+	button.hidden = false;
+	const toggle = () => {
+		if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+		else document.documentElement.requestFullscreen().catch(() => {});
+	};
+	button.addEventListener('click', () => { toggle(); button.blur(); canvas.focus(); });
+	document.addEventListener('keydown', (e) => { if (e.key === 'F11') { e.preventDefault(); toggle(); } });
+	let timer = 0;
+	const show = () => {
+		button.classList.remove('idle');
+		clearTimeout(timer);
+		timer = setTimeout(() => button.classList.add('idle'), 2500);
+	};
+	window.addEventListener('pointermove', show);
+	window.addEventListener('pointerdown', show);
+	show();
+})();
+
+applyTheme();
+resize();
+</script>
+</body>
+</html>

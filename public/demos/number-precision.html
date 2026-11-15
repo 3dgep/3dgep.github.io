@@ -95,6 +95,9 @@
 		<div class="group" id="presets">
 			<span>Go to:</span>
 		</div>
+		<div class="group" id="radii">
+			<span title="The radius in metres">Radius:</span>
+		</div>
 		<div class="group" id="ranges">
 			<span>Range of:</span>
 		</div>
@@ -428,16 +431,22 @@ function nearest(t, v) {
 	if (t.bits === 32) return Math.fround(v);
 	return v;
 }
+// The baseline that centres digits vertically on y, in the current font. (textBaseline 'middle' centres the font's em box,
+// and the digits are higher than that: they would sit almost a pixel too high in a label.)
+function digitsBaseline(y) {
+	const m = ctx.measureText('0');
+	return y + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+}
 // A label with a background, next to the cursor line (on the right side, or on the left near the right edge).
 function pill(text, x, y, color, font) {
 	ctx.font = font;
 	const w = ctx.measureText(text).width + 10, h = 17;
 	const left = x + 6 + w > W ? x - 6 - w : x + 6;
 	ctx.fillStyle = colors['--panel']; ctx.strokeStyle = color; ctx.lineWidth = 1;
-	ctx.beginPath(); ctx.roundRect(Math.round(left) + 0.5, Math.round(y - h / 2) + 0.5, Math.round(w), h, 4); ctx.fill(); ctx.stroke();
-	ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-	ctx.fillText(text, left + 5, y + 0.5);
-	ctx.textBaseline = 'alphabetic';
+	const top = Math.round(y - h / 2) + 0.5;
+	ctx.beginPath(); ctx.roundRect(Math.round(left) + 0.5, top, Math.round(w), h, 4); ctx.fill(); ctx.stroke();
+	ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+	ctx.fillText(text, left + 5, digitsBaseline(top + h / 2));
 }
 // The bits of value n of type t, in fields: the sign bit, and the exponent and mantissa of a float or double.
 function bitsOf(t, n) {
@@ -464,13 +473,14 @@ function bitsPill(fields, x, y, color) {
 	let left = x + 6 + w > W ? x - 6 - w : x + 6;
 	left = Math.max(2, Math.min(W - w - 2, left));
 	ctx.fillStyle = colors['--panel']; ctx.strokeStyle = color; ctx.lineWidth = 1;
-	ctx.beginPath(); ctx.roundRect(Math.round(left) + 0.5, Math.round(y - h / 2) + 0.5, Math.round(w), h, 4); ctx.fill(); ctx.stroke();
-	ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+	const top = Math.round(y - h / 2) + 0.5;
+	ctx.beginPath(); ctx.roundRect(Math.round(left) + 0.5, top, Math.round(w), h, 4); ctx.fill(); ctx.stroke();
+	ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+	const base = digitsBaseline(top + h / 2);
 	bits.forEach(([kind, c], i) => {
 		ctx.fillStyle = fieldColor[kind];
-		ctx.fillText(c, left + 5 + i * cw + Math.floor(i / 4) * gap, y + 0.5);
+		ctx.fillText(c, left + 5 + i * cw + Math.floor(i / 4) * gap, base);
 	});
-	ctx.textBaseline = 'alphabetic';
 }
 // The cursor: a line through all lanes, the value under the cursor, and the value that each type stores for it.
 function drawCursor(x, rulerH, baselines, tops) {
@@ -581,13 +591,14 @@ function holdZoom(button, dir) {
 	let held = false, last = 0, start = 0;
 	const tick = (now) => {
 		if (!held) return;
+		if (start === null) start = last = now; // time everything with the requestAnimationFrame clock (see flyTo)
 		const dt = Math.min(0.1, (now - last) / 1000); last = now;
 		const rate = Math.min(60, 2 + ((now - start) / 1000) * 6); // doublings per second: faster the longer you hold
 		zoomAt(W / 2, Math.pow(2, dir * dt * rate));
 		requestAnimationFrame(tick);
 	};
 	button.addEventListener('pointerdown', (e) => {
-		e.preventDefault(); stopAnim(); held = true; last = start = performance.now();
+		e.preventDefault(); stopAnim(); held = true; last = start = null;
 		zoomAt(W / 2, Math.pow(2, dir * 0.25));
 		requestAnimationFrame(tick);
 	});
@@ -603,12 +614,16 @@ function flyTo(c1, u1) {
 	const l1 = Math.log2(u1);
 	const need = Math.log2(Math.max(Math.abs(c1 - c0), 1e-300) / (W * 0.5));
 	const bump = Math.max(0, need - (l0 + l1) / 2);
-	const t0 = performance.now(), dur = 1600;
+	// The start time is the first frame's timestamp, not performance.now(): in an iframe that loaded lazily, the
+	// requestAnimationFrame clock can run seconds behind performance.now(), which would hold the animation at t < 0.
+	let t0 = null;
+	const dur = 1600;
 	const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 	const me = {};
 	anim = me;
 	const step = (now) => {
 		if (anim !== me) return;
+		if (t0 === null) t0 = now;
 		const t = Math.min(1, (now - t0) / dur);
 		const e = smooth(0, 1, t);
 		zl = l0 + (l1 - l0) * e + bump * 4 * e * (1 - e);
@@ -630,6 +645,15 @@ const PLACES = [
 	['FLT_EPSILON', () => [1, pow2(-23) * 10 / W]], // 1: floats are 2^-23 apart above it, 2^-24 below it
 	['DBL_EPSILON', () => [1, pow2(-52) * 10 / W]],
 ];
+// Radii in metres, zoomed in so that about 20 float steps fill the view (the step is the power of two at that size).
+const floatStep = (x) => pow2(Math.floor(Math.log2(x)) - 23);
+const radius = (r) => () => [r, floatStep(r) * 20 / W];
+const RADII = [
+	['Earth', radius(6371000)],
+	['Jupiter', radius(69911000)],
+	['Sun', radius(695700000)],
+	['Solar system', radius(4.4984e12)], // the orbit of Neptune: 30 AU
+];
 const whole = (t) => () => [t.lo / 2 + t.hi / 2, (t.hi / 2 - t.lo / 2) / (W * 0.45)]; // the whole range, with a margin
 const RANGES = TYPES.map((t) => [t.name, whole(t)]);
 function addButtons(box, list) {
@@ -641,6 +665,8 @@ function addButtons(box, list) {
 	}
 }
 addButtons(document.getElementById('presets'), PLACES);
+addButtons(document.getElementById('radii'), RADII);
+for (const b of document.querySelectorAll('#radii button')) b.title = `The radius of ${b.textContent === 'Solar system' ? 'the orbit of Neptune' : b.textContent === 'Earth' ? 'the Earth' : 'the ' + b.textContent}, in metres`;
 addButtons(document.getElementById('ranges'), RANGES);
 
 // Fullscreen: the button, or F11 (only when the browser allows fullscreen, e.g. not in an iframe without allowfullscreen).

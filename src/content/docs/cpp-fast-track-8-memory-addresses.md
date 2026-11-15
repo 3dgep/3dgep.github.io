@@ -31,8 +31,6 @@ Your `Game::Tick` function should look like this now:
 
 Your computer probably has a few *GiB* (often written as *GB*, which is not quite the same thing) of memory, which is a couple of billion bytes:
 
-<div class="centered-table">
-
 | Symbol | Prefix | Name | Bytes | Size |
 | --- | --- | --- | --- | --- |
 | B |  | byte (B) | $2^{0}$ bytes | 1 B |
@@ -43,7 +41,6 @@ Your computer probably has a few *GiB* (often written as *GB*, which is not quit
 | Pi | pebi | pebibyte (PiB) | $2^{50}$ bytes | 1,024 TiB |
 | Ei | exbi | exbibyte (EiB) | $2^{60}$ bytes | 1,024 PiB |
 
-</div>
 
 <div class="caption">
 
@@ -236,6 +233,17 @@ Here's your task for today:
 
 1.  Draw a dotted line (skip every other dot) from (`0`, `0`) to (`400`, `400`). Don't use the `Plot` function: use a pointer variable instead.
 2.  Figure out the distance in memory between two dots, to make this code super simple and fast.
+
+    The dotted line looks like this:
+
+    <img src="/images/cpp-fast-track-8/assignment-dots.png" alt="A dotted white line from the top-left corner to the middle of the screen" width="800" height="512" class="screenshot" />
+
+    <div class="caption">
+
+    A dotted line from (0, 0) to (400, 400). Click the image to see the dots.
+
+    </div>
+
 3.  Create an application that does the following:
     1.  Load an `800x512` image.
     2.  Move a green dot from the top-center (`x = 400`, `y = 0`) to the bottom. On its way down, the dot avoids obstacles:
@@ -254,17 +262,7 @@ You can use this noisy image for this assignment.
 
 For this assignment, you need to use pointers: they are also a great way to *read* pixels, rather than writing them. And note that even though we're moving a single pixel now, this will become an avalanche soon. 🙂
 
-The dotted line looks like this:
-
-<img src="/images/cpp-fast-track-8/assignment-dots.png" alt="A dotted white line from the top-left corner to the middle of the screen" width="800" height="512" class="screenshot" />
-
-<div class="caption">
-
-A dotted line from (0, 0) to (400, 400). Click the image to see the dots.
-
-</div>
-
-And the dot that finds its way down looks like this:
+The dot that finds its way down looks like this:
 
 <iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-8-assignment/index.html" title="A green dot that finds its way down through a noisy black and white image" loading="lazy" allowfullscreen></iframe>
 

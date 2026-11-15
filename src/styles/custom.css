@@ -249,6 +249,10 @@
 	flex: 0 1 15rem;
 	margin: 0;
 }
+/* Small images of equal width side by side, also in a narrow column. */
+.sl-markdown-content .figure-row.equal { gap: 1rem; flex-wrap: nowrap; }
+.sl-markdown-content .figure-row.equal figure { flex: 1 1 0; min-width: 0; }
+.sl-markdown-content .figure-row.equal img { width: 100%; height: auto; }
 .sl-markdown-content .figure-row figcaption {
 	margin-top: 0.25rem;
 	font-size: var(--sl-text-sm);
@@ -352,9 +356,10 @@ dialog.lightbox img {
 .memory-diagram .arrow { fill: none; stroke: var(--sl-color-accent-high); stroke-width: 2; }
 .memory-diagram .arrow-head { fill: var(--sl-color-accent-high); }
 
-/* Wrap a Markdown table in <div class="centered-table"> to center it (instead of left-aligning it). */
-.sl-markdown-content .centered-table table {
+/* Tables are centered (a wide table still fills the column, and scrolls when it doesn't fit). */
+.sl-markdown-content table {
 	width: fit-content;
+	max-width: 100%;
 	margin-inline: auto;
 }
 
@@ -362,7 +367,7 @@ dialog.lightbox img {
 :root { --bits-sign: #ff6b8b; --bits-float: #f6ad55; --bits-double: #c49bff; --bits-mant: #8b93a5; }
 :root[data-theme='light'] { --bits-sign: #d0103a; --bits-float: #b55f00; --bits-double: #7b3fc9; --bits-mant: #5d6474; }
 .sl-markdown-content svg.bits-diagram { display: block; width: 100%; max-width: 700px; height: auto; margin: 1.5rem auto 0; }
-.bits-diagram text { font-family: var(--sl-font-system); font-size: 14px; }
+.bits-diagram text { fill: var(--sl-color-white); font-family: var(--sl-font-system); font-size: 14px; }
 .bits-diagram .title { font-weight: 600; font-size: 15px; }
 .bits-diagram .bit { font-family: var(--__sl-font-mono, consolas, monospace); font-size: 14px; font-weight: 600; }
 .bits-diagram .bit.small { font-size: 9px; }
@@ -380,3 +385,18 @@ dialog.lightbox img {
 .bits-diagram line.cell.float { stroke: var(--bits-float); }
 .bits-diagram line.cell.double { stroke: var(--bits-double); }
 .bits-diagram line.cell.mant { stroke: var(--bits-mant); }
+/* The colour channels of a Pixel (C++ Fast Track part 9): alpha (grey), red, green and blue. */
+:root { --bits-red: #ff7b72; --bits-green: #56d364; --bits-blue: #6cb6ff; }
+:root[data-theme='light'] { --bits-red: #cf222e; --bits-green: #1a7f37; --bits-blue: #0969da; }
+.bits-diagram text.alpha { fill: var(--bits-mant); }
+.bits-diagram text.red { fill: var(--bits-red); }
+.bits-diagram text.green { fill: var(--bits-green); }
+.bits-diagram text.blue { fill: var(--bits-blue); }
+.bits-diagram .field.alpha { fill: var(--bits-mant); stroke: var(--bits-mant); }
+.bits-diagram .field.red { fill: var(--bits-red); stroke: var(--bits-red); }
+.bits-diagram .field.green { fill: var(--bits-green); stroke: var(--bits-green); }
+.bits-diagram .field.blue { fill: var(--bits-blue); stroke: var(--bits-blue); }
+.bits-diagram line.cell.alpha { stroke: var(--bits-mant); }
+.bits-diagram line.cell.red { stroke: var(--bits-red); }
+.bits-diagram line.cell.green { stroke: var(--bits-green); }
+.bits-diagram line.cell.blue { stroke: var(--bits-blue); }

@@ -17,9 +17,9 @@ In this article I will provide a brief introduction to OpenCL. OpenCL is a open 
 
 Similar to [OpenGL](http://www.opengl.org/), [OpenCL](https://www.khronos.org/opencl/) is a platform-independent programming API that allows us to take advantage of the massively parallel computing architectures such as multi-core CPU’s and GPUs. OpenCL only defines an open specification that hardware vendors can implement. For this reason, the specification must be defined in a general, platform-independent manner. This makes programming in OpenCL slightly more cumbersome to use than a platform-specific API such as NVIDIA’s CUDA (Compute Unified Device Architecture). CUDA has been discussed in several previous articles:
 
--   [CUDA Execution Model](/cuda-thread-execution-model/)
--   [CUDA Memory Model](/cuda-memory-model/)
--   [Optimizing CUDA](/optimizing-cuda-applications/)
+- [CUDA Execution Model](/cuda-thread-execution-model/)
+- [CUDA Memory Model](/cuda-memory-model/)
+- [Optimizing CUDA](/optimizing-cuda-applications/)
 
 In this article, I will introduce OpenCL as well as discuss the similarities with NVIDIA’s CUDA programming API.
 
@@ -31,10 +31,10 @@ The **Execution** model defines how the host program executes kernels that are t
 
 The **Memory** Model defines the different types of memory that are available to the OpenCL application programmer. All OpenCL kernels have access to four distinct memory regions:
 
--   Global Memory
--   Constant Memory
--   Local Memory
--   Private Memory
+- Global Memory
+- Constant Memory
+- Local Memory
+- Private Memory
 
 The **Programming** model defines the OpenCL programming language. OpenCL kernels are written in the OpenCL programming language which is a subset of the ISO C99 language with extensions for parallelism.
 
@@ -104,9 +104,9 @@ cl_int clGetPlatformIDs( cl_uint num_entries,
 
 Where:
 
--   **cl\_uint num\_entries**: The number of values that will be returned in the **platforms** argument. This argument can be 0 if the **platforms** argument is **NULL**, otherwise it must be greater than 0.
--   **cl\_platform\_id\* platforms**: The location where an array of **cl\_platform\_id**s will be stored. This parameter can be NULL in which case, the function will not return the list of platform ID’s. This is useful if you only want to know how many platforms are available in the system.
--   **cl\_uint\* num\_platforms**: The number of OpenCL platforms that are available. This argument can be NULL in which case it is ignored.
+- **cl\_uint num\_entries**: The number of values that will be returned in the **platforms** argument. This argument can be 0 if the **platforms** argument is **NULL**, otherwise it must be greater than 0.
+- **cl\_platform\_id\* platforms**: The location where an array of **cl\_platform\_id**s will be stored. This parameter can be NULL in which case, the function will not return the list of platform ID’s. This is useful if you only want to know how many platforms are available in the system.
+- **cl\_uint\* num\_platforms**: The number of OpenCL platforms that are available. This argument can be NULL in which case it is ignored.
 
 You will notice that the **clGetPlatformIDs** method is invoked twice in this code block. The first time it is used (on line 119) the first two arguments are not used. We are only interested in the result of the final argument (**num\_platforms**) which is the number of platforms available on the system.
 
@@ -145,17 +145,17 @@ cl_int clGetDeviceIDs( cl_platform_id platform,
 
 Where:
 
--   **cl\_platform\_id platform**: The platform ID returned by the **clGetPlatformIDs** method shown earlier.
--   **cl\_device\_type device\_type**: A bitfield that identifies the type of OpenCL device. Valid values for this parameter are:
-    -   **CL\_DEVICE\_TYPE\_CPU**: An OpenCL device that is the single, or multi-core CPU.
-    -   **CL\_DEVICE\_TYPE\_GPU**: An OpenCL device that is a GPU. If you want to support shared device buffers like textures or pixel buffers, then you need to select a GPU device that also supports the graphics API you plan to be sharing buffers with (more on that in the section about extensions).
-    -   **CL\_DEVICE\_TYPE\_ACCELERATOR**: Dedicated OpenCL accelerators (for example the IBM CELL Blade).
-    -   **CL\_DEVICE\_TYPE\_CUSTOM**: Dedicated accelerators that do not support programs written in OpenCL C. (Why would I want this?)
-    -   **CL\_DEVICE\_TYPE\_DEFAULT**: The default OpenCL device in the system.
-    -   **CL\_DEVICE\_TYPE\_ALL**: All OpenCL devices available in the system.
--   **cl\_uint num\_entries**: The number of **cl\_device\_id** entries that can be added to the **devices** array. If **devices** is not NULL, then this parameter must be greater than 0.
--   **cl\_device\_id\* devices**: The location to return the list of OpenCL devices found. This argument can be NULL in which case, the **num\_entries** and the **devices** parameters are ignored. Useful if we simply want to query how many available devices there are in the system.
--   **cl\_uint\* num\_devices**: Returns the number of OpenCL devices that match **device\_type**. This parameter can be NULL, in which case it is ignored.
+- **cl\_platform\_id platform**: The platform ID returned by the **clGetPlatformIDs** method shown earlier.
+- **cl\_device\_type device\_type**: A bitfield that identifies the type of OpenCL device. Valid values for this parameter are:
+    - **CL\_DEVICE\_TYPE\_CPU**: An OpenCL device that is the single, or multi-core CPU.
+    - **CL\_DEVICE\_TYPE\_GPU**: An OpenCL device that is a GPU. If you want to support shared device buffers like textures or pixel buffers, then you need to select a GPU device that also supports the graphics API you plan to be sharing buffers with (more on that in the section about extensions).
+    - **CL\_DEVICE\_TYPE\_ACCELERATOR**: Dedicated OpenCL accelerators (for example the IBM CELL Blade).
+    - **CL\_DEVICE\_TYPE\_CUSTOM**: Dedicated accelerators that do not support programs written in OpenCL C. (Why would I want this?)
+    - **CL\_DEVICE\_TYPE\_DEFAULT**: The default OpenCL device in the system.
+    - **CL\_DEVICE\_TYPE\_ALL**: All OpenCL devices available in the system.
+- **cl\_uint num\_entries**: The number of **cl\_device\_id** entries that can be added to the **devices** array. If **devices** is not NULL, then this parameter must be greater than 0.
+- **cl\_device\_id\* devices**: The location to return the list of OpenCL devices found. This argument can be NULL in which case, the **num\_entries** and the **devices** parameters are ignored. Useful if we simply want to query how many available devices there are in the system.
+- **cl\_uint\* num\_devices**: Returns the number of OpenCL devices that match **device\_type**. This parameter can be NULL, in which case it is ignored.
 
 Just like when we queried the platforms, we will invoke the **clGetDeviceIDs** method twice. The first time on line 132 only to find out how many devices exist with the platform specified, and the second query on line 137 to get the actual device ID’s back.
 
@@ -209,11 +209,11 @@ cl_int clGetDeviceInfo( cl_device_id device,
 
 Where:
 
--   **cl\_device\_id device**: A valid device ID returned by the **clGetDeviceIDs** method.
--   **cl\_device\_info param\_name**: An enumeration constant that identifies the device information being queried. It can be one of the values specified in table 4.3 of the OpenCL Specification (version 1.2).
--   **size\_t param\_value\_size**: The size in bytes of the buffer pointed to by **param\_value**. If **param\_value** is not NULL, this parameter must be greater than 0.
--   **void\* param\_value**: A pointer to a memory buffer that is used to store the value of the property specified by **param\_name**. This parameter can be NULL in which case both **param\_value\_size** and **param\_value** are ignored.
--   **size\_t \*param\_value\_size\_ret**: Returns the actual size in bytes of the data being queried by param\_value. This parameter can be NULL, in which case it is ignored.
+- **cl\_device\_id device**: A valid device ID returned by the **clGetDeviceIDs** method.
+- **cl\_device\_info param\_name**: An enumeration constant that identifies the device information being queried. It can be one of the values specified in table 4.3 of the OpenCL Specification (version 1.2).
+- **size\_t param\_value\_size**: The size in bytes of the buffer pointed to by **param\_value**. If **param\_value** is not NULL, this parameter must be greater than 0.
+- **void\* param\_value**: A pointer to a memory buffer that is used to store the value of the property specified by **param\_name**. This parameter can be NULL in which case both **param\_value\_size** and **param\_value** are ignored.
+- **size\_t \*param\_value\_size\_ret**: Returns the actual size in bytes of the data being queried by param\_value. This parameter can be NULL, in which case it is ignored.
 
 Again we invoke the **clGetDeviceInfo** method twice. Once one line 144 to get the size of the buffer that we need to allocate to store the result, and then again on line 149 where the actual value of the parameter is stored in the **param\_value** parameter.
 
@@ -268,20 +268,20 @@ cl_context clCreateContext ( const cl_context_properties *properties,
 
 Where:
 
--   **const cl\_context\_properties \*properties**: Specifies a null-terminated list of context property name, value pairs.
--   **cl\_uint num\_devices**: The number of devices that is specified in the **devices** argument. Contexts can be specified with multiple devices in which case, this argument will be greater than 1.
--   **const cl\_device\_id \*devices**: A list of unique devices returned by **clGetDeviceIDs**.
--   **CL\_CALLBACK \*pfn\_notify**: A callback function that can be registered with the OpenCL context. This callback function will be used by the OpenCL run-time to report information on errors during context creation as well as errors that occur at run-time in this context. This method may be called asynchronously by the OpenCL run-time but it is the responsibility of the application programmer to ensure this function is thread-safe. The parameters to the callback function are:
+- **const cl\_context\_properties \*properties**: Specifies a null-terminated list of context property name, value pairs.
+- **cl\_uint num\_devices**: The number of devices that is specified in the **devices** argument. Contexts can be specified with multiple devices in which case, this argument will be greater than 1.
+- **const cl\_device\_id \*devices**: A list of unique devices returned by **clGetDeviceIDs**.
+- **CL\_CALLBACK \*pfn\_notify**: A callback function that can be registered with the OpenCL context. This callback function will be used by the OpenCL run-time to report information on errors during context creation as well as errors that occur at run-time in this context. This method may be called asynchronously by the OpenCL run-time but it is the responsibility of the application programmer to ensure this function is thread-safe. The parameters to the callback function are:
     
-    -   **const char \*errinfo**: A pointer to an error string that describes the error that occurred.
-    -   **const void \*private\_info**: A pointer to binary data that is returned by the OpenCL implementation that can be used to log additional information helpful in debugging the error.
-    -   **size\_t cb**: The size in bytes of the **private\_info** data.
-    -   **void \*user\_data**: The pointer to the user data that was specified when the context was created.
+    - **const char \*errinfo**: A pointer to an error string that describes the error that occurred.
+    - **const void \*private\_info**: A pointer to binary data that is returned by the OpenCL implementation that can be used to log additional information helpful in debugging the error.
+    - **size\_t cb**: The size in bytes of the **private\_info** data.
+    - **void \*user\_data**: The pointer to the user data that was specified when the context was created.
     
     The **pfn\_notify** parameter can be NULL in which case no callback function is registered.
     
--   **void \*user\_data**: A pointer to the user specified data that will be passed to the **pfn\_notify** function if an error occurs. This parameter can be NULL.
--   **cl\_int \*errcode\_ret**: If an error occurred while creating the context the appropriate error code will be returned in this property. This parameter can be NULL.
+- **void \*user\_data**: A pointer to the user specified data that will be passed to the **pfn\_notify** function if an error occurs. This parameter can be NULL.
+- **cl\_int \*errcode\_ret**: If an error occurred while creating the context the appropriate error code will be returned in this property. This parameter can be NULL.
 
 To summarize these steps, we first need to get a valid platform ID. The platform ID is needed to query the OpenCL devices that are available in the system. Then we create a context using the platform and one or more available devices.
 
@@ -347,12 +347,12 @@ cl_command_queue clCreateCommandQueue( cl_context context,
 
 Where:
 
--   **cl\_context context**: Is a valid context that was created with the **clCreateContext** function described earlier.
--   **cl\_device\_id device**: Is a valid device ID that was obtained with **clGetDeviceIDs**. This device must be one of the devices that are associated with the **context** parameter.
--   **cl\_command\_queue\_properties properties**: Is a bit-field pattern that is used to specify properties of the command queue. The **properties**argument can consists of one ore more of the following arguments:
-    -   **CL\_QUEUE\_OUT\_OF\_ORDER\_EXEC\_MODE\_ENABLE**: If specified, the commands in the command queue are executed out-of-order. Otherwise commands are executed in-order.
-    -   **CL\_QUEUE\_PROFILING\_ENABLE**: If specified, profiling of commands in the command queue is enabled. For a detailed description of command profiling, refer to section 5.12 of the OpenCL 1.2 specification manual.
--   **cl\_int \*errcode\_ret**: Return an appropriate error code if something went wrong.
+- **cl\_context context**: Is a valid context that was created with the **clCreateContext** function described earlier.
+- **cl\_device\_id device**: Is a valid device ID that was obtained with **clGetDeviceIDs**. This device must be one of the devices that are associated with the **context** parameter.
+- **cl\_command\_queue\_properties properties**: Is a bit-field pattern that is used to specify properties of the command queue. The **properties**argument can consists of one ore more of the following arguments:
+    - **CL\_QUEUE\_OUT\_OF\_ORDER\_EXEC\_MODE\_ENABLE**: If specified, the commands in the command queue are executed out-of-order. Otherwise commands are executed in-order.
+    - **CL\_QUEUE\_PROFILING\_ENABLE**: If specified, profiling of commands in the command queue is enabled. For a detailed description of command profiling, refer to section 5.12 of the OpenCL 1.2 specification manual.
+- **cl\_int \*errcode\_ret**: Return an appropriate error code if something went wrong.
 
 ### Creating a Program Object
 
@@ -389,11 +389,11 @@ cl_program clCreateProgramWithSource( cl_context context,
 
 Where:
 
--   **cl\_context context**: Is a valid OpenCL context object created with the **clCreateContext** method.
--   **cl\_uint count**: The number of source files defined in the **strings** array parameter.
--   **const char \*\*strings**: An array of string pointers that make up the source code for the program object.
--   **const size\_t \*lengths**: An array with the sizes of the strings in the **strings** array. This parameter can be NULL, in which case each string in the **strings** array must be NULL-terminated.
--   **cl\_int \*errcode\_ret**: Returns an appropriate error code if an error occurs.
+- **cl\_context context**: Is a valid OpenCL context object created with the **clCreateContext** method.
+- **cl\_uint count**: The number of source files defined in the **strings** array parameter.
+- **const char \*\*strings**: An array of string pointers that make up the source code for the program object.
+- **const size\_t \*lengths**: An array with the sizes of the strings in the **strings** array. This parameter can be NULL, in which case each string in the **strings** array must be NULL-terminated.
+- **cl\_int \*errcode\_ret**: Returns an appropriate error code if an error occurs.
 
 If this function succeeds, then **errcode\_ret** will be set to **CL\_SUCCESS** and a valid **cl\_program** will be returned by the function.
 
@@ -425,12 +425,12 @@ cl_int clBuildProgram( cl_program program,
 
 Where:
 
--   **cl\_program program**: Is a valid program object that was created with **clCreateProgramWithSource** or **clCreateProgramWithBinary**.
--   **cl\_uint num\_devices**: The number of devices listed in the **device\_list** parameter.
--   **const cl\_device\_id \*device\_list**: A list of devices associated with **program**. This parameter can be NULL in which case the program will be built for all devices that were used to create the context associated with the program object.
--   **const char \*options**: A pointer to a NULL-terminated string of characters that describe the build options that are used to build the program executable. The list of support options is described in section 5.6.4 of the OpenCL specification manual (version 1.2).
--   **CL\_CALLBACK \*pfn\_notify**: A callback function that is used to notify the result of building the program. This parameter can be NULL in which case control will not be returned to the calling thread until the program has been successfully built. If a valid callback is registered with this function, control will return immediately to the calling thread and the user must use the callback function to determine if the program was successfully built or not. This callback function is invoked asynchronously and it is the responsibility of the application programmer to ensure this function is thread-safe.
--   **void \*user\_data**: A pointer to some user defined data that will be passed to the **pfn\_notify** function. This parameter can be NULL.
+- **cl\_program program**: Is a valid program object that was created with **clCreateProgramWithSource** or **clCreateProgramWithBinary**.
+- **cl\_uint num\_devices**: The number of devices listed in the **device\_list** parameter.
+- **const cl\_device\_id \*device\_list**: A list of devices associated with **program**. This parameter can be NULL in which case the program will be built for all devices that were used to create the context associated with the program object.
+- **const char \*options**: A pointer to a NULL-terminated string of characters that describe the build options that are used to build the program executable. The list of support options is described in section 5.6.4 of the OpenCL specification manual (version 1.2).
+- **CL\_CALLBACK \*pfn\_notify**: A callback function that is used to notify the result of building the program. This parameter can be NULL in which case control will not be returned to the calling thread until the program has been successfully built. If a valid callback is registered with this function, control will return immediately to the calling thread and the user must use the callback function to determine if the program was successfully built or not. This callback function is invoked asynchronously and it is the responsibility of the application programmer to ensure this function is thread-safe.
+- **void \*user\_data**: A pointer to some user defined data that will be passed to the **pfn\_notify** function. This parameter can be NULL.
 
 ### Checking for Build Errors
 
@@ -484,9 +484,9 @@ cl_kernel clCreateKernel( cl_program program,
 
 Where:
 
--   **cl\_program program**: Is a valid program object that was successfully built with the **clBuildProgram** method.
--   **const char \*kernel\_name**: A NULL-terminated string of the name of the kernel function that is defined in the program executable.
--   **cl\_int \*errcode\_ret**: Returns an appropriate error code.
+- **cl\_program program**: Is a valid program object that was successfully built with the **clBuildProgram** method.
+- **const char \*kernel\_name**: A NULL-terminated string of the name of the kernel function that is defined in the program executable.
+- **cl\_int \*errcode\_ret**: Returns an appropriate error code.
 
 ### Buffer Objects
 
@@ -515,19 +515,19 @@ cl_mem clCreateBuffer( cl_context context,
 
 Where:
 
--   **cl\_context context**: Is a valid OpenCL context that was created with **clCreateContext**.
--   **cl\_mem\_flags flags**: Is a bit-field that is used to specify allocation and usage information. This parameter can be 0 in which case the default flag **CL\_MEM\_READ\_WRITE**will be used. This parameter can be composed of the possible flag values:
-    -   **CL\_MEM\_READ\_WRITE**: Specifies that the memory object will be read and written by a kernel.
-    -   **CL\_MEM\_WRITE\_ONLY**: Specifies that the memory will be written to, but not read from inside a kernel function.
-    -   **CL\_MEM\_READ\_ONLY**: Specifies that the memory will be read from, but not written to inside a kernel function.
-    -   **CL\_MEM\_USE\_HOST\_PTR**: Specifies that the memory object will use the host memory reference by the **host\_ptr** pointer. In this case, the **host\_ptr** must not be NULL.
-    -   **CL\_MEM\_ALLOC\_HOST\_PTR**: Specifies that the application wants to allocate memory from host accessible memory.
-    -   **CL\_MEM\_COPY\_HOST\_PTR**: Specifies that the data in **host\_ptr** should be copied to the memory object during allocation. In this case **host\_ptr** cannot be NULL.
-    -   **CL\_MEM\_HOST\_WRITE\_ONLY**: Specifies that the host will not try to read from this buffer, but only write to it. This flag enables write-combined memory access which results in optimized data transfer over the system bus.
-    -   **CL\_MEM\_HOST\_READ\_ONLY**: Specifies that the host will not write to this buffer but only read the result from an OpenCL kernel function.
-    -   **CL\_MEM\_HOST\_NO\_ACCESS**: Specifies that the host application will not try to access this buffer (useful for scratch buffers that are needed by the OpenCL kernel function.
--   **size\_t size**: The size in bytes of the buffer to allocate.
--   **cl\_int \*errcode\_ret**: The appropriate error code if an error occurred.
+- **cl\_context context**: Is a valid OpenCL context that was created with **clCreateContext**.
+- **cl\_mem\_flags flags**: Is a bit-field that is used to specify allocation and usage information. This parameter can be 0 in which case the default flag **CL\_MEM\_READ\_WRITE**will be used. This parameter can be composed of the possible flag values:
+    - **CL\_MEM\_READ\_WRITE**: Specifies that the memory object will be read and written by a kernel.
+    - **CL\_MEM\_WRITE\_ONLY**: Specifies that the memory will be written to, but not read from inside a kernel function.
+    - **CL\_MEM\_READ\_ONLY**: Specifies that the memory will be read from, but not written to inside a kernel function.
+    - **CL\_MEM\_USE\_HOST\_PTR**: Specifies that the memory object will use the host memory reference by the **host\_ptr** pointer. In this case, the **host\_ptr** must not be NULL.
+    - **CL\_MEM\_ALLOC\_HOST\_PTR**: Specifies that the application wants to allocate memory from host accessible memory.
+    - **CL\_MEM\_COPY\_HOST\_PTR**: Specifies that the data in **host\_ptr** should be copied to the memory object during allocation. In this case **host\_ptr** cannot be NULL.
+    - **CL\_MEM\_HOST\_WRITE\_ONLY**: Specifies that the host will not try to read from this buffer, but only write to it. This flag enables write-combined memory access which results in optimized data transfer over the system bus.
+    - **CL\_MEM\_HOST\_READ\_ONLY**: Specifies that the host will not write to this buffer but only read the result from an OpenCL kernel function.
+    - **CL\_MEM\_HOST\_NO\_ACCESS**: Specifies that the host application will not try to access this buffer (useful for scratch buffers that are needed by the OpenCL kernel function.
+- **size\_t size**: The size in bytes of the buffer to allocate.
+- **cl\_int \*errcode\_ret**: The appropriate error code if an error occurred.
 
 #### Creating an OpenCL Buffer Object from an OpenGL Buffer Object
 
@@ -571,15 +571,15 @@ cl_int clEnqueueWriteBuffer( cl_command_queue command_queue,
 
 Where:
 
--   **cl\_command\_queue command\_queue**: Refers to the command-queue in which the read / write command will be queued. **command\_queue** and buffer must be created with the same OpenCL context.
--   **cl\_mem buffer**: Refers to a valid buffer object that was previously created with **clCreateBuffer**.
--   **cl\_bool blocking\_read, cl\_bool blocking\_write**: Indicates if the read and write operations are blocking or nonblocking. If **blocking\_read** is **CL\_TRUE** i.e. the read command is blocking, **clEnqueueReadBuffer** does not return until the buffer data has been read and copied into memory pointed to by ptr. If **blocking\_read** is **CL\_FALSE** i.e. the read command is non-blocking, **clEnqueueReadBuffer** queues a non-blocking read command and returns. The contents of the buffer that **ptr** points to cannot be used until the read command has completed. The **event** argument returns an event object which can be used to query the execution status of the read or write command.
--   **size\_t offset**: Is the offset in bytes in the buffer object to read from or write to.
--   **size\_t size**: Is the size in bytes of data being read or written.
--   **void \*ptr**: Is the pointer to buffer in host memory where data is to be read from or to be written to.
--   **cl\_uint num\_events\_in\_wait\_list**: Specifies the number of events in the **event\_wait\_list** parameter.
--   **const cl\_event \*event\_wait\_list**: Specify events that need to complete before this particular command can be executed. This parameter can be NULL in which case the **num\_events\_in\_wait\_list** parameter should be 0.
--   **cl\_event \*event**: returns an event object that identifies this particular read / write command and can be used to query or queue a wait for this particular command to complete. If **blocking\_read** or **blocking\_write** is CL\_FALSE, then this event will be the only way to determine if the read or write operation has completed.
+- **cl\_command\_queue command\_queue**: Refers to the command-queue in which the read / write command will be queued. **command\_queue** and buffer must be created with the same OpenCL context.
+- **cl\_mem buffer**: Refers to a valid buffer object that was previously created with **clCreateBuffer**.
+- **cl\_bool blocking\_read, cl\_bool blocking\_write**: Indicates if the read and write operations are blocking or nonblocking. If **blocking\_read** is **CL\_TRUE** i.e. the read command is blocking, **clEnqueueReadBuffer** does not return until the buffer data has been read and copied into memory pointed to by ptr. If **blocking\_read** is **CL\_FALSE** i.e. the read command is non-blocking, **clEnqueueReadBuffer** queues a non-blocking read command and returns. The contents of the buffer that **ptr** points to cannot be used until the read command has completed. The **event** argument returns an event object which can be used to query the execution status of the read or write command.
+- **size\_t offset**: Is the offset in bytes in the buffer object to read from or write to.
+- **size\_t size**: Is the size in bytes of data being read or written.
+- **void \*ptr**: Is the pointer to buffer in host memory where data is to be read from or to be written to.
+- **cl\_uint num\_events\_in\_wait\_list**: Specifies the number of events in the **event\_wait\_list** parameter.
+- **const cl\_event \*event\_wait\_list**: Specify events that need to complete before this particular command can be executed. This parameter can be NULL in which case the **num\_events\_in\_wait\_list** parameter should be 0.
+- **cl\_event \*event**: returns an event object that identifies this particular read / write command and can be used to query or queue a wait for this particular command to complete. If **blocking\_read** or **blocking\_write** is CL\_FALSE, then this event will be the only way to determine if the read or write operation has completed.
 
 Copying data from one device buffer to another is performed using the **clEnqueueCopyBuffer** method. This method has the following signature.
 
@@ -597,15 +597,15 @@ cl_int clEnqueueCopyBuffer( cl_command_queue command_queue,
 
 Where:
 
--   **cl\_command\_queue command\_queue**: Refers to the command-queue in which the copy command will be queued. The OpenCL context associated with **command\_queue**, **src\_buffer** and **dst\_buffer** must be the same.
--   **cl\_mem src\_buffer**: The buffer where the data will be copied from.
--   **cl\_mem dst\_buffer**: The buffer where the data will be copied to.
--   **size\_t src\_offset**: Refers to the offset where to begin copying data from **src\_buffer**.
--   **size\_t dst\_offset**: Refers to the offset where to begin copying data into **dst\_buffer**.
--   **size\_t size**: The size in bytes to copy.
--   **cl\_uint num\_events\_in\_wait\_list**: Specifies the number of events in the **event\_wait\_list** array parameter.
--   **const cl\_event \*event\_wait\_list**: Specify events that need to complete before this particular command can be executed. This parameter can be NULL in which case the **num\_events\_in\_wait\_list** parameter should be 0.
--   **cl\_event \*event**: returns an event object that identifies this particular copy command and can be used to query or queue a wait for this particular command to complete.
+- **cl\_command\_queue command\_queue**: Refers to the command-queue in which the copy command will be queued. The OpenCL context associated with **command\_queue**, **src\_buffer** and **dst\_buffer** must be the same.
+- **cl\_mem src\_buffer**: The buffer where the data will be copied from.
+- **cl\_mem dst\_buffer**: The buffer where the data will be copied to.
+- **size\_t src\_offset**: Refers to the offset where to begin copying data from **src\_buffer**.
+- **size\_t dst\_offset**: Refers to the offset where to begin copying data into **dst\_buffer**.
+- **size\_t size**: The size in bytes to copy.
+- **cl\_uint num\_events\_in\_wait\_list**: Specifies the number of events in the **event\_wait\_list** array parameter.
+- **const cl\_event \*event\_wait\_list**: Specify events that need to complete before this particular command can be executed. This parameter can be NULL in which case the **num\_events\_in\_wait\_list** parameter should be 0.
+- **cl\_event \*event**: returns an event object that identifies this particular copy command and can be used to query or queue a wait for this particular command to complete.
 
 ### Setting Kernel Arguments
 
@@ -641,10 +641,10 @@ cl_int clSetKernelArg( cl_kernel kernel,
 
 Where:
 
--   **cl\_kernel kernel**: Is a valid kernel object previously created with **clCreateKernel**.
--   **cl\_uint arg\_index**: Is the 0-based argument index of the argument to the kernel function.
--   **size\_t arg\_size**: specifies the size of the argument value. If the argument is a memory object, the size must be equal to **sizeof(cl\_mem)**. For arguments declared with the **\_\_local** qualifier, the size specified will be the size in bytes of the buffer that must be allocated for the **\_\_local** argument. If the argument is of type **sampler\_t**, the **arg\_size** value must be equal to **sizeof(cl\_sampler)**. For all other arguments, the size will be the size of argument type.
--   **const void \*arg\_value**: Is a pointer to data that should be used as the argument value for argument specified by **arg\_index**. If the argument is a memory object (buffer, image or image array), the arg\_value entry will be a pointer to the appropriate buffer, image or image array object. The memory object must be created with the context associated with the kernel object. If the argument is declared with the **\_\_local** qualifier, the **arg\_value** entry must be NULL. If the argument is declared with the **\_\_constant** qualifier, the size in bytes of the memory object cannot exceed **CL\_DEVICE\_MAX\_CONSTANT\_BUFFER\_SIZE** and the number of arguments declared as pointers to **\_\_constant** memory cannot exceed **CL\_DEVICE\_MAX\_CONSTANT\_ARGS**. You can use the **clGetDeviceInfo** to query these parameter values for the OpenCL device.
+- **cl\_kernel kernel**: Is a valid kernel object previously created with **clCreateKernel**.
+- **cl\_uint arg\_index**: Is the 0-based argument index of the argument to the kernel function.
+- **size\_t arg\_size**: specifies the size of the argument value. If the argument is a memory object, the size must be equal to **sizeof(cl\_mem)**. For arguments declared with the **\_\_local** qualifier, the size specified will be the size in bytes of the buffer that must be allocated for the **\_\_local** argument. If the argument is of type **sampler\_t**, the **arg\_size** value must be equal to **sizeof(cl\_sampler)**. For all other arguments, the size will be the size of argument type.
+- **const void \*arg\_value**: Is a pointer to data that should be used as the argument value for argument specified by **arg\_index**. If the argument is a memory object (buffer, image or image array), the arg\_value entry will be a pointer to the appropriate buffer, image or image array object. The memory object must be created with the context associated with the kernel object. If the argument is declared with the **\_\_local** qualifier, the **arg\_value** entry must be NULL. If the argument is declared with the **\_\_constant** qualifier, the size in bytes of the memory object cannot exceed **CL\_DEVICE\_MAX\_CONSTANT\_BUFFER\_SIZE** and the number of arguments declared as pointers to **\_\_constant** memory cannot exceed **CL\_DEVICE\_MAX\_CONSTANT\_ARGS**. You can use the **clGetDeviceInfo** to query these parameter values for the OpenCL device.
 
 ### Executing the Kernel
 
@@ -685,17 +685,17 @@ cl_int clEnqueueNDRangeKernel( cl_command_queue command_queue,
 
 Where:
 
--   **cl\_command\_queue command\_queue**: Is a valid **cl\_command\_queue** object previously created with **clCreateCommandQueue**.
--   **cl\_kernel kernel**: Is a valid **cl\_kernel** object previously created with **clCreateKernel**. The OpenCL context associated with kernel and command-queue must be the same.
--   **cl\_uint work\_dim**: Is the number of dimensions used to specify the global work-items and work-items in the work-group. **work\_dim** must be greater than zero and less than or equal to **CL\_DEVICE\_MAX\_WORK\_ITEM\_DIMENSIONS**.
--   **const size\_t \*global\_work\_offset**: Can be used to specify an array of **work\_dim** unsigned values that describe the offset used to calculate the global ID of a work-item in the NDRange. If **global\_work\_offset** is NULL, the  
+- **cl\_command\_queue command\_queue**: Is a valid **cl\_command\_queue** object previously created with **clCreateCommandQueue**.
+- **cl\_kernel kernel**: Is a valid **cl\_kernel** object previously created with **clCreateKernel**. The OpenCL context associated with kernel and command-queue must be the same.
+- **cl\_uint work\_dim**: Is the number of dimensions used to specify the global work-items and work-items in the work-group. **work\_dim** must be greater than zero and less than or equal to **CL\_DEVICE\_MAX\_WORK\_ITEM\_DIMENSIONS**.
+- **const size\_t \*global\_work\_offset**: Can be used to specify an array of **work\_dim** unsigned values that describe the offset used to calculate the global ID of a work-item in the NDRange. If **global\_work\_offset** is NULL, the  
     global IDs start at offset (0, 0, … 0).
--   **const size\_t \*global\_work\_size**: points to an array of **work\_dim** unsigned values that describe the number of global work-items in **work\_dim** dimensions that will execute the kernel function. The total number of global work-items is computed as **global\_work\_size\[0\]** \* … \* **global\_work\_size\[work\_dim – 1\]**.
--   **const size\_t \*local\_work\_size**: Points to an array of **work\_dim** unsigned values that describe the number of work-items that make up a work-group (also referred to as the size of the work-group) that will execute the kernel specified by **kernel**. The total number of work-items in a work-group is  
+- **const size\_t \*global\_work\_size**: points to an array of **work\_dim** unsigned values that describe the number of global work-items in **work\_dim** dimensions that will execute the kernel function. The total number of global work-items is computed as **global\_work\_size\[0\]** \* … \* **global\_work\_size\[work\_dim – 1\]**.
+- **const size\_t \*local\_work\_size**: Points to an array of **work\_dim** unsigned values that describe the number of work-items that make up a work-group (also referred to as the size of the work-group) that will execute the kernel specified by **kernel**. The total number of work-items in a work-group is  
     computed as **local\_work\_size\[0\]** \* … \* **local\_work\_size\[work\_dim – 1\]**. The total number of work-items in the work-group must be less than or equal to the **CL\_DEVICE\_MAX\_WORK\_GROUP\_SIZE** value and the number of workitems specified in **local\_work\_size\[0\]**, … **local\_work\_size\[work\_dim – 1\]** must be less than or equal to the corresponding values specified by **CL\_DEVICE\_MAX\_WORK\_ITEM\_SIZES\[0\]**, … **CL\_DEVICE\_MAX\_WORK\_ITEM\_SIZES\[work\_dim – 1\]**. **local\_work\_size** can also be a NULL value in which case the OpenCL implementation will determine how to be break the global work-items into appropriate work-group instances.
--   **cl\_uint num\_events\_in\_wait\_list**: Specifies the number of events in the **event\_wait\_list** array or 0 if **event\_wait\_list** is NULL.
--   **const cl\_event \*event\_wait\_list**: Specify events that need to complete before this particular command can be executed. This parameter can be NULL then this command does not wait on any event to complete.
--   **cl\_event \*event**: An event object that identifies this particular kernel execution instance. Event objects are unique and can be used to identify a particular kernel execution instance later on. If **event** is NULL, no event will be created for this kernel execution instance and therefore it will not be possible for the application to query or queue a wait for this particular kernel execution instance.
+- **cl\_uint num\_events\_in\_wait\_list**: Specifies the number of events in the **event\_wait\_list** array or 0 if **event\_wait\_list** is NULL.
+- **const cl\_event \*event\_wait\_list**: Specify events that need to complete before this particular command can be executed. This parameter can be NULL then this command does not wait on any event to complete.
+- **cl\_event \*event**: An event object that identifies this particular kernel execution instance. Event objects are unique and can be used to identify a particular kernel execution instance later on. If **event** is NULL, no event will be created for this kernel execution instance and therefore it will not be possible for the application to query or queue a wait for this particular kernel execution instance.
 
 ## Memory Model
 
@@ -703,11 +703,11 @@ When we talk about the OpenCL memory model, we are referring to the different re
 
 The four regions of memory that are defined in the OpenCL specification are:
 
--   **Global Memory**: This memory region permits read/write access to all work-items in all work-groups. Work-items can read from or write to any element of a memory object.  
+- **Global Memory**: This memory region permits read/write access to all work-items in all work-groups. Work-items can read from or write to any element of a memory object.  
     Reads and writes to global memory may be cached depending on the capabilities of the device.
--   **Constant Memory**: A region of global memory that remains constant during the execution of a kernel. The host allocates and initializes memory objects placed into constant memory.
--   **Local Memory**: A memory region local to a work-group. This memory region can be used to allocate variables that are shared by all work-items in that work-group. It may be implemented as dedicated regions of memory on the OpenCL device.
--   **Private Memory**: A region of memory private to a work-item. Variables defined in one work-item’s private memory are not visible to another work-item.
+- **Constant Memory**: A region of global memory that remains constant during the execution of a kernel. The host allocates and initializes memory objects placed into constant memory.
+- **Local Memory**: A memory region local to a work-group. This memory region can be used to allocate variables that are shared by all work-items in that work-group. It may be implemented as dedicated regions of memory on the OpenCL device.
+- **Private Memory**: A region of memory private to a work-item. Variables defined in one work-item’s private memory are not visible to another work-item.
 
 The image below shows the conceptual memory model of an OpenCL device.
 
@@ -838,8 +838,8 @@ Task parallel kernel execution is scheduled on the command-queue using the **clE
 
 Synchronization in an OpenCL application can occur at two levels:
 
--   Work-items within a work-group,
--   Commands enqueued to an OpenCL command-queue.
+- Work-items within a work-group,
+- Commands enqueued to an OpenCL command-queue.
 
 #### Work-Item Synchronization
 
@@ -857,8 +857,8 @@ void barrier( cl_mem_fence_flags flags );
 
 Where **cl\_mem\_fence\_flags flags** specifies the memory address space and can set to a combination of the following constant literals:
 
--   **CLK\_LOCAL\_MEM\_FENCE**: The **barrier** function will either flush any variables stored in local memory or queue a memory fence to ensure correct ordering of memory operations to local memory.
--   **CLK\_GLOBAL\_MEM\_FENCE**: The **barrier** function will queue a memory fence to ensure correct ordering of memory operations to global memory.
+- **CLK\_LOCAL\_MEM\_FENCE**: The **barrier** function will either flush any variables stored in local memory or queue a memory fence to ensure correct ordering of memory operations to local memory.
+- **CLK\_GLOBAL\_MEM\_FENCE**: The **barrier** function will queue a memory fence to ensure correct ordering of memory operations to global memory.
 
 A **barrier** function is necessary if a work-item in a work-group want to read an area of global, or local memory that has been updated by another work-item in the same work-group. This barrier synchronization function does not synchronize across work-groups.
 
@@ -868,8 +868,8 @@ If it is necessary to synchronize commands in the command queue, or synchronize 
 
 The synchronization points between commands in command-queues are:
 
--   Command-queue barrier. The command-queue barrier ensures that all previously queued commands have finished execution and any resulting updates to memory objects are visible to subsequently enqueued commands before they begin execution. This barrier can only be used to synchronize between commands in a single command-queue.
--   Waiting on an event. All OpenCL API functions that enqueue commands return an event that identifies the command and memory objects it updates. A subsequent command waiting on that event is guaranteed that updates to those memory objects are visible before the command begins execution.
+- Command-queue barrier. The command-queue barrier ensures that all previously queued commands have finished execution and any resulting updates to memory objects are visible to subsequently enqueued commands before they begin execution. This barrier can only be used to synchronize between commands in a single command-queue.
+- Waiting on an event. All OpenCL API functions that enqueue commands return an event that identifies the command and memory objects it updates. A subsequent command waiting on that event is guaranteed that updates to those memory objects are visible before the command begins execution.
 
 A command-queue barrier can be enqueued using the **clEnqueueBarrierWithWaitList**. The **clEnqueueBarrierWithWaitList** function enqueues a barrier command which waits for either a list of events to complete, or if the list is empty it waits for all commands previously enqueued in command\_queue to complete before it completes. This command blocks command execution, that is, any following commands enqueued after it do not execute until it completes. This command returns an event which can be waited on, i.e. this event can be waited on to insure that all events either in the **event\_wait\_list** or all previously enqueued commands, queued before this command to **command\_queue**, have completed.
 

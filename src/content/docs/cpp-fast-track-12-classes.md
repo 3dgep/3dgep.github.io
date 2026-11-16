@@ -144,9 +144,9 @@ Having a class means nothing by itself: it only tells C++ what something looks l
 
 You use classes for many reasons:
 
--   They allow you to think in high-level concepts (tanks, maps, bullets) before you get to the details;
--   They group data per object, instead of in one big messy pool of variables;
--   They group data and the code that works with that data.
+- They allow you to think in high-level concepts (tanks, maps, bullets) before you get to the details;
+- They group data per object, instead of in one big messy pool of variables;
+- They group data and the code that works with that data.
 
 We will dive deeper into this subject later. For now, you know enough for the assignment.
 
@@ -156,15 +156,15 @@ There are three challenge levels for this assignment. You are encouraged to tack
 
 ### Basic
 
-1.  Make the enemy drive with these three rules, using `TankFits` to see where it can go:
-    1.  If the tank *can* move to the right, it does.
-    2.  If the tank *can't* move to the right, it moves up when it's in the lower half of the map, and down when it's in the upper half. It keeps going that way until it can move to the right again (and turns around when that way is blocked too).
-    3.  At the right side of the map, the tank drives off the screen. When it's completely gone, it comes back in from the left side (starting completely off the screen too), at a random height where it isn't blocked.
+1. Make the enemy drive with these three rules, using `TankFits` to see where it can go:
+    1. If the tank *can* move to the right, it does.
+    2. If the tank *can't* move to the right, it moves up when it's in the lower half of the map, and down when it's in the upper half. It keeps going that way until it can move to the right again (and turns around when that way is blocked too).
+    3. At the right side of the map, the tank drives off the screen. When it's completely gone, it comes back in from the left side (starting completely off the screen too), at a random height where it isn't blocked.
 
     :::tip[Hint]
     The tank has to remember which way it is going around an obstacle: otherwise, a tank near the middle of the map goes up, is then in the upper half, goes down, is in the lower half again, and so on. Give the class a member variable for it.
     :::
-2.  Make an array of tanks (remember [part 10](/cpp-fast-track-10-arrays/)?). Each tank starts on a random tile without an obstacle, and follows the same rules.
+2. Make an array of tanks (remember [part 10](/cpp-fast-track-10-arrays/)?). Each tank starts on a random tile without an obstacle, and follows the same rules.
 
     :::tip[Hint]
     An array of tanks needs a constructor without parameters, a *default constructor*. A class can have more than one constructor.
@@ -180,8 +180,8 @@ The result: six enemies that follow the three rules.
 
 ### Intermediate
 
-1.  Make sure that no two tanks start on the same tile.
-2.  Move the `Tank` class to its own files: a `tank.hpp` for the class (with the declarations of its methods), and a `tank.cpp` for the definitions of the methods.
+1. Make sure that no two tanks start on the same tile.
+2. Move the `Tank` class to its own files: a `tank.hpp` for the class (with the declarations of its methods), and a `tank.cpp` for the definitions of the methods.
 
     :::tip[Hint]
     The methods use a few things from `game.cpp`. Move the `tank` and `barrel` sprites to `tank.cpp`: only `Draw` uses them. `Move` needs `TankFits`, which can stay in `game.cpp`: add a *forward declaration* of it to `tank.cpp`, `bool TankFits(float x, float y);` (inside `namespace Tmpl8`, like everything else), just like the declarations of the methods in the class. And `Update` needs the size of the map: use `ScreenWidth` from `template.hpp`, or move the constants to a header that both files include. Put the new files next to `game.cpp`.
@@ -189,8 +189,8 @@ The result: six enemies that follow the three rules.
 
 ### Hard
 
-1.  Make sure that no two tanks ever overlap: a tank must not drive into another tank (or into the player).
-2.  Make a class for the tile map: `TileMap`. It holds the layers, and has methods to draw the map and to check whether a place is free. Separating the map from the rest of the game lets you reuse it in another project.
+1. Make sure that no two tanks ever overlap: a tank must not drive into another tank (or into the player).
+2. Make a class for the tile map: `TileMap`. It holds the layers, and has methods to draw the map and to check whether a place is free. Separating the map from the rest of the game lets you reuse it in another project.
 
 <iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-12-assignment-hard/index.html" title="Six red tanks that drive around without ever overlapping each other or the player" loading="lazy" allowfullscreen></iframe>
 

@@ -24,10 +24,10 @@ In this article, I will describe how to apply texturing, lighting and materials 
 
 For this article, I will rely on several 3rd party libraries to simplify programming.
 
--   [Free OpenGL Utility Toolkit (FreeGLUT 2.8.1)](https://freeglut.sourceforge.net/): FreeGLUT is an open-source alternative to the OpenGL Utility Toolkit (GLUT) library. The purpose of the GLUT library is to provide window, keyboard, and mouse functionality in a platform-independent way.
--   [OpenGL Extension Wrangler (GLEW 1.10.0)](https://glew.sourceforge.net/): The OpenGL Extension Wrangler library provides accessibility to the OpenGL core and extensions that may not be available in the OpenGL header files and libraries provided by your compiler.
--   [OpenGL Math Library (GLM 0.9.5)](https://glm.g-truc.net/0.9.5/index.html): The OpenGL math library is written to be consistent with the math primitives provided by the GLSL shading language. This makes writing math functions in C++ very similar to the math functions you will see in GLSL shader code.
--   SOIL: The Simple OpenGL Image Library is the easiest way that I am currently aware of to load textures into OpenGL. With a single method, you can load textures and get an OpenGL texture object.
+- [Free OpenGL Utility Toolkit (FreeGLUT 2.8.1)](https://freeglut.sourceforge.net/): FreeGLUT is an open-source alternative to the OpenGL Utility Toolkit (GLUT) library. The purpose of the GLUT library is to provide window, keyboard, and mouse functionality in a platform-independent way.
+- [OpenGL Extension Wrangler (GLEW 1.10.0)](https://glew.sourceforge.net/): The OpenGL Extension Wrangler library provides accessibility to the OpenGL core and extensions that may not be available in the OpenGL header files and libraries provided by your compiler.
+- [OpenGL Math Library (GLM 0.9.5)](https://glm.g-truc.net/0.9.5/index.html): The OpenGL math library is written to be consistent with the math primitives provided by the GLSL shading language. This makes writing math functions in C++ very similar to the math functions you will see in GLSL shader code.
+- SOIL: The Simple OpenGL Image Library is the easiest way that I am currently aware of to load textures into OpenGL. With a single method, you can load textures and get an OpenGL texture object.
 
 :::note
 The original SOIL library is no longer maintained, and it had issues with an OpenGL 3.0 or higher forward-compatible context when it queries for extension support (the article originally provided a patched version). [SOIL2](https://github.com/SpartanJ/SOIL2) is a maintained fork that works with core profile contexts and has the same API. For new projects, [stb_image](https://github.com/nothings/stb) is another popular choice.
@@ -86,22 +86,22 @@ unsigned int SOIL_load_OGL_texture
 
 Where:
 
--   **const char \*filename**: Is the relative or absolute file path to the texture to be loaded.
--   **int force\_channels**: Specifies the format of image. This can be any one of the following values:
-    -   **SOIL\_LOAD\_AUTO**: Leaves the image format in whatever format it was found.
-    -   **SOIL\_LOAD\_L**: Forces the image to be loaded as a Luminous (grayscale) image.
-    -   **SOIL\_LOAD\_LA**: Forces the image to be loaded as a Luminous image with an alpha channel.
-    -   **SOIL\_LOAD\_RGB**: Forces the image to be loaded as a 3-component (Red, Green, Blue) image.
-    -   **SOIL\_LOAD\_RGBA**: Forces the image to be loaded as a 4-component (Red, Green, Blue, Alpha) image.
--   **unsigned int reuse\_texture\_ID**: Specify 0 or **SOIL\_CREATE\_NEW\_ID** if you want SOIL to generate a new texture object ID, otherwise the texture ID specified will be reused replacing the existing texture at that ID.
--   **unsigned int flags**: Can be a combination of the following flags:
-    -   **SOIL\_FLAG\_POWER\_OF\_TWO**: Forces the size of the final image to be a power of 2.
-    -   **SOIL\_FLAG\_MIPMAPS**: Tells SOIL to generate mipmaps for the texture.
-    -   **SOIL\_FLAG\_TEXTURE\_REPEATS**: Specifies that SOIL should set the texture to **GL\_REPEAT** in each dimension of the texture.
-    -   **SOIL\_FLAG\_MULTIPLY\_ALPHA**: Tells SOIL to pre-multiply the alpha value into the color channel of the resulting texture.
-    -   **SOIL\_FLAG\_INVERT\_Y**: Flips the image on the vertical axis.
-    -   **SOIL\_FLAG\_COMPRESS\_TO\_DXT**: If the graphics card supports it, SOIL will convert RGB images to DXT1 and RGBA images to DXT5.
-    -   **SOIL\_FLAG\_DDS\_LOAD\_DIRECT**: Specify this flag to load DDS textures directly without any additional processing. Using this flag will cause all other flags to be ignored (with the exception of **SOIL\_FLAG\_TEXTURE\_REPEATS**).
+- **const char \*filename**: Is the relative or absolute file path to the texture to be loaded.
+- **int force\_channels**: Specifies the format of image. This can be any one of the following values:
+    - **SOIL\_LOAD\_AUTO**: Leaves the image format in whatever format it was found.
+    - **SOIL\_LOAD\_L**: Forces the image to be loaded as a Luminous (grayscale) image.
+    - **SOIL\_LOAD\_LA**: Forces the image to be loaded as a Luminous image with an alpha channel.
+    - **SOIL\_LOAD\_RGB**: Forces the image to be loaded as a 3-component (Red, Green, Blue) image.
+    - **SOIL\_LOAD\_RGBA**: Forces the image to be loaded as a 4-component (Red, Green, Blue, Alpha) image.
+- **unsigned int reuse\_texture\_ID**: Specify 0 or **SOIL\_CREATE\_NEW\_ID** if you want SOIL to generate a new texture object ID, otherwise the texture ID specified will be reused replacing the existing texture at that ID.
+- **unsigned int flags**: Can be a combination of the following flags:
+    - **SOIL\_FLAG\_POWER\_OF\_TWO**: Forces the size of the final image to be a power of 2.
+    - **SOIL\_FLAG\_MIPMAPS**: Tells SOIL to generate mipmaps for the texture.
+    - **SOIL\_FLAG\_TEXTURE\_REPEATS**: Specifies that SOIL should set the texture to **GL\_REPEAT** in each dimension of the texture.
+    - **SOIL\_FLAG\_MULTIPLY\_ALPHA**: Tells SOIL to pre-multiply the alpha value into the color channel of the resulting texture.
+    - **SOIL\_FLAG\_INVERT\_Y**: Flips the image on the vertical axis.
+    - **SOIL\_FLAG\_COMPRESS\_TO\_DXT**: If the graphics card supports it, SOIL will convert RGB images to DXT1 and RGBA images to DXT5.
+    - **SOIL\_FLAG\_DDS\_LOAD\_DIRECT**: Specify this flag to load DDS textures directly without any additional processing. Using this flag will cause all other flags to be ignored (with the exception of **SOIL\_FLAG\_TEXTURE\_REPEATS**).
 
 ### Mipmaps
 
@@ -137,17 +137,17 @@ void glBindTexture (GLenum target, GLuint texture);
 
 Where:
 
--   **GLenum target**: Used to specify the texture target to bind the texture to. Valid values are:
-    -   **GL\_TEXTURE\_1D**: A texture target that is used to bind to a 1D texture object.
-    -   **GL\_TEXTURE\_2D**: A texture target that is used to bind to a 2D texture object.
-    -   **GL\_TEXTURE\_3D**: A texture target that is used to bind to a 3D texture object.
-    -   **GL\_TEXTURE\_1D\_ARRAY**: A texture target that is used to bind to a 1D texture array object.
-    -   **GL\_TEXTURE\_2D\_ARRAY**: A texture target that is used to bind to a 2D texture array object.
-    -   **GL\_TEXTURE\_3D\_ARRAY**: A texture target that is used to bind to a 3D texture array object.
-    -   **GL\_TEXTURE\_CUBE\_MAP**: A texture target that is used to bind a cube map texture.
-    -   **GL\_TEXTURE\_RECTANGLE**: A special case of the 2D texture that represents a rectangle of texels. It cannot have mipmaps and it cannot be used as a texture array.
-    -   **GL\_TEXTURE\_BUFFER**: A texture target that is used to represent a 1D array of texels. Similar to the **GL\_TEXTURE\_RECTANGLE**, the **GL\_TEXTURE\_BUFFER** type cannot have mipmaps and it cannot be aggregated into arrays. The memory for the **GL\_TEXTURE\_BUFFER** texture type is always stored in a Buffer which allows it to be used as an arbitrary collection of data but utilize the texture methods to access it’s data.
--   **GLuint texture**: Specifies the texture object ID to bind to the current target.
+- **GLenum target**: Used to specify the texture target to bind the texture to. Valid values are:
+    - **GL\_TEXTURE\_1D**: A texture target that is used to bind to a 1D texture object.
+    - **GL\_TEXTURE\_2D**: A texture target that is used to bind to a 2D texture object.
+    - **GL\_TEXTURE\_3D**: A texture target that is used to bind to a 3D texture object.
+    - **GL\_TEXTURE\_1D\_ARRAY**: A texture target that is used to bind to a 1D texture array object.
+    - **GL\_TEXTURE\_2D\_ARRAY**: A texture target that is used to bind to a 2D texture array object.
+    - **GL\_TEXTURE\_3D\_ARRAY**: A texture target that is used to bind to a 3D texture array object.
+    - **GL\_TEXTURE\_CUBE\_MAP**: A texture target that is used to bind a cube map texture.
+    - **GL\_TEXTURE\_RECTANGLE**: A special case of the 2D texture that represents a rectangle of texels. It cannot have mipmaps and it cannot be used as a texture array.
+    - **GL\_TEXTURE\_BUFFER**: A texture target that is used to represent a 1D array of texels. Similar to the **GL\_TEXTURE\_RECTANGLE**, the **GL\_TEXTURE\_BUFFER** type cannot have mipmaps and it cannot be aggregated into arrays. The memory for the **GL\_TEXTURE\_BUFFER** texture type is always stored in a Buffer which allows it to be used as an arbitrary collection of data but utilize the texture methods to access it’s data.
+- **GLuint texture**: Specifies the texture object ID to bind to the current target.
 
 After a texture object is bound to a texture target, several functions can be used to read from the texture, or write to the texture, or modify the properties of the texture.
 
@@ -163,22 +163,22 @@ void glTexParameter[f|i]{v}(GLenum target, GLenum pname, [GLfloat|GLint]{*} para
 
 Where:
 
--   **GLenum target**: Specify the texture target. This can be any of the targets specified when a valid texture was previously bound using the **glBindTexture** method.
--   **GLenum pname**: Specify the symbolic name for the texture parameter. This can be one of the following values:
-    -   **GL\_TEXTURE\_MIN\_FILTER**: This parameter allows you to specify the function that is used to sample a texture when several texels from the texture fit within a single screen pixel (or fragment).
-    -   **GL\_TEXTURE\_MAG\_FILTER**: This parameter allows you to specify the function that is used to sample a texture when a single texel fits within multiple screen pixels (or fragments).
-    -   **GL\_TEXTURE\_MIN\_LOD**: This parameter allows you to specify a floating point value that determines the selection of the highest resolution mipmap (the lowest mipmap level). The default value is -1000.0f.
-    -   **GL\_TEXTURE\_MAX\_LOD**: This parameter allows you to specify a floating point value that determines the selection of the lowest resolution mipmap (the highest mipmap level). The default value is 1000.0f.
-    -   **GL\_TEXTURE\_LOD\_BIAS**: This parameter allows you to specify a fixed bias value that is to be added to the level-of-detail parameter for the texture before texture sampling.
-    -   **GL\_TEXTURE\_BASE\_LEVEL**: This parameter allows you to specify an integer index of the lowest defined mipmap level. The default value is 0.
-    -   **GL\_TEXTURE\_MAX\_LEVEL**: This parameter allows you to specify an integer index that defines the highest defined mipmap level. The default value is 1000.
-    -   **GL\_TEXTURE\_WRAP\_S**: This parameter allows you to determine how a texture is sampled when the S texture coordinate is out-of the \[0..1\] range. By default this value is set to **GL\_REPEAT**.
-    -   **GL\_TEXTURE\_WRAP\_T**: This parameter allows you to determine how a texture is sampled when the T texture coordinate is out of the \[0..1\] range. By default this value is set to **GL\_REPEAT**.
-    -   **GL\_TEXTURE\_WRAP\_R**: This parameter allows you to determine how a texture is sampled when the R texture coordinate is out of the \[0..1\] range. By default this value is set to **GL\_REPEAT**.
-    -   **GL\_TEXTURE\_BORDER\_COLOR**: This 4-component color parameter allows you to specify the color that is used when the texture is sampled on it’s border.
-    -   **GL\_TEXTURE\_COMPARE\_MODE**: This parameter allows you to specify the texture comparison mode for the currently bound depth texture. This parameter is useful when you want to perform projected shadow mapping or other effects that require depth comparison.
-    -   **GL\_TEXTURE\_COMPARE\_FUNC**: This parameter allows you to specify the depth comparison function that is used when the **GL\_TEXTURE\_COMPARE\_MODE** parameter is set to **GL\_COMPARE\_REF\_TO\_TEXTURE**.
--   **\[GLfloat|GLint\] param**: Specifies the value for the parameter.
+- **GLenum target**: Specify the texture target. This can be any of the targets specified when a valid texture was previously bound using the **glBindTexture** method.
+- **GLenum pname**: Specify the symbolic name for the texture parameter. This can be one of the following values:
+    - **GL\_TEXTURE\_MIN\_FILTER**: This parameter allows you to specify the function that is used to sample a texture when several texels from the texture fit within a single screen pixel (or fragment).
+    - **GL\_TEXTURE\_MAG\_FILTER**: This parameter allows you to specify the function that is used to sample a texture when a single texel fits within multiple screen pixels (or fragments).
+    - **GL\_TEXTURE\_MIN\_LOD**: This parameter allows you to specify a floating point value that determines the selection of the highest resolution mipmap (the lowest mipmap level). The default value is -1000.0f.
+    - **GL\_TEXTURE\_MAX\_LOD**: This parameter allows you to specify a floating point value that determines the selection of the lowest resolution mipmap (the highest mipmap level). The default value is 1000.0f.
+    - **GL\_TEXTURE\_LOD\_BIAS**: This parameter allows you to specify a fixed bias value that is to be added to the level-of-detail parameter for the texture before texture sampling.
+    - **GL\_TEXTURE\_BASE\_LEVEL**: This parameter allows you to specify an integer index of the lowest defined mipmap level. The default value is 0.
+    - **GL\_TEXTURE\_MAX\_LEVEL**: This parameter allows you to specify an integer index that defines the highest defined mipmap level. The default value is 1000.
+    - **GL\_TEXTURE\_WRAP\_S**: This parameter allows you to determine how a texture is sampled when the S texture coordinate is out-of the \[0..1\] range. By default this value is set to **GL\_REPEAT**.
+    - **GL\_TEXTURE\_WRAP\_T**: This parameter allows you to determine how a texture is sampled when the T texture coordinate is out of the \[0..1\] range. By default this value is set to **GL\_REPEAT**.
+    - **GL\_TEXTURE\_WRAP\_R**: This parameter allows you to determine how a texture is sampled when the R texture coordinate is out of the \[0..1\] range. By default this value is set to **GL\_REPEAT**.
+    - **GL\_TEXTURE\_BORDER\_COLOR**: This 4-component color parameter allows you to specify the color that is used when the texture is sampled on it’s border.
+    - **GL\_TEXTURE\_COMPARE\_MODE**: This parameter allows you to specify the texture comparison mode for the currently bound depth texture. This parameter is useful when you want to perform projected shadow mapping or other effects that require depth comparison.
+    - **GL\_TEXTURE\_COMPARE\_FUNC**: This parameter allows you to specify the depth comparison function that is used when the **GL\_TEXTURE\_COMPARE\_MODE** parameter is set to **GL\_COMPARE\_REF\_TO\_TEXTURE**.
+- **\[GLfloat|GLint\] param**: Specifies the value for the parameter.
 
 #### GL\_TEXTURE\_MIN\_FILTER
 
@@ -196,12 +196,12 @@ GL\_TEXTURE\_MIN\_FILTER
 
 The **GL\_TEXTURE\_MIN\_FILTER** parameter can have one of the following values:
 
--   **GL\_NEAREST**: Returns the texel that is nearest to the center of the pixel being rendered.
--   **GL\_LINEAR**: Returns the weighted average of the four texture elements that are closest to the center of the pixel being rendered.
--   **GL\_NEAREST\_MIPMAP\_NEAREST**: Choose the mipmap that most closely matches the size of the pixel being textured and then apply the **GL\_NEAREST** method to produce the sampled texture value.
--   **GL\_LINEAR\_MIPMAP\_NEAREST**: Choose the mipmap that most closely matches the size of the pixel being textured and then apply the **GL\_LINEAR** method to produce the sampled texture value.
--   **GL\_NEAREST\_MIPMAP\_LINEAR**: Choose the two mipmaps that most closely matches the size of the pixel being textured. Each of the two textures are sampled using the **GL\_NEAREST** method and the weighted average of the two samples are used to produce the final value.
--   **GL\_LINEAR\_MIPMAP\_LINEAR**: Choose the two mipmaps that most closely matches the size of the pixel being textured. Each of the two textures are sampled using the **GL\_LINEAR** method and the weighted average of the two samples are used to produce the final value.
+- **GL\_NEAREST**: Returns the texel that is nearest to the center of the pixel being rendered.
+- **GL\_LINEAR**: Returns the weighted average of the four texture elements that are closest to the center of the pixel being rendered.
+- **GL\_NEAREST\_MIPMAP\_NEAREST**: Choose the mipmap that most closely matches the size of the pixel being textured and then apply the **GL\_NEAREST** method to produce the sampled texture value.
+- **GL\_LINEAR\_MIPMAP\_NEAREST**: Choose the mipmap that most closely matches the size of the pixel being textured and then apply the **GL\_LINEAR** method to produce the sampled texture value.
+- **GL\_NEAREST\_MIPMAP\_LINEAR**: Choose the two mipmaps that most closely matches the size of the pixel being textured. Each of the two textures are sampled using the **GL\_NEAREST** method and the weighted average of the two samples are used to produce the final value.
+- **GL\_LINEAR\_MIPMAP\_LINEAR**: Choose the two mipmaps that most closely matches the size of the pixel being textured. Each of the two textures are sampled using the **GL\_LINEAR** method and the weighted average of the two samples are used to produce the final value.
 
 #### GL\_TEXTURE\_MAG\_FILTER
 
@@ -385,10 +385,10 @@ The light’s final attenuation is a function of three attenuation constants. Th
 
 If we define the following variables:
 
--   $d$ is the scalar distance between the point being shaded and the light source.
--   $k_{c}$ is the constant attenuation factor of the light source.
--   $k_{l}$ is the linear attenuation factor of the light source.
--   $k_{q}$ is the quadratic attenuation factor of the light source.
+- $d$ is the scalar distance between the point being shaded and the light source.
+- $k_{c}$ is the constant attenuation factor of the light source.
+- $k_{l}$ is the linear attenuation factor of the light source.
+- $k_{q}$ is the quadratic attenuation factor of the light source.
 
 The the formula for the attenuation factor is:
 
@@ -416,12 +416,12 @@ Lambert reflectance is the diffusion of light that occurs equal in all direction
 
 If we consider the following definitions:
 
--   $\mathbf{p}$ is the position of the surface we want to shade.
--   $\mathbf{N}$ is the surface normal at the location we want to shade.
--   $\mathbf{L}_{p}$ is the position of the light source.
--   $\mathbf{L}_{d}$ is the diffuse contribution of the light source.
--   $\mathbf{L}$ is the normalized direction vector pointing from the point we want to shade to the light source.
--   $\mathbf{k}_{d}$ is the diffuse reflectance of the material.
+- $\mathbf{p}$ is the position of the surface we want to shade.
+- $\mathbf{N}$ is the surface normal at the location we want to shade.
+- $\mathbf{L}_{p}$ is the position of the light source.
+- $\mathbf{L}_{d}$ is the diffuse contribution of the light source.
+- $\mathbf{L}$ is the normalized direction vector pointing from the point we want to shade to the light source.
+- $\mathbf{k}_{d}$ is the diffuse reflectance of the material.
 
 Then the diffuse term of the fragment is:
 
@@ -453,16 +453,16 @@ Blinn-Phong vectors
 
 If we consider the following definitions:
 
--   $\mathbf{p}$ is the position of the point we want to shade.
--   $\mathbf{N}$ is the surface normal at the location we want to shade.
--   $\mathbf{L}_{p}$ is the position of the light source.
--   $\mathbf{eye}_p$ is the position of the eye (or camera’s position).
--   $\mathbf{V}$ is the normalized direction vector from the point we want to shade to the eye.
--   $\mathbf{L}$ is the normalized direction vector pointing from the point we want to shade to the light source.
--   $\mathbf{R}$ is the reflection vector from the light source about the surface normal.
--   $\mathbf{L}_{s}$ is the specular contribution of the light source.
--   $\mathbf{k}_{s}$ is the specular reflection constant for the material that is used to shade the object.
--   $\alpha$ is the “shininess” constant for the material. The higher the shininess of the material, the smaller the highlight on the material.
+- $\mathbf{p}$ is the position of the point we want to shade.
+- $\mathbf{N}$ is the surface normal at the location we want to shade.
+- $\mathbf{L}_{p}$ is the position of the light source.
+- $\mathbf{eye}_p$ is the position of the eye (or camera’s position).
+- $\mathbf{V}$ is the normalized direction vector from the point we want to shade to the eye.
+- $\mathbf{L}$ is the normalized direction vector pointing from the point we want to shade to the light source.
+- $\mathbf{R}$ is the reflection vector from the light source about the surface normal.
+- $\mathbf{L}_{s}$ is the specular contribution of the light source.
+- $\mathbf{k}_{s}$ is the specular reflection constant for the material that is used to shade the object.
+- $\alpha$ is the “shininess” constant for the material. The higher the shininess of the material, the smaller the highlight on the material.
 
 Then, using the Phong lighting model, the specular term is calculated as follows:
 
@@ -492,7 +492,7 @@ The Blinn-Phong lighting model calculates the specular term slightly differently
 
 In addition to the previous variables, if we also define:
 
--   $\mathbf{H}$ is the half-angle vector between the view vector and the light vector.
+- $\mathbf{H}$ is the half-angle vector between the view vector and the light vector.
 
 Then the new formula for calculating the specular term is:
 
@@ -544,10 +544,10 @@ When using shaders, all material properties of an object are defined using **uni
 
 For our implementation, we will define several material properties that will be used to determine how the object appears.
 
--   **Ambient**: Different materials may have different ambient reflection properties. If so, we can store the ambient contribution per material.
--   **Diffuse**: The diffuse color determines how the diffuse contribution of the light is modulated. Using the diffuse material property we can adjust the primary color of the object.
--   **Specular**: Most materials have the same specular color as diffuse color but some materials may effect specular highlights differently. For example, some plastics may have a tinted diffuse color but their specular highlights will be that of the color of the light. In this case, the diffuse color of the plastic may be a blue tint but it’s specular color will be white.
--   **Shininess**: The shininess value is the $\alpha$ value described in the lighting formula above. For very dull surfaces, the shininess value will be low (between 2 and 10) and for very shiny surfaces, the shininess value will be higher (between 50 and 128).
+- **Ambient**: Different materials may have different ambient reflection properties. If so, we can store the ambient contribution per material.
+- **Diffuse**: The diffuse color determines how the diffuse contribution of the light is modulated. Using the diffuse material property we can adjust the primary color of the object.
+- **Specular**: Most materials have the same specular color as diffuse color but some materials may effect specular highlights differently. For example, some plastics may have a tinted diffuse color but their specular highlights will be that of the color of the light. In this case, the diffuse color of the plastic may be a blue tint but it’s specular color will be white.
+- **Shininess**: The shininess value is the $\alpha$ value described in the lighting formula above. For very dull surfaces, the shininess value will be low (between 2 and 10) and for very shiny surfaces, the shininess value will be higher (between 50 and 128).
 
 In the next section we will see how we can combine the light’s properties and the material’s properties together to create a shader that correctly textures and lights objects in the scene.
 
@@ -721,9 +721,9 @@ I will create a procedural sphere that contains the texture coordinates and the 
 
 I will describe this function in three parts:
 
-1.  Setting up the vertex attributes
-2.  Setting up the index buffer
-3.  Setting up the Vertex Array Object
+1. Setting up the vertex attributes
+2. Setting up the index buffer
+3. Setting up the Vertex Array Object
 
 #### Vertex Attributes
 
@@ -1107,12 +1107,12 @@ The original download (OpenGL_TexturingAndLighting.zip) is no longer available.
 
 ## Exercises
 
-1.  Change the fragment shader so that the specular component is calculated using the half-angle vector instead of the reflected vector. What is the effect of this change and why?
-2.  Download the **Land/Water mask** from [https://www.shadedrelief.com/natural3/pages/extra.html](https://www.shadedrelief.com/natural3/pages/extra.html) and use the mask to determine the shininess of the surface of the earth. For water surfaces use a shininess value of 100 and for the land use a shininess value of 10.
-3.  Download the **Earth at Night** texture from [https://www.shadedrelief.com/natural3/pages/textures.html](https://www.shadedrelief.com/natural3/pages/textures.html) and blend the daytime and nightime maps based on the diffuse contribution of the light.
-4.  Download a cloud map from [https://www.shadedrelief.com/natural3/pages/clouds.html](https://www.shadedrelief.com/natural3/pages/clouds.html) and render a slightly larger sphere over the earth. Use transparent blending (using the cloud map to determine the alpha value) to blend the clouds over the earth rendering.
-5.  Texture the sun with a sun texture map.
-6.  Download the **Starfield backdrop** from [https://www.shadedrelief.com/natural3/pages/extra.html](https://www.shadedrelief.com/natural3/pages/extra.html) and render it onto a unit sphere that is placed at the position of the camera. If you use the same sphere as is used to render the sun, earth, and moon, make sure your reverse the winding order using the **glFrontFace** method or use **glCullFace** to draw the inside of the sphere instead of the outside. Also don’t forget to disable depth writes when you render the sphere map so that the sun, earth, and moon are still drawn correctly.
+1. Change the fragment shader so that the specular component is calculated using the half-angle vector instead of the reflected vector. What is the effect of this change and why?
+2. Download the **Land/Water mask** from [https://www.shadedrelief.com/natural3/pages/extra.html](https://www.shadedrelief.com/natural3/pages/extra.html) and use the mask to determine the shininess of the surface of the earth. For water surfaces use a shininess value of 100 and for the land use a shininess value of 10.
+3. Download the **Earth at Night** texture from [https://www.shadedrelief.com/natural3/pages/textures.html](https://www.shadedrelief.com/natural3/pages/textures.html) and blend the daytime and nightime maps based on the diffuse contribution of the light.
+4. Download a cloud map from [https://www.shadedrelief.com/natural3/pages/clouds.html](https://www.shadedrelief.com/natural3/pages/clouds.html) and render a slightly larger sphere over the earth. Use transparent blending (using the cloud map to determine the alpha value) to blend the clouds over the earth rendering.
+5. Texture the sun with a sun texture map.
+6. Download the **Starfield backdrop** from [https://www.shadedrelief.com/natural3/pages/extra.html](https://www.shadedrelief.com/natural3/pages/extra.html) and render it onto a unit sphere that is placed at the position of the camera. If you use the same sphere as is used to render the sun, earth, and moon, make sure your reverse the winding order using the **glFrontFace** method or use **glCullFace** to draw the inside of the sphere instead of the outside. Also don’t forget to disable depth writes when you render the sphere map so that the sun, earth, and moon are still drawn correctly.
 
 ## References
 

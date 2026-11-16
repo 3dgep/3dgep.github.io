@@ -263,9 +263,9 @@ Unlike function arguments, value of non-type template arguments must be determin
 
 Each parameter in a template parameter list can be one of following types:
 
--   A type template parameter
--   A non-type template parameter
--   A template template parameter
+- A type template parameter
+- A non-type template parameter
+- A template template parameter
 
 The `Array` class template demonstrates the use of both type (`T`), and non-type (`N`) template parameters. In the next section, all three parameter types are explored.
 
@@ -299,12 +299,12 @@ Non-type template parameters can be used to specify a *value* rather than a *typ
 
 Non-type template parameters can be:
 
--   An integral type (`bool`, `char`, `int`, `size_t`, and unsigned variants of those types)
--   An enumeration type
--   An lvalue reference type (a references to an existing object or function)
--   A pointer type (a pointer to an existing object or function)
--   A pointer to a member type (a pointer to a member object or a member function of a class)
--   [std::nullptr\_t](https://en.cppreference.com/cpp/types/nullptr_t)
+- An integral type (`bool`, `char`, `int`, `size_t`, and unsigned variants of those types)
+- An enumeration type
+- An lvalue reference type (a references to an existing object or function)
+- A pointer type (a pointer to an existing object or function)
+- A pointer to a member type (a pointer to a member object or a member function of a class)
+- [std::nullptr\_t](https://en.cppreference.com/cpp/types/nullptr_t)
 
 C++20 also adds floating-point types and literal class types (with some limitations explained [here](https://ctrpeach.io/posts/cpp20-class-as-non-type-template-param/)) to the list of allowed non-type template parameters.
 
@@ -445,9 +445,9 @@ double x = max(3, 5.0);
 
 In this case, the `max` function template is being instantiated with `3` (`int`) and `5.0` (`double`) and the compiler does not know how to implicitly determine the template argument. In this case, the compiler will generate an error. There are a few ways this can be fixed:
 
-1.  Use an explicit template argument
-2.  Cast all function arguments to the same type
-3.  Multiple template parameters
+1. Use an explicit template argument
+2. Cast all function arguments to the same type
+3. Multiple template parameters
 
 Explicitly specifying the template arguments will ensure that all of the parameters are cast to the correct type through implicit casting:
 
@@ -550,8 +550,8 @@ A class template that doesn’t specialize any template parameters is called the
 
 The `Array` class template demonstrates two kinds of template parameters:
 
-1.  Type template parameters (denoted with `typename` or `class`)
-2.  Non-type template parameters (denoted with an integral type such as `size_t`)
+1. Type template parameters (denoted with `typename` or `class`)
+2. Non-type template parameters (denoted with an integral type such as `size_t`)
 
 The `Array` class template defines a simple container for a static (fixed-size) array similar to the [`std::array`](https://en.cppreference.com/cpp/container/array) implementation from the STL.
 
@@ -944,9 +944,9 @@ For some reason, [`std::make_shared`](https://en.cppreference.com/cpp/memory/sha
 
 There are a few things to note here:
 
-1.  The template parameter list contains a *template parameter pack* in the form of `typename... Args`
-2.  An arbitrary number of arguments are passed to the function in the form of `Args&&...`. Not to be mistaken by an *rvalue reference*, this is called a *[forwarding reference](https://en.cppreference.com/cpp/language/reference#Forwarding_references)* which preserves the value category of the function arguments when used in conjunction with [`std::forward`](https://en.cppreference.com/cpp/utility/forward)
-3.  The arguments are unpacked by performing a *pack expansion* which replaces the parameter pack by a comma-separated list of the arguments using the pattern immediately preceding the `...` (ellipsis)
+1. The template parameter list contains a *template parameter pack* in the form of `typename... Args`
+2. An arbitrary number of arguments are passed to the function in the form of `Args&&...`. Not to be mistaken by an *rvalue reference*, this is called a *[forwarding reference](https://en.cppreference.com/cpp/language/reference#Forwarding_references)* which preserves the value category of the function arguments when used in conjunction with [`std::forward`](https://en.cppreference.com/cpp/utility/forward)
+3. The arguments are unpacked by performing a *pack expansion* which replaces the parameter pack by a comma-separated list of the arguments using the pattern immediately preceding the `...` (ellipsis)
 
 For example, suppose we have the following class:
 
@@ -1002,8 +1002,8 @@ void print(Args... args)
 
 But how could this be accomplished without a C++17 compiler? To accomplish this without fold expressions, we need to create a recursive template function. To do this we must:
 
-1.  Define the base case (only a single template parameter)
-2.  Define the recursive case (where multiple template parameters are passed in a parameter pack)
+1. Define the base case (only a single template parameter)
+2. Define the recursive case (where multiple template parameters are passed in a parameter pack)
 
 First, let’s define the case where only a single argument is passed:
 
@@ -1028,8 +1028,8 @@ void print(Arg arg, Args... args)
 
 The subtle trick here is that the recursive case has two template parameters:
 
-1.  `typename Arg`
-2.  `typename... Args`
+1. `typename Arg`
+2. `typename... Args`
 
 This way, the first argument can be extracted from the parameter pack and the rest of the arguments are passed to the recursive `print` function. When there is only a single argument left in the parameter pack, the base case (with a single template argument) is used.
 
@@ -1068,9 +1068,9 @@ In this case, `T` is deduced to `int` and `ParamType` is deduced to `const int&`
 
 In this case, it seems obvious that `T` is deduced to `int` since `f` was invoked with an `int` argument, but it’s not always that obvious. The type deduced for `T` is dependent on not only the argument type, but also the form of `ParamType`. There are three forms of `ParamType` that must be considered:
 
-1.  `ParamType` is a pointer or reference type, but not a [forwarding reference](https://en.cppreference.com/cpp/language/reference#Forwarding_references)
-2.  `ParamType` is a [forwarding reference](https://en.cppreference.com/cpp/language/reference#Forwarding_references)
-3.  `ParamType` is neither a pointer nor a reference
+1. `ParamType` is a pointer or reference type, but not a [forwarding reference](https://en.cppreference.com/cpp/language/reference#Forwarding_references)
+2. `ParamType` is a [forwarding reference](https://en.cppreference.com/cpp/language/reference#Forwarding_references)
+3. `ParamType` is neither a pointer nor a reference
 
 :::note
 Scott Meyers uses the term *universal reference* to refer to the double ampersand (`&&`) being applied to template parameters (not to be mistaken with rvalue references). Since the C++ standard uses the term *forwarding reference*, I will use that term in this article.
@@ -1093,8 +1093,8 @@ f(expr);  // Deduce T and ParamType from expr.
 
 In the first case, `ParamType` is a reference or pointer type, but not a [forwarding reference](https://en.cppreference.com/cpp/language/reference#Forwarding_references). In this case, type deduction works like this:
 
-1.  If `expr` evaluates to a reference, ignore the reference part.
-2.  Then match `expr`‘s type against `ParamType` to determine `T`.
+1. If `expr` evaluates to a reference, ignore the reference part.
+2. Then match `expr`‘s type against `ParamType` to determine `T`.
 
 For example, if the function template is declared like this:
 
@@ -1175,8 +1175,8 @@ On line 11, the value `3` (prvalue, which is a primary value category of rvalue)
 
 The general rules of type deduction when `ParamType` is a [forwarding reference](https://en.cppreference.com/cpp/language/reference#Forwarding_references), are:
 
--   If `expr` is an lvalue, both `T` and `ParamType` are deduced to be lvalue references.
--   If `expr` is a rvalue (prvalue or xvalue), then the rules for [Case 1](#case-1-paramtype-is-a-reference-or-pointer) are applied.
+- If `expr` is an lvalue, both `T` and `ParamType` are deduced to be lvalue references.
+- If `expr` is a rvalue (prvalue or xvalue), then the rules for [Case 1](#case-1-paramtype-is-a-reference-or-pointer) are applied.
 
 In short, use a [forwarding reference](https://en.cppreference.com/cpp/language/reference#Forwarding_references) when you need to maintain the value category of the template argument. This is almost *always* the case when the arguments are being forwarded to another function.
 
@@ -1191,8 +1191,8 @@ void f(T param); // param is now passed-by-value.
 
 In this case, the rules for type deduction are:
 
-1.  If `expr`‘s type is a reference, ignore the reference part
-2.  If `expr`‘s type is const, ignore that too.
+1. If `expr`‘s type is a reference, ignore the reference part
+2. If `expr`‘s type is const, ignore that too.
 
 Then we have:
 
@@ -1368,14 +1368,14 @@ C++11 introduces the [`type_traits`](https://en.cppreference.com/cpp/header/type
 
 Type traits allow you to discover certain things about a type at compile-time. Some things you may want to know about types are:
 
-1.  Is it an integral type?
-2.  Is it a floating-point type?
-3.  Is it a class type?
-4.  Is it a function type?
-5.  Is it a pointer type?
-6.  Are two types the same?
-7.  Is one type derived from the other?
-8.  Is one type convertible to another?
+1. Is it an integral type?
+2. Is it a floating-point type?
+3. Is it a class type?
+4. Is it a function type?
+5. Is it a pointer type?
+6. Are two types the same?
+7. Is one type derived from the other?
+8. Is one type convertible to another?
 
 And the list goes on… There are many things we might want to know about one or more types that can be determined at compile-time.
 
@@ -1385,9 +1385,9 @@ Type traits are the cornerstone for “Substitution Failure Is Not An Error” (
 
 Keep in mind that a lot of the type traits described in following sections comes from the Standard Template Library (STL). You don’t need to define these types yourself in your own code. You can find the original source code for the [`type_traits`](https://en.cppreference.com/cpp/header/type_traits) library here:
 
--   Microsoft STL: [https://github.com/microsoft/STL](https://github.com/microsoft/STL)
--   GCC: [https://github.com/gcc-mirror/gcc](https://github.com/gcc-mirror/gcc)
--   Clang/LLVM: [https://github.com/llvm/llvm-project](https://github.com/llvm/llvm-project)
+- Microsoft STL: [https://github.com/microsoft/STL](https://github.com/microsoft/STL)
+- GCC: [https://github.com/gcc-mirror/gcc](https://github.com/gcc-mirror/gcc)
+- Clang/LLVM: [https://github.com/llvm/llvm-project](https://github.com/llvm/llvm-project)
 
 My motivation for describing the type traits in this article is to give the reader a better understanding of how they work. Once you know how they work, you will have a better understanding of how to use them correctly.
 
@@ -1541,8 +1541,8 @@ struct enable_if<true, T>
 
 The *primary template* for `enable_if` is a class template that has two template parameters:
 
-1.  `bool B`: A non-type template parameter that can be either `true` or `false`.
-2.  `class T`: A type template parameter that can be any type. If no type is provided, `void` is used by default.
+1. `bool B`: A non-type template parameter that can be either `true` or `false`.
+2. `class T`: A type template parameter that can be any type. If no type is provided, `void` is used by default.
 
 The magic trick comes from the partial specialization that is defined when `B` is `true`. The `type` type alias is **not** defined in the primary template and is *only* defined when `B` is `true`. Any attempt to access the `type` type alias when `B` is `false` will fail (since it’s just not defined in this case).
 
@@ -1922,8 +1922,8 @@ The derivation for the `add_rvalue_reference` class template is similar to that 
 :::caution
 Due to reference collapsing rules, `add_rvalue_reference<T&>` will result in `T&` not `T&&`. There are two reference collapsing rules:
 
-1.  An rvalue reference to an rvalue reference becomes an rvalue reference.
-2.  All other references to references (all combinations involving an lvalue reference) becomes an lvalue reference.
+1. An rvalue reference to an rvalue reference becomes an rvalue reference.
+2. All other references to references (all combinations involving an lvalue reference) becomes an lvalue reference.
 
 In the case where `T` is an lvalue reference, then `add_rvalue_reference<T&>` will collapse into a lvalue reference[\[8\]](#ref-ref-8).
 :::
@@ -2232,16 +2232,16 @@ The implementation of the `is_any_of` type trait is super simple since we can re
 
 With the [`is_any_of`](#is_any_of) type trait defined previously, it is now super simple to implement other type traits. The `is_integral` type trait is [`true_type`](#true_type) if the template argument is one of the following types:
 
--   [`bool`](https://en.cppreference.com/cpp/keyword/bool)
--   [`char`](https://en.cppreference.com/cpp/keyword/char)
--   [`char8_t`](https://en.cppreference.com/cpp/keyword/char8_t) (since C++20)
--   [`char16_t`](https://en.cppreference.com/cpp/keyword/char16_t)
--   [`char32_t`](https://en.cppreference.com/cpp/keyword/char32_t)
--   [`wchar_t`](https://en.cppreference.com/cpp/keyword/wchar_t)
--   [`short`](https://en.cppreference.com/cpp/keyword/short)
--   [`int`](https://en.cppreference.com/cpp/keyword/int)
--   [`long`](https://en.cppreference.com/cpp/keyword/long)
--   [`long long`](https://en.cppreference.com/cpp/language/types)
+- [`bool`](https://en.cppreference.com/cpp/keyword/bool)
+- [`char`](https://en.cppreference.com/cpp/keyword/char)
+- [`char8_t`](https://en.cppreference.com/cpp/keyword/char8_t) (since C++20)
+- [`char16_t`](https://en.cppreference.com/cpp/keyword/char16_t)
+- [`char32_t`](https://en.cppreference.com/cpp/keyword/char32_t)
+- [`wchar_t`](https://en.cppreference.com/cpp/keyword/wchar_t)
+- [`short`](https://en.cppreference.com/cpp/keyword/short)
+- [`int`](https://en.cppreference.com/cpp/keyword/int)
+- [`long`](https://en.cppreference.com/cpp/keyword/long)
+- [`long long`](https://en.cppreference.com/cpp/language/types)
 
 Or any other equivalent type including signed or unsigned, with const, and volatile qualified variants. Otherwise, it is [`false_type`](#false_type).
 
@@ -2280,9 +2280,9 @@ Using the [`is_any_of`](#is_any_of) type trait defined previously, the `is_intgr
 
 Similar to the [`is_integral`](#is_integral) type trait, the `is_floating_point` type trait is [`true_type`](#true_type) if the template argument is one of the following types:
 
--   [`float`](https://en.cppreference.com/cpp/keyword/float)
--   [`double`](https://en.cppreference.com/cpp/keyword/double)
--   [`long double`](https://en.cppreference.com/cpp/language/types#Floating-point_types)
+- [`float`](https://en.cppreference.com/cpp/keyword/float)
+- [`double`](https://en.cppreference.com/cpp/keyword/double)
+- [`long double`](https://en.cppreference.com/cpp/language/types#Floating-point_types)
 
 Including `const` and `volatile` qualified variants. Otherwise, it is [`false_type`](#false_type).
 
@@ -2451,15 +2451,15 @@ In fact, trying to add a `const` qualifier to a function type will generate a wa
 
 The `decay` class template is used to perform the same conversion operations that are applied to template arguments when passed by value. The `decay` class template will do one of three things depending on the argument type:
 
--   **Array**: If `T` is an array of type `U` (either an unbounded array of the form `U[]` or a bounded array of the form `U[N]`) then `decay<T>::type` will be `U*`. That is, array types decay to pointers to the array element type.
--   **Function**: If `T` is a function type or a reference to a function, then `decay<T>::type` will be [`add_pointer_t`](#add_pointer)`<T>`. That is, function types become pointers to functions.
--   **Neither array nor function**: `decay<T>::type` removes any reference, `const`, and `volatile` qualifiers from the type using [`remove_cv_t`](#remove_cv)`<`[`remove_reference_t`](#remove_reference)`<T>>`
+- **Array**: If `T` is an array of type `U` (either an unbounded array of the form `U[]` or a bounded array of the form `U[N]`) then `decay<T>::type` will be `U*`. That is, array types decay to pointers to the array element type.
+- **Function**: If `T` is a function type or a reference to a function, then `decay<T>::type` will be [`add_pointer_t`](#add_pointer)`<T>`. That is, function types become pointers to functions.
+- **Neither array nor function**: `decay<T>::type` removes any reference, `const`, and `volatile` qualifiers from the type using [`remove_cv_t`](#remove_cv)`<`[`remove_reference_t`](#remove_reference)`<T>>`
 
 We’ll use a piecewise technique to implement the `decay` class template that is split into 3 parts:
 
-1.  The primary template which is used when `T` is neither an array type nor a function type.
-2.  A partial specialization when `T` is an array type.
-3.  A partial specialization when `T` is a function type.
+1. The primary template which is used when `T` is neither an array type nor a function type.
+2. A partial specialization when `T` is an array type.
+3. A partial specialization when `T` is a function type.
 
 Similar to how we implemented [`add_lvalue_reference`](#add_lvalue_reference), and [`add_rvalue_reference`](#add_rvalue_reference), we’ll use a helper class template so that the `decay` class template only requires a single template parameter.
 
@@ -2478,9 +2478,9 @@ struct decay_helper
 
 The primary template for the `decay_helper` class template takes three template arguments:
 
-1.  `T`: The type to decay,
-2.  `IsArray`: A boolean non-type template parameter that is `true` if `T` is an array type or `false` otherwise.
-3.  `IsFunc`: A boolean non-type template parameter that is `true` if `T` is a function type or `false` otherwise.
+1. `T`: The type to decay,
+2. `IsArray`: A boolean non-type template parameter that is `true` if `T` is an array type or `false` otherwise.
+3. `IsFunc`: A boolean non-type template parameter that is `true` if `T` is a function type or `false` otherwise.
 
 The `IsArray` template parameter defaults to [`is_array_v`](#is_array)`<T>` and the `IsFunc` template parameter defaults to [`is_function_v`](#is_function)`<T>`.
 
@@ -2638,9 +2638,9 @@ The [`enable_if`](#enable_if) trait uses SFINAE to disable certain function over
 
 The [`enable_if`](#enable_if) utility can be used as:
 
-1.  An additional (type or non-type) template parameter,
-2.  An additional function argument,
-3.  The return type of a function
+1. An additional (type or non-type) template parameter,
+2. An additional function argument,
+3. The return type of a function
 
 To demonstrate the various ways that [`enable_if`](#enable_if) utility can be used to SFINAE-out function overloads, suppose we have a struct called `Scalar` that can hold either an `int`, a `float`, or a `double`, but no other types are allowed. We want to be able to retrieve the stored value, and update the stored value. Trying to retrieve the internal value using a different type than the stored type or trying to set the stored value to a type other than the stored type should produce an error (either by throwing an exception or by triggering an assertion. For this simple demo, we will use asserts if there is a type mismatch).
 
@@ -2722,8 +2722,8 @@ public:
 
 In this example, three constructors for the `Scalar` class are defined on lines 41-57. The constructors are template member functions that have two template parameters.
 
-1.  The first template parameter is the type of the passed parameter.
-2.  The second template parameter uses [`enable_if`](#enable_if) to SFINAE-out the constructor based on the type of the first template parameter.
+1. The first template parameter is the type of the passed parameter.
+2. The second template parameter uses [`enable_if`](#enable_if) to SFINAE-out the constructor based on the type of the first template parameter.
 
 The construct of the second template parameter might look strange. Let’s take a closer look at the first constructor:
 
@@ -2873,9 +2873,9 @@ If you think that the use of [`enable_if`](#enable_if) is clumsy and makes the c
 
 In the previous section, we used [`enable_if`](#enable_if) to constrain the types of template parameters in class and function templates. Although it is possible to use [`enable_if`](#enable_if) to impose constraints on template parameters, it’s not the the most elegant syntax, nor does it improve the readability of the diagnostic error messages produced by the compiler when those constraints are violated. C++20 *concepts* are a way to express a set of constraints on template parameters that make it possible to:
 
--   Clearly communicate the constraints on template parameters, providing better “self-documenting code”
--   Improve the diagnostic error messages from a compiler when constraints are not met
--   Specialize function and class templates based on a set of type constraints
+- Clearly communicate the constraints on template parameters, providing better “self-documenting code”
+- Improve the diagnostic error messages from a compiler when constraints are not met
+- Specialize function and class templates based on a set of type constraints
 
 ### Concept Definition
 
@@ -2933,10 +2933,10 @@ The optional *parameter list* is a comma-separated list of typed arguments that 
 
 Each requirement in the requirement sequence can be one of the following types:
 
--   Simple requirement
--   Type requirement
--   Compound requirement
--   Nested requirement
+- Simple requirement
+- Type requirement
+- Compound requirement
+- Nested requirement
 
 In the following sections, we’ll look at each type of requirement.
 
@@ -3045,10 +3045,10 @@ Similar to the *constraint expression* of the [concept definition](#concept-defi
 
 The *constraint expression* can be:
 
--   A C++ (compile-time) expression that evaluates to `true` or `false`
--   A type trait that evaluates to `true` or `false`
--   A [concept expression](#concept-expression)
--   A [requires expression](#requires-expression)
+- A C++ (compile-time) expression that evaluates to `true` or `false`
+- A type trait that evaluates to `true` or `false`
+- A [concept expression](#concept-expression)
+- A [requires expression](#requires-expression)
 
 Using nested requirements, it is technically possible to create atrocities such as this (but please don’t do this in your own code):
 
@@ -3099,10 +3099,10 @@ Notice that the requires clause is not terminated by a semicolon but any sub exp
 
 The *constraint expression* of the requires clause is analogous to the constraint expression of the [concept definition](#concept-definition) and the [requires expression](#requires-expression). That is, the constraint expression is a logical set of boolean expressions consisting of conjunctions (`&&`) or disjunctions (`||`) of one or more constant expressions that evaluate to `true` or `false` at compile time. The boolean expressions can be:
 
--   A C++ (compile-time) [primary expression](https://en.cppreference.com/cpp/language/expressions#Primary_expressions) that evaluates to `true` or `false`
--   A type trait that evaluates to `true` or `false`
--   A [concept expression](#concept-expression)
--   A [requires expression](#requires-expression)
+- A C++ (compile-time) [primary expression](https://en.cppreference.com/cpp/language/expressions#Primary_expressions) that evaluates to `true` or `false`
+- A type trait that evaluates to `true` or `false`
+- A [concept expression](#concept-expression)
+- A [requires expression](#requires-expression)
 
 Using the same example from before, the following example shows that it is possible to used a nested requires expression in the requires clause:
 
@@ -3354,9 +3354,9 @@ Array<T, N>& Array<T, N>::operator=(const Array& rhs) requires std::copyable<T>
 
 Although the code is starting to look a bit unwieldy, the example demonstrates that:
 
--   The requires clause after the template parameter list constrains the class template parameters.
--   The requires clause after the member function can further constrain the types. These constraints are only checked if the member function is instantiated.
--   The requires clause on the class template parameter list and the member function must be repeated in the definition of the member function (when defined outside the class declaration)
+- The requires clause after the template parameter list constrains the class template parameters.
+- The requires clause after the member function can further constrain the types. These constraints are only checked if the member function is instantiated.
+- The requires clause on the class template parameter list and the member function must be repeated in the definition of the member function (when defined outside the class declaration)
 
 ### Concept-Based SFINAE
 
@@ -3534,8 +3534,8 @@ As an added bonus, you also learned about [abbreviated function templates](#cons
 
 But despite covering all of these topics, there are still a few that I’d like to cover:
 
-1.  Typelists
-2.  Type erasure
+1. Typelists
+2. Type erasure
 
 And possibly a few more templates related topics that I can’t even think of right now. In any case, I think this article provides a good foundation for getting started with C++ templates and template meta programming. Thanks for reading, and please leave a comment if you notice any omissions or corrections or if you can think of any templates related topics that you’d like me to cover.
 

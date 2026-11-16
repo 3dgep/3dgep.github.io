@@ -9,9 +9,9 @@ lastUpdated: 2024-04-12
 
 In this article, I will analyze and compare three rendering algorithms:
 
-1.  Forward Rendering
-2.  Deferred Shading
-3.  Forward+ (Tiled Forward Rendering)
+1. Forward Rendering
+2. Deferred Shading
+3. Forward+ (Tiled Forward Rendering)
 
 ## Introduction
 
@@ -19,10 +19,10 @@ In this article, I will analyze and compare three rendering algorithms:
 
 **Deferred shading** on the other hand, works by rasterizing all of the scene objects (without lighting) into a series of 2D image buffers that store the geometric information that is required to perform the lighting calculations in a later pass. The information that is stored into the 2D image buffers are:
 
--   screen space depth
--   surface normals
--   diffuse color
--   specular color and specular power
+- screen space depth
+- surface normals
+- diffuse color
+- specular color and specular power
 
 <span id="attachment-6715"></span>
 
@@ -48,8 +48,8 @@ Another disadvantage of deferred shading is that only a single lighting model ca
 
 **Forward+** [\[2\]](#cite-2)[\[3\]](#cite-3) (also known as **tiled forward shading**) [\[4\]](#cite-4)[\[5\]](#cite-5) is a rendering technique that combines forward rendering with tiled light culling to reduce the number of lights that must be considered during shading. Forward+ primarily consists of two stages:
 
-1.  Light culling
-2.  Forward rendering
+1. Light culling
+2. Forward rendering
 
 <span id="attachment-6718"></span>
 
@@ -69,9 +69,9 @@ Since Forward+ incorporates the standard forward rendering pipeline into its tec
 
 In the remainder of this article, I will describe the implementation of these three techniques:
 
-1.  Forward Rendering
-2.  Deferred Shading
-3.  Forward+ (Tiled Forward Rendering)
+1. Forward Rendering
+2. Deferred Shading
+3. Forward+ (Tiled Forward Rendering)
 
 I will also show performance statistics under various circumstances to try to determine under which conditions one technique performs better than the others.
 
@@ -87,18 +87,18 @@ A **technique** is the combination of several passes that must be executed in a 
 
 A **pipeline state** refers to the configuration of the **rendering pipeline** before an object is rendered. A pipeline state object encapsulates the following render state:
 
--   Shaders (vertex, tessellation, geometry, and pixel)
--   Rasterizer state (polygon fill mode, culling mode, scissor culling, viewports)
--   Blend state
--   Depth/Stencil state
--   Render target
+- Shaders (vertex, tessellation, geometry, and pixel)
+- Rasterizer state (polygon fill mode, culling mode, scissor culling, viewports)
+- Blend state
+- Depth/Stencil state
+- Render target
 
 DirectX 12 introduces a pipeline state object but my definition of the pipeline state varies slightly from the DirectX 12 definition.
 
 **Forward rendering** refers to a rendering technique that traditionally has only two passes:
 
-1.  Opaque Pass
-2.  Transparent Pass
+1. Opaque Pass
+2. Transparent Pass
 
 The **opaque pass** will render all opaque objects in the scene ideally sorted front to back (relative to the camera) in order to minimize overdraw. During the opaque pass, no blending needs to be performed.
 
@@ -108,9 +108,9 @@ During forward rendering, all lighting is performed in the pixel shader together
 
 **Deferred shading** refers to a rendering technique that consists of three primary passes:
 
-1.  Geometry Pass
-2.  Lighting Pass
-3.  Transparent Pass
+1. Geometry Pass
+2. Lighting Pass
+3. Transparent Pass
 
 The first pass is the **geometry pass** which is similar to the opaque pass of the forward rendering technique because only opaque objects are rendered in this pass. The difference is that the geometry pass does not perform any lighting calculations but only outputs the geometric and material data to the **G-buffer** that was described in the introduction.
 
@@ -120,14 +120,14 @@ The final pass is the **transparent pass**. This pass is identical to the transp
 
 **Forward+** (also referred to as **tiled forward rendering**) is a rendering technique that consists of three primary passes:
 
-1.  Light Culling Pass
-2.  Opaque Pass
-3.  Transparent Pass
+1. Light Culling Pass
+2. Opaque Pass
+3. Transparent Pass
 
 As mentioned in the introduction, the light culling pass is responsible for sorting the dynamic lights in the scene into screen space tiles. A light index list is used to indicate which light indices (from the global light list) are overlapping each screen tile. In the light culling pass, two sets of light index lists will be generated:
 
-1.  Opaque light index list
-2.  Transparent light index list
+1. Opaque light index list
+2. Transparent light index list
 
 The opaque light index list is used when rendering opaque geometry and the transparent light index list is used when rendering transparent geometry.
 
@@ -135,9 +135,9 @@ The opaque and transparent passes of the Forward+ rendering technique are identi
 
 A **light** refers to one of the following types of lights:
 
--   Point light
--   Spot light
--   Directional light
+- Point light
+- Spot light
+- Directional light
 
 All rendering techniques described in this article have support for these three light types. Area lights are not supported. The point light and the spot light are simulated as emanating from a single point of origin while the directional light is considered to emanate from a point infinitely far away emitting light everywhere in the same direction. Point lights and spot lights have a limited range after which their intensity falls-off to zero. The fall-off of the intensity of the light called **attenuation**. Point lights are geometrically represented as spheres, spot lights as cones, and directional lights as full-screen quads.
 
@@ -235,14 +235,14 @@ This constant buffer and buffer register slot assignment is used for all pixel s
 
 The materials have support for eight different textures.
 
-1.  Ambient
-2.  Emissive
-3.  Diffuse
-4.  Specular
-5.  SpecularPower
-6.  Normals
-7.  Bump
-8.  Opacity
+1. Ambient
+2. Emissive
+3. Diffuse
+4. Specular
+5. SpecularPower
+6. Normals
+7. Bump
+8. Opacity
 
 Not all scene objects will use all of the texture slots (normal and bump maps are mutually exclusive so they can probably reuse the same texture slot assignment). It is up to the 3D artist to determine which textures will be used by the models in the scene. The application will load the textures that are associated to a material. A texture parameter and an associated texture slot assignment is declared for each of these material properties.
 
@@ -465,11 +465,11 @@ Now we have all of the data that is required to compute the lighting.
 
 The lighting calculations for the forward rendering technique are performed in the **DoLighting** function. This function accepts the following arguments:
 
--   **lights**: The lights array (as a structured buffer)
--   **mat**: The material properties that were just computed
--   **eyePos**: The position of the camera in view space (which is always (0, 0, 0))
--   **P**: The position of the point being shaded in view space
--   **N**: The normal of the point being shaded in view space.
+- **lights**: The lights array (as a structured buffer)
+- **mat**: The material properties that were just computed
+- **eyePos**: The position of the camera in view space (which is always (0, 0, 0))
+- **P**: The position of the point being shaded in view space
+- **N**: The normal of the point being shaded in view space.
 
 The **DoLighting** function returns a **LightingResult** structure that contains the diffuse and specular lighting contributions from all of the lights in the scene.
 
@@ -576,9 +576,9 @@ Since the light vector **L** is the vector pointing from the point being shaded 
 
 Attenuation is the fall-off of the intensity of the light as the light is further away from the point being shaded. In traditional lighting models the attenuation is computed as the reciprocal of the sum of three attenuation factors multiplied by the distance to the light (as explained in [Attenuation](/texturing-lighting-directx-11/#attenuation)):
 
-1.  Constant attenuation
-2.  Linear attenuation
-3.  Quadratic attenuation
+1. Constant attenuation
+2. Linear attenuation
+3. Quadratic attenuation
 
 However this method of computing attenuation assumes that the fall-off of the light never reaches zero (lights have an infinite range). For deferred shading and forward+ we must be able to represent the lights in the scene as volumes with finite range so we need to use a different method to compute the attenuation of the light.
 
@@ -765,9 +765,9 @@ The final pixel color is the sum of the ambient, emissive, diffuse and specular 
 
 The deferred shading technique consists of three passes:
 
-1.  G-buffer pass
-2.  Lighting pass
-3.  Transparent pass
+1. G-buffer pass
+2. Lighting pass
+3. Transparent pass
 
 The g-buffer pass will fill the g-buffer textures that were described in the introduction. The lighting pass will render each light source as a geometric object and compute the lighting for covered pixels. The transparent pass will render transparent scene objects using the standard forward rendering technique.
 
@@ -781,11 +781,11 @@ The layout of the G-buffer can be a subject of an entire article on this website
 
 The attributes that need to be stored in the G-buffers are:
 
--   Depth/Stencil
--   Light Accumulation
--   Diffuse
--   Specular
--   Normals
+- Depth/Stencil
+- Light Accumulation
+- Diffuse
+- Specular
+- Normals
 
 ##### Depth/Stencil Buffer
 
@@ -952,10 +952,10 @@ With the G-buffers filled, we can compute the final shading in the light pass. I
 
 The primary source of inspiration for the lighting pass of the deferred shading technique that I am using in this experiment comes from a presentation called “**Deferred Rendering in Killzone 2**” presented by Michiel van der Leeuw at the Sony Computer Entertainment Graphics Seminar at Palo Alto, California in August 2007 [\[13\]](#cite-13). In Michiel’s presentation, he describes the lighting pass in four phases:
 
-1.  Clear stencil buffer to 0,
-2.  Mark pixels in front of the far light boundary,
-3.  Count number of lit pixels inside the light volume,
-4.  Shade the lit pixels
+1. Clear stencil buffer to 0,
+2. Mark pixels in front of the far light boundary,
+3. Count number of lit pixels inside the light volume,
+4. Shade the lit pixels
 
 I will briefly describe the last three steps. I will then present the method I chose to use to implement the lighting pass of the deferred shading technique and explain why I chose a different method than what was explained in Michiel’s presentation.
 
@@ -967,18 +967,18 @@ According to Michiel’s presentation, in order to determine which pixel are lit
 
 In the first phase, the pixels that are in front of the back faces of the light volume will be marked in the stencil buffer. To do this, you must first clear the stencil buffer to 0 then configure the pipeline state with the following settings:
 
--   Bind only the vertex shader (no pixel shader is required)
--   Bind only the depth/stencil buffer to the output merger stage (since no pixel shader is bound, there is no need for a color buffer)
--   Rasterizer State:
-    -   Set cull mode to **FRONT** to render only the back faces of the light volume
--   Depth/Stencil State:
-    -   Enable depth testing
-    -   Disable depth writes
-    -   Set the depth function to **GREATER\_EQUAL**
-    -   Enable stencil operations
-    -   Set stencil reference to 1
-    -   Set stencil function to **ALWAYS**
-    -   Set stencil operation to **REPLACE** on depth pass.
+- Bind only the vertex shader (no pixel shader is required)
+- Bind only the depth/stencil buffer to the output merger stage (since no pixel shader is bound, there is no need for a color buffer)
+- Rasterizer State:
+    - Set cull mode to **FRONT** to render only the back faces of the light volume
+- Depth/Stencil State:
+    - Enable depth testing
+    - Disable depth writes
+    - Set the depth function to **GREATER\_EQUAL**
+    - Enable stencil operations
+    - Set stencil reference to 1
+    - Set stencil function to **ALWAYS**
+    - Set stencil operation to **REPLACE** on depth pass.
 
 And render the light volume. The image below shows the effect of this operation.
 
@@ -998,18 +998,18 @@ The dotted line of the light volume is culled and only the back facing polygons 
 
 The next phase is to count the number of pixels that were both marked in the previous phase and are inside the light volume. This is done by rendering the front faces of the light volume and counting the number of pixels that are both stencil marked in the previous phase and behind the front faces of the light volume. In this case, the pipeline state should be configured with:
 
--   Bind only the vertex shader (no pixel shader is required)
--   Bind only the depth/stencil buffer to the output merger stage (since no pixel shader is bound, there is no need for a color buffer)
--   Configure the Rasterizer State:
-    -   Set cull mode to **BACK** to render only the front faces of the light volume
--   Depth/Stencil State:
-    -   Enable depth testing
-    -   Disable depth writes
-    -   Set the depth function to **LESS\_EQUAL**
-    -   Enable stencil operations
-    -   Set stencil reference to 1
-    -   Set stencil operations to **KEEP** (don’t modify the stencil buffer)
-    -   Set stencil function to **EQUAL**
+- Bind only the vertex shader (no pixel shader is required)
+- Bind only the depth/stencil buffer to the output merger stage (since no pixel shader is bound, there is no need for a color buffer)
+- Configure the Rasterizer State:
+    - Set cull mode to **BACK** to render only the front faces of the light volume
+- Depth/Stencil State:
+    - Enable depth testing
+    - Disable depth writes
+    - Set the depth function to **LESS\_EQUAL**
+    - Enable stencil operations
+    - Set stencil reference to 1
+    - Set stencil operations to **KEEP** (don’t modify the stencil buffer)
+    - Set stencil function to **EQUAL**
 
 And render the light volume again with an occlusion pixel query to count the number of pixels that pass both the depth and stencil operations. The image below shows the effect of this operation.
 
@@ -1035,24 +1035,24 @@ One step that was described in Michiel’s presentation but is skipped for this 
 
 The final step according to Michiel’s method is to shade the pixels that are inside the light volume. To do this the configuration of the pipeline state should be identical to the pipeline configuration of the [count pixels phase](#count-pixels) with the addition of enabling additive blending, binding a pixel shader and attaching a color buffer to the output merger stage.
 
--   Bind both vertex and pixel shaders
--   Bind depth/stencil and light accumulation buffer to the output merger stage
--   Configure the Rasterizer State:
-    -   Set cull mode to **BACK** to render only the front faces of the light volume
--   Depth/Stencil State:
-    -   Enable depth testing
-    -   Disable depth writes
-    -   Set the depth function to **LESS\_EQUAL**
-    -   Enable stencil operations
-    -   Set stencil reference to 1
-    -   Set stencil operations to **KEEP** (don’t modify the stencil buffer)
-    -   Set stencil function to **EQUAL**
--   Blend State:
+- Bind both vertex and pixel shaders
+- Bind depth/stencil and light accumulation buffer to the output merger stage
+- Configure the Rasterizer State:
+    - Set cull mode to **BACK** to render only the front faces of the light volume
+- Depth/Stencil State:
+    - Enable depth testing
+    - Disable depth writes
+    - Set the depth function to **LESS\_EQUAL**
+    - Enable stencil operations
+    - Set stencil reference to 1
+    - Set stencil operations to **KEEP** (don’t modify the stencil buffer)
+    - Set stencil function to **EQUAL**
+- Blend State:
 
--   Enable blend operations
--   Set source factor to **ONE**
--   Set destination factor to **ONE**
--   Set blend operation to **ADD**
+- Enable blend operations
+- Set source factor to **ONE**
+- Set destination factor to **ONE**
+- Set blend operation to **ADD**
 
 The result should be that only the pixels that are contained within the light volume are shaded.
 
@@ -1078,9 +1078,9 @@ The green volume shown in the image represents the pixels of the stencil buffer 
 
 To solve this problem, I reversed Michiel’s method:
 
-1.  Clear stencil buffer to 1,
-2.  Unmark pixels in front of the near light boundary,
-3.  Shade pixels that are in front of the far light boundary
+1. Clear stencil buffer to 1,
+2. Unmark pixels in front of the near light boundary,
+3. Shade pixels that are in front of the far light boundary
 
 I will explain the last two steps of my implementation and describe the method used to shade the pixels.
 
@@ -1088,17 +1088,17 @@ I will explain the last two steps of my implementation and describe the method u
 
 In the first phase of my implementation we need to unmark all of the pixels that are in front of the front faces of the light’s geometric volume. This ensures that pixels that occlude the light volume are not rendered in the next phase. This is done by first clearing the stencil buffer to 1 to mark all pixels and unmark the pixels that are in front of the front faces of the light volume. The configuration of the pipeline state would look like this:
 
--   Bind only the vertex shader (no pixel shader is required)
--   Bind only the depth/stencil buffer to the output merger stage (since no pixel shader is bound, there is no need for a color buffer)
--   Rasterizer State:
-    -   Set cull mode to **BACK** to render only the front faces of the light volume
--   Depth/Stencil State:
-    -   Enable depth testing
-    -   Disable depth writes
-    -   Set the depth function to **GREATER**
-    -   Enable stencil operations
-    -   Set stencil function to **ALWAYS**
-    -   Set stencil operation to **DECR\_SAT** on depth pass.
+- Bind only the vertex shader (no pixel shader is required)
+- Bind only the depth/stencil buffer to the output merger stage (since no pixel shader is bound, there is no need for a color buffer)
+- Rasterizer State:
+    - Set cull mode to **BACK** to render only the front faces of the light volume
+- Depth/Stencil State:
+    - Enable depth testing
+    - Disable depth writes
+    - Set the depth function to **GREATER**
+    - Enable stencil operations
+    - Set stencil function to **ALWAYS**
+    - Set stencil operation to **DECR\_SAT** on depth pass.
 
 And render the light volume. The image below shows the result of this operation.
 
@@ -1120,25 +1120,25 @@ In the next phase the pixels in front of the back faces of the light volume will
 
 In this phase the pixels that are both in front of the back faces of the light volume and not unmarked in the previous frame will be shaded. In this case, the configuration of the pipeline state would look like this:
 
--   Bind both vertex and pixel shaders
--   Bind depth/stencil and light accumulation buffer to the output merger stage
--   Configure the Rasterizer State:
-    -   Set cull mode to **FRONT** to render only the back faces of the light volume
-    -   Disable depth clipping
--   Depth/Stencil State:
-    -   Enable depth testing
-    -   Disable depth writes
-    -   Set the depth function to **GREATER\_EQUAL**
-    -   Enable stencil operations
-    -   Set stencil reference to 1
-    -   Set stencil operations to **KEEP** (don’t modify the stencil buffer)
-    -   Set stencil function to **EQUAL**
--   Blend State:
+- Bind both vertex and pixel shaders
+- Bind depth/stencil and light accumulation buffer to the output merger stage
+- Configure the Rasterizer State:
+    - Set cull mode to **FRONT** to render only the back faces of the light volume
+    - Disable depth clipping
+- Depth/Stencil State:
+    - Enable depth testing
+    - Disable depth writes
+    - Set the depth function to **GREATER\_EQUAL**
+    - Enable stencil operations
+    - Set stencil reference to 1
+    - Set stencil operations to **KEEP** (don’t modify the stencil buffer)
+    - Set stencil function to **EQUAL**
+- Blend State:
 
--   Enable blend operations
--   Set source factor to **ONE**
--   Set destination factor to **ONE**
--   Set blend operation to **ADD**
+- Enable blend operations
+- Set source factor to **ONE**
+- Set destination factor to **ONE**
+- Set blend operation to **ADD**
 
 You may have noticed that I also disable depth clipping in the rasterizer state for this phase. Doing this will ensure that if any part of the light volume exceeds the far clipping plane, it will not be clipped.
 
@@ -1270,9 +1270,9 @@ Forward+ improves upon regular forward rendering by first determining which ligh
 
 The Forward+ technique consists primarily of these three passes:
 
-1.  Light culling
-2.  Opaque pass
-3.  Transparent pass
+1. Light culling
+2. Opaque pass
+3. Transparent pass
 
 In the light culling pass, each light in the scene is sorted into screen space tiles.
 
@@ -1286,9 +1286,9 @@ Before light culling can occur, we need to compute the culling frustums that wil
 
 The screen is divided into a number of square tiles. I will refer to all of the screen tiles as the **light grid**. We need to specify a size for each tile. The size defines both the vertical and horizontal size of a single tile. The tile size should not be chosen arbitrarily but it should be chosen so that a each tile can be computed by a single thread group in a DirectX compute shader [\[17\]](#cite-17). The number of threads in a thread group should be a multiple of 64 (to take advantage of dual warp schedulers available on modern GPUs) and cannot exceed 1024 threads per thread group. Likely candidates for the dimensions of the thread group are:
 
--   8×8 (64 threads per thread group)
--   16×16 (256 threads per thread group)
--   32×32 (1024 threads per thread group)
+- 8×8 (64 threads per thread group)
+- 16×16 (256 threads per thread group)
+- 32×32 (1024 threads per thread group)
 
 For now, let’s assume that the thread group has a dimension of 16×16 threads. In this case, each tile for our light grid has a dimension of 16×16 screen pixels.
 
@@ -1322,10 +1322,10 @@ A view frustum is composed of six planes, but to perform the light culling we wa
 
 To compute the left, right, top, and bottom frustum planes we will use the following algorithm:
 
-1.  Compute the four corner points of the current tile in screen space.
-2.  Transform the screen space corner points to the far clipping plane in view space.
-3.  Build the frustum planes from the eye position and two other corner points.
-4.  Store the computed frustum in a **RWStructuredBuffer**.
+1. Compute the four corner points of the current tile in screen space.
+2. Transform the screen space corner points to the far clipping plane in view space.
+3. Build the frustum planes from the eye position and two other corner points.
+4. Store the computed frustum in a **RWStructuredBuffer**.
 
 <span id="attachment-6884"></span>
 
@@ -1341,10 +1341,10 @@ A plane can be computed if we know three points that lie on the plane [\[18\]](#
 
 For example, we can use the following points to compute the frustum planes assuming a counter-clockwise winding order:
 
--   **Left Plane**: Eye, Bottom-Left (2), Top-Left (0)
--   **Right Plane**: Eye, Top-Right (1), Bottom-Right (3)
--   **Top Plane**: Eye, Top-Left (0), Top-Right (1)
--   **Bottom Plane**: Eye, Bottom-Right (3), Bottom-Left (2)
+- **Left Plane**: Eye, Bottom-Left (2), Top-Left (0)
+- **Right Plane**: Eye, Top-Right (1), Bottom-Right (3)
+- **Top Plane**: Eye, Top-Left (0), Top-Right (1)
+- **Bottom Plane**: Eye, Bottom-Right (3), Bottom-Left (2)
 
 <span id="attachment-7210"></span>
 
@@ -1512,9 +1512,9 @@ In the next step of the Forward+ rendering technique is to cull the lights using
 
 The basic algorithm for performing light culling is as follows:
 
-1.  Compute the min and max depth values in view space for the tile
-2.  Cull the lights and record the lights into a light index list
-3.  Copy the light index list into global memory
+1. Compute the min and max depth values in view space for the tile
+2. Cull the lights and record the lights into a light index list
+3. Copy the light index list into global memory
 
 #### Compute Min/Max Depth Values
 
@@ -1616,8 +1616,8 @@ The light grid and the global light index list is then used in the fragment shad
 
 To perform frustum culling on the light volumes, two frustum culling methods will be presented:
 
-1.  **Frustum-Sphere** culling for point lights
-2.  **Frustum-Cone** culling for spot lights
+1. **Frustum-Sphere** culling for point lights
+2. **Frustum-Cone** culling for spot lights
 
 The culling algorithm for spheres is fairly straightforward. The culling algorithm for cones is slightly more complicated. First I will describe the frustum-sphere algorithm and then I will describe the cone-culling algorithm.
 
@@ -1673,8 +1673,8 @@ In HLSL the cone is defined as
 
 To test if a cone is completely contained in the negative half-space of a plane, only two points need to be tested.
 
-1.  The tip $T$ of the cone
-2.  The point $Q$ that is on the base of the cone that is farthest away from the plane in the direction of $\mathbf{n}$
+1. The tip $T$ of the cone
+2. The point $Q$ that is on the base of the cone that is farthest away from the plane in the direction of $\mathbf{n}$
 
 If both of these points are contained in the negative half-space of any of the frustum planes, then the cone can be culled.
 
@@ -1729,8 +1729,8 @@ Now we can put this together to define the light culling compute shader.
 
 The purpose of the light culling compute shader is to update the global light index list and the light grid that is required by the fragment shader. Two lists need to be updated per frame:
 
-1.  Light index list for opaque geometry
-2.  Light index list for transparent geometry
+1. Light index list for opaque geometry
+2. Light index list for transparent geometry
 
 To differentiate between the two lists in the HLSL compute shader, I will use the prefix “**o\_**” to refer to the opaque lists and “**t\_**” to refer to transparent lists. Both lists will be updated in the light culling compute shader.
 
@@ -1862,11 +1862,11 @@ Which implies that $(0,0,z_{min})$ is a point on the minimum depth clipping plan
 
 If every thread in the thread group checks one light in the global light list at the same time, then we can check 16×16 (256) lights per iteration of the for-loop defined on line 132. The loop starts with $i = \text{groupIndex}$ and $i$ is incremented $\text{BLOCK\_SIZE}\times\text{BLOCK\_SIZE}$ for each iteration of the loop. This implies that for $\text{BLOCK\_SIZE}=16$, each thread in the thread group will check every 256th light until all lights have been checked.
 
--   **Thread 0 checks**: { 0, 256, 512, 768, … }
--   **Thread 1 checks**: { 1, 257, 513, 769, … }
--   **Thread 2 checks**: { 2, 258, 514, 770, … }
--   **…**
--   **Thread 255 checks**: { 255, 511, 767, 1023, … }
+- **Thread 0 checks**: { 0, 256, 512, 768, … }
+- **Thread 1 checks**: { 1, 257, 513, 769, … }
+- **Thread 2 checks**: { 2, 258, 514, 770, … }
+- **…**
+- **Thread 255 checks**: { 255, 511, 767, 1023, … }
 
 For 10,000 lights, the for loop only needs 40 iterations (per thread) to check all lights for a tile.
 
@@ -2012,8 +2012,8 @@ To measure the performance of the various rendering techniques, I used the Cryte
 
 I tested each rendering technique using two scenarios:
 
-1.  Large lights with a range of 35-40 units
-2.  Small lights with a range of 1-2 units
+1. Large lights with a range of 35-40 units
+2. Small lights with a range of 1-2 units
 
 Having a few (2-3) large lights in the scene is a realistic scenario (for example key light, fill light, and back light [\[25\]](#cite-25)). These lights may be shadow casters that set the mood and create the ambient for the scene. Having many (more than 5) large lights that fill the screen is not necessarily a realistic scenario but I wanted to see how the various techniques scaled when using large, screen-filling lights.
 
@@ -2173,8 +2173,8 @@ If we consider the memory footprint required to perform forward rendering versus
 
 Regardless of the number of lights in the scene, deferred rendering requires about four bytes of GPU memory per pixel per additional G-buffer render target. Tiled forward rendering requires additional GPU storage for the light index list and the light grid which must be stored even when the scene contains only a few dynamic lights.
 
--   Deferred Rendering (Diffuse, Specular, Normal @ 1280×720): +11 MB
--   Tiled Forward Rendering (Light Index List, Light Grid @ 1280×720): +5.76 MB
+- Deferred Rendering (Diffuse, Specular, Normal @ 1280×720): +11 MB
+- Tiled Forward Rendering (Light Index List, Light Grid @ 1280×720): +5.76 MB
 
 The additional storage requirements for deferred rendering is based on an additional three full-screen buffers at 32-bits (4 bytes) per pixel. The depth/stencil buffer and the light accumulation buffers are not considered as additional storage because standard forward rendering uses these buffers as well.
 
@@ -2206,16 +2206,16 @@ Similar to the scenario with large lights, when rendering only a few lights in t
 
 While working on this project I have identified several issues that would benefit from consideration in the future.
 
-1.  General Issues:
-    -   Size of the light structure
-2.  Forward Rendering:
-    -   Depth pre-pass
-    -   View frustum culling of visible lights
-3.  Deferred Rendering:
-    -   Optimize G-buffers
-    -   Rendering of directional lights
-4.  Tiled Forward Rendering
-    -   Improve light culling
+1. General Issues:
+    - Size of the light structure
+2. Forward Rendering:
+    - Depth pre-pass
+    - View frustum culling of visible lights
+3. Deferred Rendering:
+    - Optimize G-buffers
+    - Rendering of directional lights
+4. Tiled Forward Rendering
+    - Improve light culling
 
 ### General Considerations
 
@@ -2297,9 +2297,9 @@ Another possible data structure that could be used to reduce redundant lighting 
 
 In this article I described the implementation of three rendering techniques:
 
-1.  Forward Rendering
-2.  Deferred Rendering
-3.  Tiled Forward (Forward+) Rendering
+1. Forward Rendering
+2. Deferred Rendering
+3. Tiled Forward (Forward+) Rendering
 
 I have shown that traditional forward rendering is well suited for scenarios which require support for multiple shading models and semi-transparent objects. Forward rendering is also well suited for scenes that have only a few dynamic lights. The analysis shows that scenes that contain less than 100 dynamic scene lights still performs reasonably well on commercial hardware. Forward rendering also has a low memory footprint when multiple shadow maps are not required. When GPU memory is scarce and support for many dynamic lights is not a requirement (for example on mobile or embedded devices) traditional forward rendering may be the best choice.
 

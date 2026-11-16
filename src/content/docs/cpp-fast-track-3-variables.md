@@ -176,8 +176,8 @@ There are actually two `Line` functions: this one takes `float` coordinates (num
 
 Here's your task for today:
 
-1.  Create a function that draws a fat I. Call it `DrawFatI`. This function will use `DrawI` in turn, of course.
-2.  Modify `Game::Tick` in such a way that the fat I moves across the screen.
+1. Create a function that draws a fat I. Call it `DrawFatI`. This function will use `DrawI` in turn, of course.
+2. Modify `Game::Tick` in such a way that the fat I moves across the screen.
 
 When it works, it looks like this:
 

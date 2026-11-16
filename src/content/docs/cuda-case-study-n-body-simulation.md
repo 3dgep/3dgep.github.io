@@ -29,11 +29,11 @@ $$
 
 Where:
 
--   $F$ is the force acting on each point mass measured in [newtons](https://en.wikipedia.org/wiki/Newton_(units)).
--   $G$ is the [gravitational constant](https://en.wikipedia.org/wiki/Gravitational_constant).
--   $m_1$ is the mass of the first body measured in [kilograms](https://en.wikipedia.org/wiki/Kilogram).
--   $m_2$ is the mass of the second body measured in [kilograms](https://en.wikipedia.org/wiki/Kilogram).
--   $r$ is the distance between the two bodies in meters (m).
+- $F$ is the force acting on each point mass measured in [newtons](https://en.wikipedia.org/wiki/Newton_(units)).
+- $G$ is the [gravitational constant](https://en.wikipedia.org/wiki/Gravitational_constant).
+- $m_1$ is the mass of the first body measured in [kilograms](https://en.wikipedia.org/wiki/Kilogram).
+- $m_2$ is the mass of the second body measured in [kilograms](https://en.wikipedia.org/wiki/Kilogram).
+- $r$ is the distance between the two bodies in meters (m).
 
 The gravitational constant $G$ is approximately equal to $6.674 \times 10^{-11} N m^2kg^{-2}$.
 

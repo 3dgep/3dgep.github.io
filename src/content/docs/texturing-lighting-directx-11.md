@@ -325,25 +325,25 @@ Before we talk about the lighting equations, I would like to distinguish the dif
 
 Each object in your scene can be assigned material properties which determines how the object is rendered. Although object materials can have a arbitrary set of parameters, for this article I will use a material that consists of the following properties:
 
--   **Emissive**: The material’s emissive term (denoted $k_e$) is used to make the material appear to “emit” light even in the absence of any lights.
--   **Ambient**: The material’s “ambient” term (denoted $k_a$) is used to simulate the effect of global lighting contributions such as light produced from the sun. The material’s ambient component can optionally be determined by the ambient contribution of all of the light sources in the scene but it is also possible to define the material’s ambient contribution by combining it with a global ambient constant to compute the final ambient contribution. In this article, we will use a global ambient term instead of specifying an ambient term per light source.
--   **Diffuse**: The material’s diffuse color (denoted $k_d$) is the color which is reflected evenly in all directions. A material’s diffuse color is not dependent on the viewing angle. Dull objects (like bark from a tree or sandpaper) are almost purely diffuse materials and appear the same color no matter the viewing angle. The materials diffuse term is combined with the diffuse contribution of all of the light sources in the scene.
--   **Specular**: The material’s specular color (denoted $k_s$) allows a material to appear shiny. Materials such as high-gloss paints, metals, and shiny plastics have bright highlights when viewed at certain angles. This is called the specular highlight and is apparent when the viewing angle is directly in the path of the reflection of the light source.
--   **Specular Power**: The apparent brightness of the specular highlight is determined by the material’s specular power (denoted $\alpha$). As the specular power is increased, the specular highlight becomes a tighter, sharper highlight. The material’s specular component is combined with the specular contribution of each light source in the scene.
+- **Emissive**: The material’s emissive term (denoted $k_e$) is used to make the material appear to “emit” light even in the absence of any lights.
+- **Ambient**: The material’s “ambient” term (denoted $k_a$) is used to simulate the effect of global lighting contributions such as light produced from the sun. The material’s ambient component can optionally be determined by the ambient contribution of all of the light sources in the scene but it is also possible to define the material’s ambient contribution by combining it with a global ambient constant to compute the final ambient contribution. In this article, we will use a global ambient term instead of specifying an ambient term per light source.
+- **Diffuse**: The material’s diffuse color (denoted $k_d$) is the color which is reflected evenly in all directions. A material’s diffuse color is not dependent on the viewing angle. Dull objects (like bark from a tree or sandpaper) are almost purely diffuse materials and appear the same color no matter the viewing angle. The materials diffuse term is combined with the diffuse contribution of all of the light sources in the scene.
+- **Specular**: The material’s specular color (denoted $k_s$) allows a material to appear shiny. Materials such as high-gloss paints, metals, and shiny plastics have bright highlights when viewed at certain angles. This is called the specular highlight and is apparent when the viewing angle is directly in the path of the reflection of the light source.
+- **Specular Power**: The apparent brightness of the specular highlight is determined by the material’s specular power (denoted $\alpha$). As the specular power is increased, the specular highlight becomes a tighter, sharper highlight. The material’s specular component is combined with the specular contribution of each light source in the scene.
 
 ## Light Properties
 
 Similar to materials, lights also define a set of properties that determine the final output of the scene. Again, lights can have an arbitrary number of arguments depending on your lighting model but for this article, we will define the set of properties for the light.
 
--   **Light Type**: We will define 3 types of lights:
-    -   **Point**: A positional light that emits light evenly in all directions.
-    -   **Spot**: A positional light that emits light in a specific direction.
-    -   **Directional**: A directional light source only defines a direction but does not have a position (it is considered to be infinitely far away). This light type can be used to simulate the sun in outdoor scenes.
--   **Color**: The color of the light source. For this article, we will combine the light’s diffuse and specular contributions into a single color property.
--   **Position**: For point and spot lights this property defines the 3-dimensional position of the light source.
--   **Direction**: For spot and directional lights this property defines the direction the light is pointing.
--   **SpotAngle**: The angle of the spotlight cone in radians.
--   **Attenuation**: The attenuation factor is used to simulate the apparent fall-off of the intensity of the light as the distance to the light source increases. This property only applies to positional light sources such as point lights and spot lights (since directional lights don’t have a position).
+- **Light Type**: We will define 3 types of lights:
+    - **Point**: A positional light that emits light evenly in all directions.
+    - **Spot**: A positional light that emits light in a specific direction.
+    - **Directional**: A directional light source only defines a direction but does not have a position (it is considered to be infinitely far away). This light type can be used to simulate the sun in outdoor scenes.
+- **Color**: The color of the light source. For this article, we will combine the light’s diffuse and specular contributions into a single color property.
+- **Position**: For point and spot lights this property defines the 3-dimensional position of the light source.
+- **Direction**: For spot and directional lights this property defines the direction the light is pointing.
+- **SpotAngle**: The angle of the spotlight cone in radians.
+- **Attenuation**: The attenuation factor is used to simulate the apparent fall-off of the intensity of the light as the distance to the light source increases. This property only applies to positional light sources such as point lights and spot lights (since directional lights don’t have a position).
 
 In the next sections we will see how we can combine the material’s properties with the lights in the scene to produce the final color.
 
@@ -395,8 +395,8 @@ The material’s ambient term is combined with a global ambient term to produce 
 
 Let:
 
--   $G_a$ be the global ambient contribution
--   $k_a$ be the material’s ambient term
+- $G_a$ be the global ambient contribution
+- $k_a$ be the material’s ambient term
 
 Then
 
@@ -434,12 +434,12 @@ Diffuse Lighting
 
 If:
 
--   $\mathbf{P}$ is the point in 3D space that we want to shade,
--   $\mathbf{N}$ is the surface normal at point we want to shade,
--   $\mathbf{L}_p$ is the position of the light in 3D space,
--   $\mathbf{L}_d$ is the diffuse contribution of the light source,
--   $\mathbf{L}$ is the normalized direction vector from the point we want to shade to the light source,
--   $k_d$ is the diffuse component of the material,
+- $\mathbf{P}$ is the point in 3D space that we want to shade,
+- $\mathbf{N}$ is the surface normal at point we want to shade,
+- $\mathbf{L}_p$ is the position of the light in 3D space,
+- $\mathbf{L}_d$ is the diffuse contribution of the light source,
+- $\mathbf{L}$ is the normalized direction vector from the point we want to shade to the light source,
+- $k_d$ is the diffuse component of the material,
 
 Then
 
@@ -480,16 +480,16 @@ Specular Lighting
 
 If:
 
--   $\mathbf{P}$ is the point in 3D space that we want to shade,
--   $\mathbf{N}$ is the surface normal at point we want to shade,
--   $\mathbf{L}_p$ is the position of the light in 3D space,
--   $\mathbf{L}$ is the normalized direction vector from the point we want to shade to the light source,
--   $\mathbf{E}_p$ is the eye position (position of the camera),
--   $\mathbf{V}$ is the view vector and is the normalized direction vector from the point we want to shade to the eye,
--   $\mathbf{R}$ is the reflection vector from the light source to the point we are shading about the surface normal $\mathbf{N}$,
--   $\mathbf{L}_s$ is the specular contribution of the light source,
--   $k_s$ is the specular component of the material,
--   $\alpha$ is the “shininess” of the material. The higher the “shininess” value, the smaller the specular highlight.
+- $\mathbf{P}$ is the point in 3D space that we want to shade,
+- $\mathbf{N}$ is the surface normal at point we want to shade,
+- $\mathbf{L}_p$ is the position of the light in 3D space,
+- $\mathbf{L}$ is the normalized direction vector from the point we want to shade to the light source,
+- $\mathbf{E}_p$ is the eye position (position of the camera),
+- $\mathbf{V}$ is the view vector and is the normalized direction vector from the point we want to shade to the eye,
+- $\mathbf{R}$ is the reflection vector from the light source to the point we are shading about the surface normal $\mathbf{N}$,
+- $\mathbf{L}_s$ is the specular contribution of the light source,
+- $k_s$ is the specular component of the material,
+- $\alpha$ is the “shininess” of the material. The higher the “shininess” value, the smaller the specular highlight.
 
 Then using the **Phong lighting model**, the specular component can be calculated as follows:
 
@@ -508,7 +508,7 @@ In addition to the previous variables, we must also compute $\mathbf{H}$ as the 
 
 If:
 
--   $\mathbf{H}$ is the half-angle vector between the light vector and the view vector.
+- $\mathbf{H}$ is the half-angle vector between the light vector and the view vector.
 
 Then,
 
@@ -637,16 +637,16 @@ Spotlight
 
 **Attenuation** is the falloff of the intensity of the light as the distance to the light source increases. For this article, attenuation is computed from the reciprocal of the sum of three attenuation constants:
 
--   **Constant Attenuation**: A constant value used to increase or decrease the intensity of the light independent of the distance to the light source.
--   **Linear Attenuation**: The intensity of the light decreases linearly as the distance to the light source increases.
--   **Quadratic Attenuation**: The intensity of the light decreases quadratically as the distance to the light source increases.
+- **Constant Attenuation**: A constant value used to increase or decrease the intensity of the light independent of the distance to the light source.
+- **Linear Attenuation**: The intensity of the light decreases linearly as the distance to the light source increases.
+- **Quadratic Attenuation**: The intensity of the light decreases quadratically as the distance to the light source increases.
 
 If:
 
--   $d$: is the distance from the light source to the point being shaded,
--   $k_c$: is the constant attenuation factor,
--   $k_l$: is the linear attenuation factor,
--   $k_q$: is the quadratic attenuation factor,
+- $d$: is the distance from the light source to the point being shaded,
+- $k_c$: is the constant attenuation factor,
+- $k_l$: is the linear attenuation factor,
+- $k_q$: is the quadratic attenuation factor,
 
 Then the formula to compute the attenuation is:
 
@@ -1489,16 +1489,16 @@ typedef struct D3D11_SAMPLER_DESC {
 
 Where:
 
--   **D3D11\_FILTER Filter**: Defines the filtering method to use when sampling the texture (see [D3D11\_FILTER](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_filter)).
--   **D3D11\_TEXTURE\_ADDRESS\_MODE AddressU**: Method to use for resolving a u texture coordinate that is outside the 0 to 1 range (see [D3D11\_TEXTURE\_ADDRESS\_MODE](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_texture_address_mode)).
--   **D3D11\_TEXTURE\_ADDRESS\_MODE AddressV**: Method to use for resolving a v texture coordinate that is outside the 0 to 1 range.
--   **D3D11\_TEXTURE\_ADDRESS\_MODE AddressW**: Method to use for resolving a w texture coordinate that is outside the 0 to 1 range.
--   **FLOAT MipLODBias**: Offset from the calculated mipmap level. For example, if Direct3D calculates that a texture should be sampled at mipmap level 3 and MipLODBias is 2, then the texture will be sampled at mipmap level 5.
--   **UINT MaxAnisotropy**: Clamping value used if **D3D11\_FILTER\_ANISOTROPIC** or **D3D11\_FILTER\_COMPARISON\_ANISOTROPIC** is specified in **Filter**. Valid values are between 1 and 16.
--   **D3D11\_COMPARISON\_FUNC ComparisonFunc**: A function that compares sampled data against existing sampled data. The function options are listed in [D3D11\_COMPARISON\_FUNC](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_comparison_func).
--   **FLOAT BorderColor\[4\]**: Border color to use if **D3D11\_TEXTURE\_ADDRESS\_BORDER** is specified for **AddressU**, **AddressV**, or **AddressW**. Range must be between 0.0 and 1.0 inclusive.
--   **FLOAT MinLOD**: Lower end of the mipmap range to clamp access to, where 0 is the largest and most detailed mipmap level and any level higher than that is less detailed.
--   **FLOAT MaxLOD**: Upper end of the mipmap range to clamp access to, where 0 is the largest and most detailed mipmap level and any level higher than that is less detailed. This value must be greater than or equal to MinLOD. To have no upper limit on LOD set this to a large value such as **D3D11\_FLOAT32\_MAX**
+- **D3D11\_FILTER Filter**: Defines the filtering method to use when sampling the texture (see [D3D11\_FILTER](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_filter)).
+- **D3D11\_TEXTURE\_ADDRESS\_MODE AddressU**: Method to use for resolving a u texture coordinate that is outside the 0 to 1 range (see [D3D11\_TEXTURE\_ADDRESS\_MODE](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_texture_address_mode)).
+- **D3D11\_TEXTURE\_ADDRESS\_MODE AddressV**: Method to use for resolving a v texture coordinate that is outside the 0 to 1 range.
+- **D3D11\_TEXTURE\_ADDRESS\_MODE AddressW**: Method to use for resolving a w texture coordinate that is outside the 0 to 1 range.
+- **FLOAT MipLODBias**: Offset from the calculated mipmap level. For example, if Direct3D calculates that a texture should be sampled at mipmap level 3 and MipLODBias is 2, then the texture will be sampled at mipmap level 5.
+- **UINT MaxAnisotropy**: Clamping value used if **D3D11\_FILTER\_ANISOTROPIC** or **D3D11\_FILTER\_COMPARISON\_ANISOTROPIC** is specified in **Filter**. Valid values are between 1 and 16.
+- **D3D11\_COMPARISON\_FUNC ComparisonFunc**: A function that compares sampled data against existing sampled data. The function options are listed in [D3D11\_COMPARISON\_FUNC](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_comparison_func).
+- **FLOAT BorderColor\[4\]**: Border color to use if **D3D11\_TEXTURE\_ADDRESS\_BORDER** is specified for **AddressU**, **AddressV**, or **AddressW**. Range must be between 0.0 and 1.0 inclusive.
+- **FLOAT MinLOD**: Lower end of the mipmap range to clamp access to, where 0 is the largest and most detailed mipmap level and any level higher than that is less detailed.
+- **FLOAT MaxLOD**: Upper end of the mipmap range to clamp access to, where 0 is the largest and most detailed mipmap level and any level higher than that is less detailed. This value must be greater than or equal to MinLOD. To have no upper limit on LOD set this to a large value such as **D3D11\_FLOAT32\_MAX**
 
 We’ll also define a few materials for the objects in our scene.
 
@@ -1701,11 +1701,11 @@ Next, we’ll render our scene.
 
 To render the Cornell Box scene, we will render the following objects:
 
-1.  **Walls**: The six walls of our Cornell box will be rendered with the green material and the DirectX texture applied to them.
-2.  **Sphere**: A sphere is rendered in the front of the room with the earth texture applied.
-3.  **Cube**: A box is drawn in the back of the room with the red material applied. The box will not be textured.
-4.  **Torus**: A torus is drawn in the front of the room with the pearl material applied. The torus will also not be textured.
-5.  **Lights**: The scene will be lit by eight lights. Point lights will be represented by spheres and spot and directional lights will be represented by an orientated cone. Their materials will be related to the color of the light the object represents.
+1. **Walls**: The six walls of our Cornell box will be rendered with the green material and the DirectX texture applied to them.
+2. **Sphere**: A sphere is rendered in the front of the room with the earth texture applied.
+3. **Cube**: A box is drawn in the back of the room with the red material applied. The box will not be textured.
+4. **Torus**: A torus is drawn in the front of the room with the pearl material applied. The torus will also not be textured.
+5. **Lights**: The scene will be lit by eight lights. Point lights will be represented by spheres and spot and directional lights will be represented by an orientated cone. Their materials will be related to the color of the light the object represents.
 
 First we’ll setup the per-vertex and per-instance attributes for the walls of our room and bind them to the input assembler.
 
@@ -1756,11 +1756,11 @@ void DrawIndexedInstanced(
 
 Where:
 
--   **UINT IndexCountPerInstance**: Number of indices read from the index buffer for each instance.
--   **UINT InstanceCount**: Number of instances to draw.
--   **UINT StartIndexLocation**: The location of the first index read by the GPU from the index buffer.
--   **INT BaseVertexLocation**: A value added to each index before reading a vertex from the vertex buffer.
--   **UINT StartInstanceLocation**: A value added to each index before reading per-instance data from a vertex buffer.
+- **UINT IndexCountPerInstance**: Number of indices read from the index buffer for each instance.
+- **UINT InstanceCount**: Number of instances to draw.
+- **UINT StartIndexLocation**: The location of the first index read by the GPU from the index buffer.
+- **INT BaseVertexLocation**: A value added to each index before reading a vertex from the vertex buffer.
+- **UINT StartInstanceLocation**: A value added to each index before reading per-instance data from a vertex buffer.
 
 The rest of the geometry are rendered in a similar way except we’ll use the single-instance vertex shader instead of the multiple instance vertex shader and instead of using the [ID3D11DeviceContext::DrawIndexedInstanced](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-drawindexedinstanced) method, we’ll use the [ID3D11DeviceContext::DrawIndexed](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-drawindexed) method which was described in the previous article titled [Introduction to DirectX 11](/introduction-to-directx-11/).
 

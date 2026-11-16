@@ -79,8 +79,8 @@ The implementation of this `UploadBuffer` class is inspired by the implementatio
 
 The `UploadBuffer` class provides the following functionality:
 
--   `Allocate`: Allocates a chunk of memory that can be used to upload data to the GPU.
--   `Reset`: Release all allocations for reuse.
+- `Allocate`: Allocates a chunk of memory that can be used to upload data to the GPU.
+- `Reset`: Release all allocations for reuse.
 
 This provides a very simple interface definition for the `UploadBuffer` class.
 
@@ -234,8 +234,8 @@ The `Allocate` method is used to allocate a chunk (or block) of memory from a me
 
 The `Allocate` method takes two arguments:
 
--   `size_t sizeInBytes`: The size of the allocation in bytes.
--   `size_t alignment`: The memory alignment of the allocation in bytes. For example, allocations for constant buffers must be aligned to 256 bytes.
+- `size_t sizeInBytes`: The size of the allocation in bytes.
+- `size_t alignment`: The memory alignment of the allocation in bytes. For example, allocations for constant buffers must be aligned to 256 bytes.
 
 If the size of the allocation exceeds the size of a memory page, the method throws a [std::bad\_alloc](https://en.cppreference.com/cpp/memory/new/bad_alloc) exception.
 
@@ -342,12 +342,12 @@ The `DescriptorAllocator` class is used to allocate descriptors from a CPU visib
 
 CPU visible descriptors are used for describing:
 
--   Render Target Views (RTV)
--   Depth-Stencil Views (DSV)
--   Constant Buffer Views (CBV)
--   Shader Resource Views (SRV)
--   Unordered Access Views (UAV)
--   Samplers
+- Render Target Views (RTV)
+- Depth-Stencil Views (DSV)
+- Constant Buffer Views (CBV)
+- Shader Resource Views (SRV)
+- Unordered Access Views (UAV)
+- Samplers
 
 The `DescriptorAllocator` class is used to allocate descriptors to the application when loading new resources (like textures). In a typical game engine, resources may need to be loaded and unloaded from memory at sporadic moments while the player moves around the level. To support large dynamic worlds, it may be necessary to initially load some resources, unload them from memory, and reload different resources. The `DescriptorAllocator` manages all of the descriptors that are required to describe those resources. Descriptors that are no longer used (for example, when a resource is unloaded from memory) will be automatically returned back to the descriptor heap for reuse.
 
@@ -385,9 +385,9 @@ The above image shows a memory page after several allocations have been made. Th
 
 Three different classes are used to implement this strategy:
 
-1.  `DescriptorAllocator`: This is the main interface to the application for requesting descriptors. The `DescriptorAllocator` class manages the descriptor pages.
-2.  `DescriptorAllocatorPage`: This class is a wrapper for a [`ID3D12DescriptorHeap`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12descriptorheap). The `DescriptorAllocatorPage` also keeps track of the free list for the page.
-3.  `DescriptorAllocation`: This class wraps an allocation that is returned from the `DescriptorAllocator::Allocate` method. The `DescriptorAllocation` class also stores a pointer back to the page it came from and will automatically free itself if the descriptor(s) are no longer required.
+1. `DescriptorAllocator`: This is the main interface to the application for requesting descriptors. The `DescriptorAllocator` class manages the descriptor pages.
+2. `DescriptorAllocatorPage`: This class is a wrapper for a [`ID3D12DescriptorHeap`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12descriptorheap). The `DescriptorAllocatorPage` also keeps track of the free list for the page.
+3. `DescriptorAllocation`: This class wraps an allocation that is returned from the `DescriptorAllocator::Allocate` method. The `DescriptorAllocation` class also stores a pointer back to the page it came from and will automatically free itself if the descriptor(s) are no longer required.
 
 The `DescriptorAllocator` class is described first.
 
@@ -424,8 +424,8 @@ The `DescriptorAllocatorPage` class is used by the `DescriptorAllocator` class b
 
 The `DescriptorAllocator` class defines two public member functions:
 
-1.  `DescriptorAllocator::Allocate`: Allocates a number of contiguous descriptors from a CPU visible descriptor heap.
-2.  `DescriptorAllocator::ReleaseStaleDescriptors`: Frees any stale descriptors that can be returned to the list of available descriptors for reuse. This method should only be called after any of the descriptors that were freed are no longer being referenced by the command queue.
+1. `DescriptorAllocator::Allocate`: Allocates a number of contiguous descriptors from a CPU visible descriptor heap.
+2. `DescriptorAllocator::ReleaseStaleDescriptors`: Frees any stale descriptors that can be returned to the list of available descriptors for reuse. This method should only be called after any of the descriptors that were freed are no longer being referenced by the command queue.
 
 The definition of these methods is shown later. The declaration of these methods is made in the header file for the `DescriptorAllocator` class.
 
@@ -535,11 +535,11 @@ The purpose of the `DescriptorAllocatorPage` class is to provide the free list a
 
 The `DescriptorAllocatorPage` class must be able to satisfy descriptor allocation requests but it also needs to provide some functions to query the number of free handles and to check to see if it has sufficient space to satisfy a request. The `DescriptorAllocatorPage` provides the following (public) methods:
 
--   `HasSpace`: Check to see if the `DescriptorAllocatorPage` has a contiguous block of descriptors that is large enough to satisfy a request.
--   `NumFreeHandles`: Returns the number of available descriptor handles in the descriptor heap. Note that due to fragmentation of the free list, allocations that are less than or equal to the number of free handles could still fail.
--   `Allocate`: Allocates a number of contiguous descriptors from the descriptor heap. If the `DescriptorAllocatorPage` is not able to satisfy the request, this function will return a null `DescriptorAllocation`
--   `Free`: Returns a `DescriptorAllocation` back to the heap. Since descriptors can’t be reused until the command list that is referencing them has finished executing on the command queue, the descriptors are not returned directly to the heap until the render frame has finished executing.
--   `ReleaseStaleDescriptors`: Returns any free’d descriptors back to the descriptor heap for reuse.
+- `HasSpace`: Check to see if the `DescriptorAllocatorPage` has a contiguous block of descriptors that is large enough to satisfy a request.
+- `NumFreeHandles`: Returns the number of available descriptor handles in the descriptor heap. Note that due to fragmentation of the free list, allocations that are less than or equal to the number of free handles could still fail.
+- `Allocate`: Allocates a number of contiguous descriptors from the descriptor heap. If the `DescriptorAllocatorPage` is not able to satisfy the request, this function will return a null `DescriptorAllocation`
+- `Free`: Returns a `DescriptorAllocation` back to the heap. Since descriptors can’t be reused until the command list that is referencing them has finished executing on the command queue, the descriptors are not returned directly to the heap until the render frame has finished executing.
+- `ReleaseStaleDescriptors`: Returns any free’d descriptors back to the descriptor heap for reuse.
 
 #### DescriptorAllocatorPage Header
 
@@ -708,13 +708,13 @@ On line 10, a pointer to the [`ID3D12Device`](https://learn.microsoft.com/window
 
 Before creating the [`ID3D12DescriptorHeap`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12descriptorheap) object, it must be described. The [`D3D12_DESCRIPTOR_HEAP_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_descriptor_heap_desc) is used to describe the [`ID3D12DescriptorHeap`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12descriptorheap) and has the following members [\[3\]](#cite-3):
 
--   [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type) `Type`: Specifies the types of descriptors in the heap.
--   `UINT NumDescriptors`: The number of descriptors in the heap.
--   [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags) `Flags`: A combination of [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags) values that are combined by using a bitwise OR operation. The following flags are currently available:
-    -   `D3D12_DESCRIPTOR_HEAP_FLAG_NONE`: Indicates default usage of a heap.
-    -   `D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`: This flag can optionally be set on a descriptor heap to indicate it is be bound on a command list for reference by shaders. Descriptor heaps created without this flag allow applications the option to stage descriptors in CPU memory before copying them to a shader visible descriptor heap, as a convenience. But it is also fine for applications to directly create descriptors into shader visible descriptor heaps with no requirement to stage anything on the CPU.  
+- [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type) `Type`: Specifies the types of descriptors in the heap.
+- `UINT NumDescriptors`: The number of descriptors in the heap.
+- [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags) `Flags`: A combination of [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags) values that are combined by using a bitwise OR operation. The following flags are currently available:
+    - `D3D12_DESCRIPTOR_HEAP_FLAG_NONE`: Indicates default usage of a heap.
+    - `D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`: This flag can optionally be set on a descriptor heap to indicate it is be bound on a command list for reference by shaders. Descriptor heaps created without this flag allow applications the option to stage descriptors in CPU memory before copying them to a shader visible descriptor heap, as a convenience. But it is also fine for applications to directly create descriptors into shader visible descriptor heaps with no requirement to stage anything on the CPU.  
         This flag only applies to CBV, SRV, UAV and samplers. It does not apply to other descriptor heap types since shaders do not directly reference the other types.
--   `UINT NodeMask`: For single-adapter operation, set this to zero. If there are multiple adapter nodes, set a bit to identify the node (one of the device’s physical adapters) to which the descriptor heap applies. Each bit in the mask corresponds to a single node. Only one bit must be set.
+- `UINT NodeMask`: For single-adapter operation, set this to zero. If there are multiple adapter nodes, set a bit to identify the node (one of the device’s physical adapters) to which the descriptor heap applies. Each bit in the mask corresponds to a single node. Only one bit must be set.
 
 On line 16, the actual [`ID3D12DescriptorHeap`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12descriptorheap) is created using the [`ID3D12Device::CreateDescriptorHeap`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12device-createdescriptorheap) method.
 
@@ -813,10 +813,10 @@ In order to guarantee the `m_StaleDescriptors` queue is only modified on a singl
 
 The `FreeBlock` method is executed when the stale descriptors are added back to the free list. When adding a block back to the free list, neighboring blocks should be merged to minimize fragmentation of the free list. Two cases need to be considered when adding a block back to the free list:
 
-1.  **Case 1**: There is a block in the free list that is immediately preceding the block being freed.
-2.  **Case 2**: There is a block in the free list that is immediately following the block being freed.
-3.  **Case 3**: There is both a block in the free list immediately preceding and immediately following the block being freed.
-4.  **Case 4**: There is neither a block in the free list immediately preceding nor immediately following the block being freed.
+1. **Case 1**: There is a block in the free list that is immediately preceding the block being freed.
+2. **Case 2**: There is a block in the free list that is immediately following the block being freed.
+3. **Case 3**: There is both a block in the free list immediately preceding and immediately following the block being freed.
+4. **Case 4**: There is neither a block in the free list immediately preceding nor immediately following the block being freed.
 
 If **Case 1** is true then the previous block in the free list needs to be merged with the block being freed. If **Case 2** is true then the next block in the free list needs to be merged with the block being freed.
 
@@ -887,9 +887,9 @@ The `DescriptorAllocation` class is used by the `DescriptorAllocator` to represe
 
 The `DescriptorAllocation` class provides the following (public) method:
 
--   `IsNull`: Check to see if the `DescriptorAllocation` contains a valid descriptor handle.
--   `GetDescriptorHandle`: Get the descriptor handle to the underlying [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle)
--   `GetNumHandles`: Gets the number of consecutive descriptors in the `DescriptorAllocation`.
+- `IsNull`: Check to see if the `DescriptorAllocation` contains a valid descriptor handle.
+- `GetDescriptorHandle`: Get the descriptor handle to the underlying [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle)
+- `GetNumHandles`: Gets the number of consecutive descriptors in the `DescriptorAllocation`.
 
 #### DescriptorAllocation Header
 
@@ -1098,9 +1098,9 @@ The design of the `DynamicDescriptorHeap` class is heavily based on the [Dynamic
 
 The `DynamicDescriptorHeap` class provides the following functionality:
 
--   **Stage Descriptors**: Stage CPU visible descriptors to the descriptor table cache.
--   **Commit Staged Descriptors**: Commit the staged descriptors to a GPU visible descriptor heap.
--   **Copy a Descriptor**: Directly copy a CPU visible descriptor to a GPU visible descriptor heap. This is useful for the [`ID3D12GraphicsCommandList::ClearUnorderedAccessViewFloat`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-clearunorderedaccessviewfloat) and the [`ID3D12GraphicsCommandList::ClearUnorderedAccessViewUint`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-clearunorderedaccessviewuint) methods.
+- **Stage Descriptors**: Stage CPU visible descriptors to the descriptor table cache.
+- **Commit Staged Descriptors**: Commit the staged descriptors to a GPU visible descriptor heap.
+- **Copy a Descriptor**: Directly copy a CPU visible descriptor to a GPU visible descriptor heap. This is useful for the [`ID3D12GraphicsCommandList::ClearUnorderedAccessViewFloat`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-clearunorderedaccessviewfloat) and the [`ID3D12GraphicsCommandList::ClearUnorderedAccessViewUint`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-clearunorderedaccessviewuint) methods.
 
 #### DynamicDescriptorHeap Header
 
@@ -1131,10 +1131,10 @@ On line 55, the destructor for the `DynamicDescriptorHeap` class is declared.
 
 CPU visible descriptors are *staged* to the `DynamicDescriptorHeap` using the `StageDescriptors` method. This method has the following arguments:
 
--   `uint32_t rootParameterIndex`: The index of root parameter to copy the descriptors to. This must be configured as a [`DESCRIPTOR_TABLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type) in the currently bound root signature.
--   `uint32_t offset`: The offset within the descriptor table to copy the descriptors to. This value can span descriptor ranges within the table but `offset` + `numDescriptors` must not exceed the total number of descriptors in the descriptor table.
--   `uint32_t numDescriptors`: The number of contiguous descriptors to copy starting from `srcDescriptors`.
--   `const` [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `srcDescriptors`: The base descriptor to start copying descriptors from.
+- `uint32_t rootParameterIndex`: The index of root parameter to copy the descriptors to. This must be configured as a [`DESCRIPTOR_TABLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type) in the currently bound root signature.
+- `uint32_t offset`: The offset within the descriptor table to copy the descriptors to. This value can span descriptor ranges within the table but `offset` + `numDescriptors` must not exceed the total number of descriptors in the descriptor table.
+- `uint32_t numDescriptors`: The number of contiguous descriptors to copy starting from `srcDescriptors`.
+- `const` [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `srcDescriptors`: The base descriptor to start copying descriptors from.
 
 The `StageDescriptors` method is used to copy any number of contiguous CPU visible descriptors to the `DynamicDescriptorHeap`. Using this method, only the descriptor handles are copied to the `DynamicDescriptorHeap` but not the contents of the descriptor. For this reason, the CPU visible descriptors cannot be reused or overwritten (using [`ID3D12Device::CreateShaderResourceView`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12device-createshaderresourceview) for example) until the `CommitStagedDescriptors` method is invoked.
 
@@ -1406,13 +1406,13 @@ void CopyDescriptors(
 
 And takes the following arguments:
 
--   `UINT NumDestDescriptorRanges`: The number of destination descriptor ranges to copy to. In this case, there is only 1 destintion descriptor range.
--   `const` [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `*pDestDescriptorRangeStarts`: An array of [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle)s to copy to.
--   `const UINT *pDestDescriptorRangeSizes`: An array of destination descriptor range sizes to copy to.
--   `UINT NumSrcDescriptorRanges`: The number of source descriptor ranges to copy from. There is no requirement that the source descriptors appear contigiously in the same CPU visible descriptor heap (or that they come from the same descriptor heap) the number of source ranges is equal to the number of descriptors to copy. That is, the size of each source descriptor range is 1.
--   `const` [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `*pSrcDescriptorRangeStarts`: An array of [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle)s to copy from.
--   `const UINT *pSrcDescriptorRangeSizes`: An array of source descriptor range sizes to copy from. This parameter is optional and if null, then each descriptor range size is considered to be 1 and the descriptors are copied one at a time. Since the source descriptors do not appear in a consecutive range in the source descriptor heaps, this behaviour is exactly what is required.
--   [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type) `DescriptorHeapsType`: Specifies the type of descriptor heap to copy with.
+- `UINT NumDestDescriptorRanges`: The number of destination descriptor ranges to copy to. In this case, there is only 1 destintion descriptor range.
+- `const` [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `*pDestDescriptorRangeStarts`: An array of [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle)s to copy to.
+- `const UINT *pDestDescriptorRangeSizes`: An array of destination descriptor range sizes to copy to.
+- `UINT NumSrcDescriptorRanges`: The number of source descriptor ranges to copy from. There is no requirement that the source descriptors appear contigiously in the same CPU visible descriptor heap (or that they come from the same descriptor heap) the number of source ranges is equal to the number of descriptors to copy. That is, the size of each source descriptor range is 1.
+- `const` [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `*pSrcDescriptorRangeStarts`: An array of [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle)s to copy from.
+- `const UINT *pSrcDescriptorRangeSizes`: An array of source descriptor range sizes to copy from. This parameter is optional and if null, then each descriptor range size is considered to be 1 and the descriptors are copied one at a time. Since the source descriptors do not appear in a consecutive range in the source descriptor heaps, this behaviour is exactly what is required.
+- [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type) `DescriptorHeapsType`: Specifies the type of descriptor heap to copy with.
 
 ```cpp source="LearningDirectX12-v0.0.3/DynamicDescriptorHeap.cpp#L182-L183"
 ```
@@ -1468,10 +1468,10 @@ void CopyDescriptorsSimple(
 
 And takes the following parameters:
 
--   `UINT NumDescriptors`: The number of descriptors to copy. Both source and destination descriptors are considered to be consecutively ordered in the descriptor heap.
--   [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `DestDescriptorRangeStart`: A [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) that describes the destination descriptors to start to copy to.
--   [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `SrcDescriptorRangeStart`: A [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) that describes the source descriptors to start to copy from.
--   [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type) `DescriptorHeapsType`: Specifies the type of descriptor heap to copy with.
+- `UINT NumDescriptors`: The number of descriptors to copy. Both source and destination descriptors are considered to be consecutively ordered in the descriptor heap.
+- [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `DestDescriptorRangeStart`: A [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) that describes the destination descriptors to start to copy to.
+- [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `SrcDescriptorRangeStart`: A [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) that describes the source descriptors to start to copy from.
+- [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type) `DescriptorHeapsType`: Specifies the type of descriptor heap to copy with.
 
 After copying the descriptor to the GPU visible descriptor heap, the current CPU and GPU handles are incremented, the number free handles is decremented, and the GPU descriptor handle is returned on line 232.
 
@@ -1544,10 +1544,10 @@ The singular purpose of the intermediate Command List (C) is to ensure that any 
 
 To implement this strategy, several data structures are required:
 
-1.  **Pending Resource Transition Barriers Array**: If, during command list building, a resource is being bound on a command list for the first time, its previous state is unknown and a transition barrier to transition the resource into the expected state is added to the **Pending Resource Transition Barriers Array**. Pending resource transition barriers should not be confused with [split barriers](https://learn.microsoft.com/windows/win32/direct3d12/using-resource-barriers-to-synchronize-resource-states-in-direct3d-12#split-barriers). Split barriers are not used by the `ResourceStateTracker` class.
-2.  **Final Resource State Map**: After a resource has been used on the command list at least once, its *final known* state is added to the **Final Resource State Map** indexed by a pointer to the resource.
-3.  **Resource Transition Barriers Array**: If the state of a resource is known (it has an entry in the **Final Resource State Map**) then any resource state transition is added to the **Resource Transition Barriers Array** and added directly to the command list before a draw or dispatch command is executed (or any command that requires transition barriers to be committed to the command list).
-4.  **Global Resource State Map**: A command list may contain any number of state transitions for a resource. When a command list is executed on the command queue, the last known state of the resource is committed to the **Global Resource State Map**. It is the **Global Resource State Map** that is used to determine if a Pending Resource Transition Barrier is added to the intermediate command list or not.
+1. **Pending Resource Transition Barriers Array**: If, during command list building, a resource is being bound on a command list for the first time, its previous state is unknown and a transition barrier to transition the resource into the expected state is added to the **Pending Resource Transition Barriers Array**. Pending resource transition barriers should not be confused with [split barriers](https://learn.microsoft.com/windows/win32/direct3d12/using-resource-barriers-to-synchronize-resource-states-in-direct3d-12#split-barriers). Split barriers are not used by the `ResourceStateTracker` class.
+2. **Final Resource State Map**: After a resource has been used on the command list at least once, its *final known* state is added to the **Final Resource State Map** indexed by a pointer to the resource.
+3. **Resource Transition Barriers Array**: If the state of a resource is known (it has an entry in the **Final Resource State Map**) then any resource state transition is added to the **Resource Transition Barriers Array** and added directly to the command list before a draw or dispatch command is executed (or any command that requires transition barriers to be committed to the command list).
+4. **Global Resource State Map**: A command list may contain any number of state transitions for a resource. When a command list is executed on the command queue, the last known state of the resource is committed to the **Global Resource State Map**. It is the **Global Resource State Map** that is used to determine if a Pending Resource Transition Barrier is added to the intermediate command list or not.
 
 ### ResourceStateTracker Class
 
@@ -1954,13 +1954,13 @@ The `SetShaderResourceView` method uses the [`DynamicDescriptorHeap`](#dynamic-d
 
 As can be seen from the code snippet above, the `SetShaderResourceView` method takes a lot of arguments:
 
--   `uint32_t rootParameterIndex`: The root parameter index to assign the SRV to. The root parameter must be of type [`D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type) and the `descriptorOffset` must refer to a descriptor in a [`D3D12_DESCRIPTOR_RANGE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_descriptor_range) of type [`D3D12_DESCRIPTOR_RANGE_TYPE_SRV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_range_type).
--   `uint32_t descriptorOffset`: The offset starting from the first descriptor in the [`D3D12_ROOT_DESCRIPTOR_TABLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_root_descriptor_table)`.`
--   `const Resource& resource`: The `Resource` to bind.
--   [`D3D12_RESOURCE_STATES`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) `stateAfter`: The required state of the resource. If the resource is being bound for reading in a pixel shader, it should be transitioned to the [`D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) state, otherwise it should be transitioned to the [`D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) state. The default value for this argument is [`D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states)`|`[`D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) which allows the resource to be used in either a pixel shader or a non-pixel shader (but it may not be optimal to rely on the combined state).
--   `UINT firstSubresource`: The first subresource to transition to the requested state. The default value for this argument is 0.
--   `UINT numSubresources`: The number of subresoruces to transition. The default value for this argument is `D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES`.
--   `const` [`D3D12_SHADER_RESOURCE_VIEW_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_resource_view_desc)`* srv`: The SRV description to use for the resource in the shader. By default, this value is `nullptr` which uses the default SRV for the resource. It is necessary to specify the SRV description for the resource when a depth buffer resource needs to be read in a pixel shader (for example, when performing shadow mapping).
+- `uint32_t rootParameterIndex`: The root parameter index to assign the SRV to. The root parameter must be of type [`D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type) and the `descriptorOffset` must refer to a descriptor in a [`D3D12_DESCRIPTOR_RANGE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_descriptor_range) of type [`D3D12_DESCRIPTOR_RANGE_TYPE_SRV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_range_type).
+- `uint32_t descriptorOffset`: The offset starting from the first descriptor in the [`D3D12_ROOT_DESCRIPTOR_TABLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_root_descriptor_table)`.`
+- `const Resource& resource`: The `Resource` to bind.
+- [`D3D12_RESOURCE_STATES`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) `stateAfter`: The required state of the resource. If the resource is being bound for reading in a pixel shader, it should be transitioned to the [`D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) state, otherwise it should be transitioned to the [`D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) state. The default value for this argument is [`D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states)`|`[`D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) which allows the resource to be used in either a pixel shader or a non-pixel shader (but it may not be optimal to rely on the combined state).
+- `UINT firstSubresource`: The first subresource to transition to the requested state. The default value for this argument is 0.
+- `UINT numSubresources`: The number of subresoruces to transition. The default value for this argument is `D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES`.
+- `const` [`D3D12_SHADER_RESOURCE_VIEW_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_resource_view_desc)`* srv`: The SRV description to use for the resource in the shader. By default, this value is `nullptr` which uses the default SRV for the resource. It is necessary to specify the SRV description for the resource when a depth buffer resource needs to be read in a pixel shader (for example, when performing shadow mapping).
 
 On lines 939-949 of the `SetShaderResourceView` method, the subresources are transitioned to the reqeusted state using the [`TransitionBarrier`](#commandlisttransitionbarrier) method described earlier.
 

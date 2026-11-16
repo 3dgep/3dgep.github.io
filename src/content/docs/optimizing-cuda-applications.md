@@ -218,9 +218,9 @@ If you need to allocate memory on the host that will also be used on the device 
 
 Using page-locked host memory has several benefits:
 
--   Copies between page-locked host memory and device memory can be performed concurrently with kernel execution.
--   Page-locked host memory can be mapped into the address space of the device, eliminating the need to explicitly copy it to or from device memory.
--   On systems with a front-side bus (memory channel directly connects the CPU to the Northbridge controller), bandwidth between host and device memory is higher if host memory is allocated as page-locked host memory.
+- Copies between page-locked host memory and device memory can be performed concurrently with kernel execution.
+- Page-locked host memory can be mapped into the address space of the device, eliminating the need to explicitly copy it to or from device memory.
+- On systems with a front-side bus (memory channel directly connects the CPU to the Northbridge controller), bandwidth between host and device memory is higher if host memory is allocated as page-locked host memory.
 
 On devices that support mapped, page-locked memory, it is recommended to allocated host memory that will be used in a CUDA kernel as device mapped memory. You can check if the current device supports device mapped host memory with the **cudaGetDeviceProperties** method. Page-locked memory mapping is enabled by calling **cudaSetDeviceFlags** with **cudaDeviceMapHost** as an argument before the CUDA device is set using **cudaSetDevice** or **cudaGLSetGLDevice**.
 
@@ -243,8 +243,8 @@ By specifying the **cudaHostAllocMapped** flag parameter to the **cudaHostAlloc*
 
 Accessing memory in this way has several advantages:
 
--   There is no need to allocate device memory and copy host memory to the device. Data transfers between host and device of mapped memory are implicitly performed as needed by the kernel.
--   There is no need to use streams to overlap data transfers with kernel execution. Data transfers are automatically overlapped with kernel execution.
+- There is no need to allocate device memory and copy host memory to the device. Data transfers between host and device of mapped memory are implicitly performed as needed by the kernel.
+- There is no need to use streams to overlap data transfers with kernel execution. Data transfers are automatically overlapped with kernel execution.
 
 If a block of host memory will only be written to and read only on the device, it is recommended you use the **cudaHostAllocWriteCombined** flag when allocating page-locked host memory with the **cudaHostAlloc** function. Allocating write-combined memory in this way will improve transfer rates to device memory by up to 40%. Write-combined memory is not cached in the CPU’s L1 and L2 caches thus freeing up cache resource for the rest of the application. However, because write-combined memory is not cached, reading from this type of memory on the host is slower because every access results in a cache-miss, so reading from write-combined memory should be minimized on the host (or just eliminated all together).
 
@@ -272,17 +272,17 @@ The two rows of the same color represent 128-Byte aligned memory segments. Blow 
 
 The access patterns that facilitate coalescing depends on the compute capability of the device:
 
--   On devices of compute capability 1.0 or 1.1, the k-th thread in a half-warp must access the k-th word in a segment (that is, the 0th thread in the half-warp accesses the 0th word in a segment and the 15th thread in the half-warp access the 15th word in a segment) that is aligned to 16 times the size of the elements being accessed (if the thread is accessing a 32-bit word such as floats or ints, then the memory must be 64-Byte aligned), but not all threads in the half-warp are required to participate (some may be deactivated due to flow-control divergence).
--   On devices of compute capability 1.2 and 1.3, then a single memory transaction is issued for each segment addressed by the half-warp. The size of the segment that participates in coalescing is determined by the size of the word accessed by the threads:
+- On devices of compute capability 1.0 or 1.1, the k-th thread in a half-warp must access the k-th word in a segment (that is, the 0th thread in the half-warp accesses the 0th word in a segment and the 15th thread in the half-warp access the 15th word in a segment) that is aligned to 16 times the size of the elements being accessed (if the thread is accessing a 32-bit word such as floats or ints, then the memory must be 64-Byte aligned), but not all threads in the half-warp are required to participate (some may be deactivated due to flow-control divergence).
+- On devices of compute capability 1.2 and 1.3, then a single memory transaction is issued for each segment addressed by the half-warp. The size of the segment that participates in coalescing is determined by the size of the word accessed by the threads:
     
-    -   The segment is 32 Bytes for 1-Byte words (char, uchar, char1, or uchar1)
-    -   The segment is 64 Bytes for 2-Byte words (char2, uchar2)
-    -   The segment is 128 Bytes for 4, 8, and 16-Byte words (float, int, and 2, and 4-component versions of these types)
+    - The segment is 32 Bytes for 1-Byte words (char, uchar, char1, or uchar1)
+    - The segment is 64 Bytes for 2-Byte words (char2, uchar2)
+    - The segment is 128 Bytes for 4, 8, and 16-Byte words (float, int, and 2, and 4-component versions of these types)
     
     The order of memory that is accessed is not as strict as it is on devices that support compute capability 1.0 and 1.1 as long as all threads in the half-warp access memory in the same segment, then the device can coalesce the request into a single operaton.
     
 
--   On devices of compute capability 2.x, accesses to global memory is cached into into cache lines of 128 Bytes. Each cache line maps to a 128-Byte aligned segment of device memory. Access to global memory is cached in both L1 and L2 cache memory but using a compiler switch (-dlcm=cg) will restrict caching to L2 cache only. Memory accesses that are cached in L2 cache only are serviced with 32-Byte memory transactions which can provide a boost if the memory access patterns are scattered and do not fit into the 128-Byte aligned memory access pattern.  
+- On devices of compute capability 2.x, accesses to global memory is cached into into cache lines of 128 Bytes. Each cache line maps to a 128-Byte aligned segment of device memory. Access to global memory is cached in both L1 and L2 cache memory but using a compiler switch (-dlcm=cg) will restrict caching to L2 cache only. Memory accesses that are cached in L2 cache only are serviced with 32-Byte memory transactions which can provide a boost if the memory access patterns are scattered and do not fit into the 128-Byte aligned memory access pattern.  
     Each memory access is broken-down into cache line requests that are issued independently. A thread that requests memory that has been cached benefits from the increased throughput of the L1 or L2 cache. Threads in a warp can access any words in any order, even the same word in the segment and benefit from the L1 or L2 cache throughput.
 
 #### Sequential Aligned Access Pattern
@@ -443,8 +443,8 @@ If possible, the compiler will automatically convert parameters of one type to a
 
 The compiler will perform automatic conversions in the following cases:
 
--   Functions operating on a **char** or **short** whose operands need to be converted to an **int**.
--   Double-precision floating-point constants (floating point values defined without a prefix like “1.0”, or “3.14”) are used as input to functions that expect single-precision floating-point parameters
+- Functions operating on a **char** or **short** whose operands need to be converted to an **int**.
+- Double-precision floating-point constants (floating point values defined without a prefix like “1.0”, or “3.14”) are used as input to functions that expect single-precision floating-point parameters
 
 These types of conversions can be avoided simply by using the type that is most commonly expected. For example, if you will be performing a lot of 32-bit integer instructions on a char or short parameter type, simply store the value in an int and convert back to the lower precision type at the end of the operations.
 

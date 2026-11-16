@@ -318,10 +318,10 @@ Sampling from textures in a shader is applied in the next lesson. For now it is 
 
 A new method for loading textures is added to the [`CommandList`](/learning-directx-12-3/#custom-command-list) class that is described in the [previous lesson](/learning-directx-12-3/). As mentioned in the introduction of this lesson, the [DirectXTex](https://github.com/Microsoft/DirectXTex) library is used to perform texture loading. The DirectXTex library provides several functions for loading textures from disk depending of the format of the image file.
 
--   [`LoadFromDDSFile`](https://github.com/Microsoft/DirectXTex/wiki/DDS-I-O-Functions#loadfromddsmemory-loadfromddsfile): Loads DDS files from disk. This function supports loading of many legacy Direct3D 9 and all Direct3D 10/11 DDS encoded files.
--   [`LoadFromHDRFile`](https://github.com/Microsoft/DirectXTex/wiki/HDR-I-O-Functions#loadfromhdrmemory-loadfromhdrfile): Loads HDR files from disk. This function supports loading of [RGBE](https://en.wikipedia.org/wiki/RGBE_image_format) (Radiance HDR) files.
--   [`LoadFromTGAFile`](https://github.com/Microsoft/DirectXTex/wiki/TGA-I-O-Functions#loadfromtgamemory-loadfromtgafile): Loads HDR files from disk. This function supports loading of [Targa Truvision](https://en.wikipedia.org/wiki/Truevision_TGA) (TGA) files.
--   [`LoadFromWICFile`](https://github.com/Microsoft/DirectXTex/wiki/WIC-I-O-Functions#loadfromwicmemory--loadfromwicfile): Loads BMP, PNG, GIF, TIFF, JPEG, and JPEG-XR / HD Photo images using the Windows Imaging Component (WIC) library. This function is used when the file extension is not DDS, HDR, or TGA.
+- [`LoadFromDDSFile`](https://github.com/Microsoft/DirectXTex/wiki/DDS-I-O-Functions#loadfromddsmemory-loadfromddsfile): Loads DDS files from disk. This function supports loading of many legacy Direct3D 9 and all Direct3D 10/11 DDS encoded files.
+- [`LoadFromHDRFile`](https://github.com/Microsoft/DirectXTex/wiki/HDR-I-O-Functions#loadfromhdrmemory-loadfromhdrfile): Loads HDR files from disk. This function supports loading of [RGBE](https://en.wikipedia.org/wiki/RGBE_image_format) (Radiance HDR) files.
+- [`LoadFromTGAFile`](https://github.com/Microsoft/DirectXTex/wiki/TGA-I-O-Functions#loadfromtgamemory-loadfromtgafile): Loads HDR files from disk. This function supports loading of [Targa Truvision](https://en.wikipedia.org/wiki/Truevision_TGA) (TGA) files.
+- [`LoadFromWICFile`](https://github.com/Microsoft/DirectXTex/wiki/WIC-I-O-Functions#loadfromwicmemory--loadfromwicfile): Loads BMP, PNG, GIF, TIFF, JPEG, and JPEG-XR / HD Photo images using the Windows Imaging Component (WIC) library. This function is used when the file extension is not DDS, HDR, or TGA.
 
 The [`CommandList`](/learning-directx-12-3/#custom-command-list) class provides a single `LoadTextureFromFile` method to generalize texture loading. The file extension of the file being loaded is used to determine which method to use to load the actual file.
 
@@ -334,9 +334,9 @@ The `LoadTextureFromFile` method is used to load a texture file and store the re
 
 The `LoadTextureFromFile` method defined on line 223 takes the following parameters:
 
--   [`Texture`](https://github.com/jpvanoosten/LearningDirectX12/blob/v0.0.4/DX12Lib/inc/Texture.h)`& texture`: The texture object that will store the loaded texture resource.
--   `const` [`std::wstring`](https://en.cppreference.com/cpp/string/basic_string)`& fileName`: The absolute or relative path the to texture file.
--   [`TextureUsage`](https://github.com/jpvanoosten/LearningDirectX12/blob/v0.0.4/DX12Lib/inc/TextureUsage.h) `textureUsage`: Describes how the texture will be used. Depending how the texture is used, it may require special handling. For example an albedo texture usually requires gamma correction to be applied before sampling. A normal map or heightmap texture should not require gamma correction to be applied before sampling from the texture. The [`TextureUsage`](https://github.com/jpvanoosten/LearningDirectX12/blob/v0.0.4/DX12Lib/inc/TextureUsage.h) type is an enumeration. The source code for the [`TextureUsage`](https://github.com/jpvanoosten/LearningDirectX12/blob/v0.0.4/DX12Lib/inc/TextureUsage.h) type can be see on [GitHub here](https://github.com/jpvanoosten/LearningDirectX12/blob/v0.0.4/DX12Lib/inc/TextureUsage.h).
+- [`Texture`](https://github.com/jpvanoosten/LearningDirectX12/blob/v0.0.4/DX12Lib/inc/Texture.h)`& texture`: The texture object that will store the loaded texture resource.
+- `const` [`std::wstring`](https://en.cppreference.com/cpp/string/basic_string)`& fileName`: The absolute or relative path the to texture file.
+- [`TextureUsage`](https://github.com/jpvanoosten/LearningDirectX12/blob/v0.0.4/DX12Lib/inc/TextureUsage.h) `textureUsage`: Describes how the texture will be used. Depending how the texture is used, it may require special handling. For example an albedo texture usually requires gamma correction to be applied before sampling. A normal map or heightmap texture should not require gamma correction to be applied before sampling from the texture. The [`TextureUsage`](https://github.com/jpvanoosten/LearningDirectX12/blob/v0.0.4/DX12Lib/inc/TextureUsage.h) type is an enumeration. The source code for the [`TextureUsage`](https://github.com/jpvanoosten/LearningDirectX12/blob/v0.0.4/DX12Lib/inc/TextureUsage.h) type can be see on [GitHub here](https://github.com/jpvanoosten/LearningDirectX12/blob/v0.0.4/DX12Lib/inc/TextureUsage.h).
 
 The [`std::filesystem`](https://en.cppreference.com/cpp/filesystem) library is aliased as `fs` and the [`fs::path`](https://en.cppreference.com/cpp/filesystem/path) class is used on line 225 to represent the path to the texture file. On line 226 the file path is checked for validity. If the file could not be found, then a `std::exception` is thrown.
 
@@ -456,10 +456,10 @@ The pixel data cannot be copied directly to the destination texture resource. In
 
 The `CopyTextureSubresource` method takes the following parameters:
 
--   `Texture& texture`: The texture to copy the pixel data to.
--   `uint32_t firstSubresource`: The first subresource of the texture to start copying to.
--   `uint32_t numSubresources`: The total number of subresources to copy. This should be the number of resources in the `subresourceData` array.
--   [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data)`* subresourceData`: An array of [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data) structs. These structures contain a pointer to the pixel data that is to be copied.
+- `Texture& texture`: The texture to copy the pixel data to.
+- `uint32_t firstSubresource`: The first subresource of the texture to start copying to.
+- `uint32_t numSubresources`: The total number of subresources to copy. This should be the number of resources in the `subresourceData` array.
+- [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data)`* subresourceData`: An array of [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data) structs. These structures contain a pointer to the pixel data that is to be copied.
 
 On lines 693 the [`ID3D12Device`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12device) is retrieved from the `Application` class. On line 694 the [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) is retrieved from the passed-in `texture` object.
 
@@ -490,13 +490,13 @@ The pixel data is copied to the destination texture (via the intermediate resour
 
 The [`UpdateSubresources`](https://learn.microsoft.com/windows/win32/direct3d12/updatesubresources2) function takes the following parameters:
 
--   [`ID3D12GraphicsCommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12graphicscommandlist)`* pCmdList`: The command list to use to perform the copy operation.
--   [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource)`* pDestinationResource`: The resource that will receive the pixel data after the copy operation has completed execution on the command queue.
--   [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource)`* pIntermediate`: An intermediate resource in an upload heap to transfer the pixel data to the destination texture.
--   `UINT64 IntermediateOffset`: The offset, in bytes, to the intermediate resource. If the same intermediate resource is being used used to copy multiple resources, then the copy operation could be instructed to start at a particular byte offset from the beginning of the intermediate resource.
--   `UINT FirstSubresource`: The first subresource of the destination resource to start copying to.
--   `UINT NumSubresources`: The total number of subresources to copy to the destination resource.
--   [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data)`* pSrcData`: Pointer to an array (of length `NumSubresources`) of pointers to [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data) structures containing descriptions of the subresource data used for the copy.
+- [`ID3D12GraphicsCommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12graphicscommandlist)`* pCmdList`: The command list to use to perform the copy operation.
+- [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource)`* pDestinationResource`: The resource that will receive the pixel data after the copy operation has completed execution on the command queue.
+- [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource)`* pIntermediate`: An intermediate resource in an upload heap to transfer the pixel data to the destination texture.
+- `UINT64 IntermediateOffset`: The offset, in bytes, to the intermediate resource. If the same intermediate resource is being used used to copy multiple resources, then the copy operation could be instructed to start at a particular byte offset from the beginning of the intermediate resource.
+- `UINT FirstSubresource`: The first subresource of the destination resource to start copying to.
+- `UINT NumSubresources`: The total number of subresources to copy to the destination resource.
+- [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data)`* pSrcData`: Pointer to an array (of length `NumSubresources`) of pointers to [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data) structures containing descriptions of the subresource data used for the copy.
 
 In order to ensure that the intermediate resource does not get released until after the pixel data is finished copying to the destination texture, both the intermediate resource and the destination resource are added to a list of tracked objects using the `CommandList::TrackObject` method. This method simply adds the object to a vector and ensures that the resources are not released until the command list has finished executing on the command queue. Thanks to the power of the [ComPtr](https://learn.microsoft.com/cpp/cppcx/wrl/comptr-class?view=msvc-170) class, when the vector of tracked objects is cleared, any resource not being referenced elsewhere will automatically be released back to the system.
 
@@ -516,10 +516,10 @@ Thread groups are further divided into *waves* when executed on the GPU. The thr
 
 There are several [System Value Semantics](https://learn.microsoft.com/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics) that can be used to query the index of a thread within a compute shader.
 
--   [`SV_GroupID`](https://learn.microsoft.com/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics): The 3D index of the thread group within the dispatch.
--   [`SV_GroupThreadID`](https://learn.microsoft.com/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics): The 3D index of the thread within a thread group.
--   [`SV_DispatchThreadID`](https://learn.microsoft.com/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics): The 3D index of the thread within the dispatch.
--   [`SV_GroupIndex`](https://learn.microsoft.com/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics): The flattened 1D index of the thread within the thread group.
+- [`SV_GroupID`](https://learn.microsoft.com/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics): The 3D index of the thread group within the dispatch.
+- [`SV_GroupThreadID`](https://learn.microsoft.com/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics): The 3D index of the thread within a thread group.
+- [`SV_DispatchThreadID`](https://learn.microsoft.com/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics): The 3D index of the thread within the dispatch.
+- [`SV_GroupIndex`](https://learn.microsoft.com/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics): The flattened 1D index of the thread within the thread group.
 
 Unfortunately, it is not possible to query the total number of thread groups in a dispatch or the total number of threads in a thread group. The number of groups in a dispatch must be sent as an argument to the compute shader (using a constant buffer or 32-bit constants).
 
@@ -1038,8 +1038,8 @@ The root signature description is configured on line 39 and on line 44, the root
 
 The method used to generate the pipeline state object (PSO) for the compute shader is similar to the technique used to generate the graphics pipeline state object in [Lesson 2](/learning-directx-12-2/#pipeline-state-object-1). The `PipelineStateStream` structure defines a custom pipeline state description for the compute pipeline state object. In this case, only two stream tokens are required to generate the PSO.
 
-1.  [`CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-root-signature) `pRootSignature`: A pointer to a [`ID3D12RootSignature`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12rootsignature) that defines the root parameters for the compute shader.
-2.  [`CD3DX12_PIPELINE_STATE_STREAM_CS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-cs) `CS`: The compute shader for the pipeline state object. This is a wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure.
+1. [`CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-root-signature) `pRootSignature`: A pointer to a [`ID3D12RootSignature`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12rootsignature) that defines the root parameters for the compute shader.
+2. [`CD3DX12_PIPELINE_STATE_STREAM_CS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-cs) `CS`: The compute shader for the pipeline state object. This is a wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure.
 
 ```cpp source="LearningDirectX12-v0.0.4/GenerateMipsPSO.cpp#L56-L57"
 ```
@@ -1075,21 +1075,21 @@ With an understanding of loading the texture data, using a compute shader to gen
 
 In order to generate mipmaps for a texture, the format of the texture must support typed UAV load and store operations. There is a small subset of texture formats that are required to support UAV loads and stores by DirectX 12 certified hardware[\[9\]](#cite-9):
 
--   [`R32G32B32A32_FLOAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R32G32B32A32_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R32G32B32A32_SINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R16G16B16A16_FLOAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R16G16B16A16_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R16G16B16A16_SINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R8G8B8A8_UNORM`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R8G8B8A8_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R8G8B8A8_SINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R16_FLOAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R16_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R16_SINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R8_UNORM`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R8_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
--   [`R8_SINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R32G32B32A32_FLOAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R32G32B32A32_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R32G32B32A32_SINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R16G16B16A16_FLOAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R16G16B16A16_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R16G16B16A16_SINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R8G8B8A8_UNORM`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R8G8B8A8_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R8G8B8A8_SINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R16_FLOAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R16_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R16_SINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R8_UNORM`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R8_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
+- [`R8_SINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)
 
 Support for UAV loads and stores of any other texture format must be queried using the [`ID3D12Device::CheckFeatureSupport`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12device-checkfeaturesupport) method. For example, in order to generate the mipmaps for an [`R8G8B8A8_UNORM_SRGB`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) or a [`B8G8R8A8_UNORM_SRGB`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) texture format, it must first be copied to one of the previously listed formats. See [Format Support for Direct3D Feature Level 12.1 Hardware](https://learn.microsoft.com/windows/win32/direct3ddxgi/hardware-support-for-direct3d-12-1-formats) for a full list of features that are required to be supported for each DXGI texture format enumeration.
 
@@ -1121,18 +1121,18 @@ With the exception of multi-sampled textures, the limitations of using UAVs are 
 
 In this section, the source code for the `CommandList::GenerateMips` method is described. With the exception of multi-sampled textures, the limitations of using UAVs are addressed in the following technique. The steps of the technique to generate the mips are as follows:
 
-1.  If the resource is not UAV compatible:
+1. If the resource is not UAV compatible:
 
-1.  Create a copy of the original resource *placed* in a heap
-2.  Create a UAV compatible *alias* resource (in the same heap) as the placed resource
-3.  Copy the original texture to the *placed* resource
-4.  Alias the UAV compatible resource in the heap (so that it is the “active” resource in the heap)
+1. Create a copy of the original resource *placed* in a heap
+2. Create a UAV compatible *alias* resource (in the same heap) as the placed resource
+3. Copy the original texture to the *placed* resource
+4. Alias the UAV compatible resource in the heap (so that it is the “active” resource in the heap)
 
-3.  Generate the mipmap chain on the UAV compatible resource
-4.  If the original resource is not UAV compatible:
+3. Generate the mipmap chain on the UAV compatible resource
+4. If the original resource is not UAV compatible:
 
-1.  Alias the *placed* resource back to the heap
-2.  Copy the placed resource back to the original resource
+1. Alias the *placed* resource back to the heap
+2. Copy the placed resource back to the original resource
 
 The C++ implementation of this technique is described in the next section.
 

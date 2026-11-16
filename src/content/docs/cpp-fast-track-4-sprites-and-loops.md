@@ -180,7 +180,7 @@ That's it, your first `for` loop! Note that you can put any kind of code inside 
 
 Here's your task for today:
 
-1.  Create a **nested** `for` loop (a loop inside a loop) that draws 10 rows of 16 tanks.
+1. Create a **nested** `for` loop (a loop inside a loop) that draws 10 rows of 16 tanks.
 
 You should see something like this:
 

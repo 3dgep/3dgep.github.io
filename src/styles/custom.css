@@ -14,6 +14,8 @@
 	margin: 0.25rem 1rem 0.5rem 0;
 }
 .sl-markdown-content :is(h2, h3, .sl-heading-wrapper) { clear: both; }
+/* A list doesn't wrap around a thumbnail either: its bullets would end up next to the logo. */
+.sl-markdown-content > :is(ol, ul) { clear: both; }
 .sl-markdown-content .caption > p { margin: 0; }
 
 /* External link indicator (like MyST): a small "open in new window" arrow after links to other sites.
@@ -127,6 +129,10 @@
 /* The number line demo (part 6): four lanes with room for the bits under the cursor, and two rows of buttons. */
 .sl-markdown-content iframe.embed-number-line { aspect-ratio: auto; height: 510px; min-height: 0; }
 .sl-markdown-content iframe.embed-precision-graph { aspect-ratio: auto; height: 540px; min-height: 0; }
+/* Part 15: the Euler orbit and the collision tests. */
+.sl-markdown-content iframe.embed-euler-orbit { aspect-ratio: auto; height: 460px; min-height: 0; }
+.sl-markdown-content iframe.embed-collision-tests { aspect-ratio: auto; height: 440px; min-height: 0; }
+.sl-markdown-content iframe.embed-velocity-projection { aspect-ratio: auto; height: 460px; min-height: 0; }
 
 
 /* Theme-specific images: <img class="light-only"> / <img class="dark-only"> (e.g. the GitHub mark). */
@@ -357,6 +363,8 @@ dialog.lightbox img {
 .memory-diagram .byte { stroke: var(--sl-color-gray-4); stroke-dasharray: 3 3; }
 .memory-diagram .arrow { fill: none; stroke: var(--sl-color-accent-high); stroke-width: 2; }
 .memory-diagram .arrow-head { fill: var(--sl-color-accent-high); }
+/* Part 15: the walls around the map. */
+.walls-diagram .wall { fill: #ffd84a; fill-opacity: 0.3; stroke: #ffd84a; stroke-width: 3; }
 
 /* Tables are centered (a wide table still fills the column, and scrolls when it doesn't fit). */
 .sl-markdown-content table {

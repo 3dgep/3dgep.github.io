@@ -23,18 +23,18 @@ Another new concept in DirectX 12 is the **root signature**. A root signature de
 
 At the end of this lesson you should have a better understanding of the following concepts:
 
--   Uploading Buffer Resources to the GPU
--   Heaps
--   Pipeline State Objects
--   Root signatures
+- Uploading Buffer Resources to the GPU
+- Heaps
+- Pipeline State Objects
+- Root signatures
 
 ## Heaps and Resources
 
 In the [first lesson](/learning-directx-12-1/) a swap chain is created which internally contains one or more texture resources that are used to present the final rendered image to the screen. The creation of the texture resource for the swap chain is hidden in the [`IDXGIFactory2::CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd) method. In this case, the graphics programmer has no control over how and where the resource is created. In this lesson, several buffer resources are required to render the scene. For these resources, the graphics programmer must decide how those buffer resources are created. There are several different ways that GPU resources are allocated within a **memory heap** ([`ID3D12Heap`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12heap)):
 
--   Committed Resources
--   Placed Resources
--   Reserved Resources
+- Committed Resources
+- Placed Resources
+- Reserved Resources
 
 In the next section, the various resource allocation methods are described.
 
@@ -112,32 +112,32 @@ The various stages of the rendering pipeline were briefly described in the [firs
 
 The **Pipeline State Object** (**PSO**) contains most of the state that is required to configure the rendering (or compute) pipeline. The graphics pipeline state object includes the following information [\[3\]](#cite-3):
 
--   Shader bytecode (vertex, pixel, domain, hull, and geometry shaders)
--   Vertex format input layout
--   Primitive topology type (point, line, triangle, or patch)
--   Blend state
--   Rasterizer state
--   Depth-stencil state
--   Number of render targets and render target formats
--   Depth-stencil format
--   Multisample description
--   Stream output buffer description
--   Root signature
+- Shader bytecode (vertex, pixel, domain, hull, and geometry shaders)
+- Vertex format input layout
+- Primitive topology type (point, line, triangle, or patch)
+- Blend state
+- Rasterizer state
+- Depth-stencil state
+- Number of render targets and render target formats
+- Depth-stencil format
+- Multisample description
+- Stream output buffer description
+- Root signature
 
 The pipeline state object structure contains a lot of information and if any of the state needs to change between draw calls (for example, a different pixel shader or blend state is needed) then a new pipeline state object needs to be created.
 
 Although the pipeline state object contains a lot of information, there are a few additional parameters that must be set outside of the pipeline state object.
 
--   Vertex and Index buffers
--   Stream output buffer
--   Render targets
--   Descriptor heaps
--   Shader parameters (constant buffers, read-write buffers, and read-write textures)
--   Viewports
--   Scissor rectangles
--   Constant blend factor
--   Stencil reference value
--   Primitive topology and adjacency information
+- Vertex and Index buffers
+- Stream output buffer
+- Render targets
+- Descriptor heaps
+- Shader parameters (constant buffers, read-write buffers, and read-write textures)
+- Viewports
+- Scissor rectangles
+- Constant blend factor
+- Stencil reference value
+- Primitive topology and adjacency information
 
 The pipeline state object can *optionally* be specified for a graphics command list when the command list is reset using the [`ID3D12GraphicsCommandList::Reset`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-reset) method but it can also be changed for the command list at any time using the [`ID3D12GraphicsCommandList::SetPipelineState`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-setpipelinestate) method.
 
@@ -179,11 +179,11 @@ It is important for the graphics programmer to understand the shader register an
 
 A root signature can contain any number of parameters. Each parameter can be one of the following types:
 
--   [`D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type): 32-bit Root Constants
--   [`D3D12_ROOT_PARAMETER_TYPE_CBV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type): Inline CBV Descriptor
--   [`D3D12_ROOT_PARAMETER_TYPE_SRV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type): Inline SRV Descriptor
--   [`D3D12_ROOT_PARAMETER_TYPE_UAV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type): Inline UAV Descriptor
--   [`D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type): Descriptor Table
+- [`D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type): 32-bit Root Constants
+- [`D3D12_ROOT_PARAMETER_TYPE_CBV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type): Inline CBV Descriptor
+- [`D3D12_ROOT_PARAMETER_TYPE_SRV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type): Inline SRV Descriptor
+- [`D3D12_ROOT_PARAMETER_TYPE_UAV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type): Inline UAV Descriptor
+- [`D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_parameter_type): Descriptor Table
 
 #### 32-Bit Constants
 
@@ -256,9 +256,9 @@ Static samplers do not use any space in the root signature and do not count agai
 
 Root signatures are limited to 64 DWORDs (2048-bits) [\[5\]](#cite-5). Each root parameter has a cost that counts towards the root signature limit:
 
--   32-bit constants each costs 1 DWORD
--   Inline descriptors each costs 2 DWORDs
--   Descriptor tables each costs 1 DWORD
+- 32-bit constants each costs 1 DWORD
+- Inline descriptors each costs 2 DWORDs
+- Descriptor tables each costs 1 DWORD
 
 Static samplers defined in the root signature do not count towards the size of the root signature.
 
@@ -272,10 +272,10 @@ An example of a simple root signature is provided later in this lesson.
 
 The [previous lesson](/learning-directx-12-1/) showed how to initialize a DirectX 12 application without using any C++ classes. Some of the source code from the [first lesson](/learning-directx-12-1/) was refactored in order to simplify the source code for this and future lessons. There are three primary classes that are used for this lesson:
 
-1.  `Application`
-2.  `Window`
-3.  `CommandQueue`
-4.  `Game`
+1. `Application`
+2. `Window`
+3. `CommandQueue`
+4. `Game`
 
 The `Application` class is responsible for initializing application specific data such as the DirectX 12 device and command queues. The `Application` class is also responsible for creating the `Window` instances and it is also the owner of the `Window` instances (`Window` instances can only be created and destroyed using the `Application` class). The `Application` class also exposes a `Run` method which is used to run the game and execute the message loop. The `Quit` method is used to quit the running application.
 
@@ -295,12 +295,12 @@ The `CommandQueue` class encapsulates the [`ID3D12CommandQueue`](https://learn.m
 
 The `CommandQueue` class must provide the following functionality:
 
--   Get a command list that can be used to record the draw commands
--   Execute the command list on the command queue
--   Signal a Fence in the command queue
--   Check to see if a particular fence value has been reached
--   Wait for a particular fence value to be reached
--   Flush any pending commands that are executing on the command queue
+- Get a command list that can be used to record the draw commands
+- Execute the command list on the command queue
+- Signal a Fence in the command queue
+- Check to see if a particular fence value has been reached
+- Wait for a particular fence value to be reached
+- Flush any pending commands that are executing on the command queue
 
 The class diagram for the `CommandQueue` class might look like this:
 
@@ -475,11 +475,11 @@ In the next section, the `Game` class is described. The `Game` class provides a 
 
 The `Game` class serves as the abstract base class for the demos. The `Game` class should perform the following functions:
 
-1.  Initialize the DirectX 12 Runtime (and create a window to render to)
-2.  Load the content that is specific to the demo
-3.  Unload the content including freeing any memory used by the demo
-4.  Destroy any resources used by the DirectX 12 runtime (destroy the render window)
-5.  Respond to window messages (like keyboard and mouse events)
+1. Initialize the DirectX 12 Runtime (and create a window to render to)
+2. Load the content that is specific to the demo
+3. Unload the content including freeing any memory used by the demo
+4. Destroy any resources used by the DirectX 12 runtime (destroy the render window)
+5. Respond to window messages (like keyboard and mouse events)
 
 A UML diagram for the `Game` class might look like this:
 
@@ -583,8 +583,8 @@ Before delving into the details of the demo class for this lesson, it is importa
 
 In order to implement the demo for this lesson, two shaders are required to perform the rendering.
 
-1.  Vertex Shader
-2.  Pixel Shader
+1. Vertex Shader
+2. Pixel Shader
 
 The **Vertex Shader** is responsible for transforming the vertices of the object being rendered from **object-space** to **clip-space**. The clip-space vertices are required by the (fixed-function) **Rasterizer Stage** of the rendering pipeline in order to clip the rendering primitives against the view frustum and to compute the per-pixel (or per-fragment) attributes across the face of the rendered primitives. The interpolated vertex attributes are passed to the **Pixel Shader** in order to compute the final color of the pixel.
 
@@ -639,8 +639,8 @@ In an HLSL shader the semantic name for the variable follows the colon (`:`) cha
 
 The snippet shows an example of a vertex definition in an HLSL shader. The **VertexPosColor** structure declares two member variables (vertex attributes):
 
-1.  `Position`
-2.  `Color`
+1. `Position`
+2. `Color`
 
 The `Position` attribute is bound to the `POSITION` semantic and the `Color` attribute is bound to the `COLOR` semantic. These semantics will be used later to specify how the application data is bound to the vertex attributes in HLSL.
 
@@ -692,8 +692,8 @@ On line 24, the vertex position is multiplied by the `MVP` matrix to produce the
 :::caution
 If a `0.0` was used in the last component of the vector, then the vector would be rotated but not translated.
 
--   If the vertex attribute is a **position** vector, then the 4th component of the vector must be a **1**.
--   If the vertex attribute is a **normal** vector, then the 4th component of the vector must be a **0**.
+- If the vertex attribute is a **position** vector, then the 4th component of the vector must be a **1**.
+- If the vertex attribute is a **normal** vector, then the 4th component of the vector must be a **0**.
 
 **Positional** vectors are often referred to as **points** (because it represents a point in space). **Directional** vectors are simply referred to as **vectors**.
 :::
@@ -880,8 +880,8 @@ Starting with the C++17 standard, the [`algorithm`](https://en.cppreference.com/
 
 For this lesson, each vertex will have only 2 attributes:
 
-1.  Position
-2.  Color
+1. Position
+2. Color
 
 Both the `Position` and `Color` vertex attributes are stored as 3-component 32-bit floating-point vectors. Vertices are stored using an interleaved storage format ([described previously](#vertex-shader)).
 
@@ -938,16 +938,16 @@ Primitive Topologies in DirectX 12
 
 The [`D3D_PRIMITIVE_TOPOLOGY`](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_primitive_topology) enumeration specifies how the **Input Assembler** stage interprets the vertex data that is bound to the rendering pipeline.
 
--   `D3D_PRIMITIVE_TOPOLOGY_POINTLIST`: A disconnected list of points.
--   `D3D_PRIMITIVE_TOPOLOGY_LINELIST`: A list of disconnected lines.
--   `D3D_PRIMITIVE_TOPOLOGY_LINESTRIP`: A list of connected lines.
--   `D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST`: A list of disconnected triangles.
--   `D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP`: A list of connected triangles. Vertex $n$ and vertex $n-2, \forall n>1$ are implicitly connected to form the triangles.
--   `D3D_PRIMITIVE_TOPOLOGY_LINELIST_ADJ`: A list of disconnected lines. Additional adjacency information is available to the Geometry shader stage.
--   `D3D_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ`: A list of connected lines. Additional adjacency information is available to the Geometry shader stage.
--   `D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ`: A list of disconnected triangles. Additional adjacency information is available to the Geometry shader stage.
+- `D3D_PRIMITIVE_TOPOLOGY_POINTLIST`: A disconnected list of points.
+- `D3D_PRIMITIVE_TOPOLOGY_LINELIST`: A list of disconnected lines.
+- `D3D_PRIMITIVE_TOPOLOGY_LINESTRIP`: A list of connected lines.
+- `D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST`: A list of disconnected triangles.
+- `D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP`: A list of connected triangles. Vertex $n$ and vertex $n-2, \forall n>1$ are implicitly connected to form the triangles.
+- `D3D_PRIMITIVE_TOPOLOGY_LINELIST_ADJ`: A list of disconnected lines. Additional adjacency information is available to the Geometry shader stage.
+- `D3D_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ`: A list of connected lines. Additional adjacency information is available to the Geometry shader stage.
+- `D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ`: A list of disconnected triangles. Additional adjacency information is available to the Geometry shader stage.
 
--   `D3D_PRIMITIVE_TOPOLOGY_TRIANGRIP_ADJ`: A list of connected triangles. Additional adjacency information is available to the Geometry shader stage.
+- `D3D_PRIMITIVE_TOPOLOGY_TRIANGRIP_ADJ`: A list of connected triangles. Additional adjacency information is available to the Geometry shader stage.
 
 Points and lines cannot be used to generate a solid mesh (where the faces of the mesh are shaded in). Only triangles (and patches) can be used to generate a shaded mesh. For this example, the mesh is going to be generated from a list of triangles. In order to tell the **Input Assembler** stage how to generate the triangles for the mesh, an index buffer is used.
 
@@ -1081,15 +1081,15 @@ HRESULT CreateCommittedResource(
 
 And takes the following arguments:
 
--   [`D3D12_HEAP_PROPERTIES`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_heap_properties) `*pHeapProperties`: A pointer to a [`D3D12_HEAP_PROPERTIES`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_heap_properties) structure that provides properties for the resource’s heap.
--   [`D3D12_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_heap_flags) `HeapFlags`: Heap options, as a bitwise-OR’d combination of [`D3D12_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_heap_flags) enumeration constants.
--   [`D3D12_RESOURCE_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_resource_desc) `*pDesc`: A pointer to a [`D3D12_RESOURCE_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_resource_desc) structure that describes the resource.
--   [`D3D12_RESOURCE_STATES`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) `InitialResourceState`: The initial state of the resource, as a bitwise-OR’d combination of [`D3D12_RESOURCE_STATES`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) enumeration constants.  
+- [`D3D12_HEAP_PROPERTIES`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_heap_properties) `*pHeapProperties`: A pointer to a [`D3D12_HEAP_PROPERTIES`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_heap_properties) structure that provides properties for the resource’s heap.
+- [`D3D12_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_heap_flags) `HeapFlags`: Heap options, as a bitwise-OR’d combination of [`D3D12_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_heap_flags) enumeration constants.
+- [`D3D12_RESOURCE_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_resource_desc) `*pDesc`: A pointer to a [`D3D12_RESOURCE_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_resource_desc) structure that describes the resource.
+- [`D3D12_RESOURCE_STATES`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) `InitialResourceState`: The initial state of the resource, as a bitwise-OR’d combination of [`D3D12_RESOURCE_STATES`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states) enumeration constants.  
     When a resource is created together with a [`D3D12_HEAP_TYPE_UPLOAD`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_heap_type#constants) heap, `InitialResourceState` must be [`D3D12_RESOURCE_STATE_GENERIC_READ`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states#constants). When a resource is created together with a [`D3D12_HEAP_TYPE_READBACK`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_heap_type#constants) heap, `InitialResourceState` must be [`D3D12_RESOURCE_STATE_COPY_DEST`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states#constants).
--   [`D3D12_CLEAR_VALUE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_clear_value) `*pOptimizedClearValue`: Specifies a [`D3D12_CLEAR_VALUE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_clear_value) that describes the default value for a clear color.  
+- [`D3D12_CLEAR_VALUE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_clear_value) `*pOptimizedClearValue`: Specifies a [`D3D12_CLEAR_VALUE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_clear_value) that describes the default value for a clear color.  
     `pOptimizedClearValue` specifies a value for which clear operations are most optimal. When the created resource is a texture with either the [`D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags#constants) or [`D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags#constants) flags, applications should choose the value that the clear operation will most commonly be called with. Clear operations can be called with other values, but those operations will not be as efficient as when the value matches the one passed into resource creation. `pOptimizedClearValue` must be `NULL` when used with [`D3D12_RESOURCE_DIMENSION_BUFFER`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_dimension#constants).
--   `REFIID riidResource`: The globally unique identifier (GUID) for the resource interface. This is an input parameter. The `REFIID`, or GUID, of the interface to the resource can be obtained by using the [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator)`()` macro. For example, [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator)`(`[`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource)`)` will get the GUID of the interface to a resource.
--   `void **ppvResource`: A pointer to memory that receives the requested interface pointer to the created resource object. `ppvResource` can be `NULL`, to enable capability testing. When `ppvResource` is `NULL`, no object will be created and `S_FALSE` will be returned (when `pResourceDesc` is valid).
+- `REFIID riidResource`: The globally unique identifier (GUID) for the resource interface. This is an input parameter. The `REFIID`, or GUID, of the interface to the resource can be obtained by using the [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator)`()` macro. For example, [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator)`(`[`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource)`)` will get the GUID of the interface to a resource.
+- `void **ppvResource`: A pointer to memory that receives the requested interface pointer to the created resource object. `ppvResource` can be `NULL`, to enable capability testing. When `ppvResource` is `NULL`, no object will be created and `S_FALSE` will be returned (when `pResourceDesc` is valid).
 
 On lines 82-88, the default resource is created but the buffer data is not yet uploaded to that resource. The next step is to create another resource that is used to transfer the CPU buffer data into GPU memory. To perform the memory transfer, an intermediate buffer resource is created using an upload heap.
 
@@ -1121,9 +1121,9 @@ typedef struct D3D12_SUBRESOURCE_DATA {
 
 And has the following members:
 
--   `void *pData`: A pointer to a memory block that contains the subresource data.
--   `LONG_PTR RowPitch`: The row pitch, or width, or physical size, in bytes, of the subresource data.
--   `LONG_PTR SlicePitch`: The depth pitch, or width, or physical size, in bytes, of the subresource data.
+- `void *pData`: A pointer to a memory block that contains the subresource data.
+- `LONG_PTR RowPitch`: The row pitch, or width, or physical size, in bytes, of the subresource data.
+- `LONG_PTR SlicePitch`: The depth pitch, or width, or physical size, in bytes, of the subresource data.
 
 On line 106-109, the [`UpdateSubresources`](https://learn.microsoft.com/windows/win32/direct3d12/updatesubresources2) function is used to upload the CPU buffer data to the GPU resource in a default heap using an intermediate buffer in an upload heap.
 
@@ -1143,13 +1143,13 @@ UINT64 inline UpdateSubresources(
 
 And takes the following arguments:
 
--   [`ID3D12GraphicsCommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12graphicscommandlist) `*pCmdList`: A pointer to the [`ID3D12GraphicsCommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12graphicscommandlist) interface for the command list.
--   [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) `*pDestinationResource`: A pointer to the [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) interface that represents the destination resource.
--   [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) `*pIntermediate`: A pointer to the [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) interface that represents the intermediate resource.
--   `UINT64 IntermediateOffset`: The offset, in bytes, to the intermediate resource.
--   `UINT FirstSubresource`: The index of the first subresource in the resource. The range of valid values is 0 to `D3D12_REQ_SUBRESOURCES`.
--   `UINT NumSubresources`: The number of subresources in the resource to be updated. The range of valid values is 0 to (`D3D12_REQ_SUBRESOURCES` – `FirstSubresource`).
--   [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data) `*pSrcData`: Pointer to an array (of length `NumSubresources`) of pointers to [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data) structures containing descriptions of the subresource data used for the update.
+- [`ID3D12GraphicsCommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12graphicscommandlist) `*pCmdList`: A pointer to the [`ID3D12GraphicsCommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12graphicscommandlist) interface for the command list.
+- [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) `*pDestinationResource`: A pointer to the [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) interface that represents the destination resource.
+- [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) `*pIntermediate`: A pointer to the [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) interface that represents the intermediate resource.
+- `UINT64 IntermediateOffset`: The offset, in bytes, to the intermediate resource.
+- `UINT FirstSubresource`: The index of the first subresource in the resource. The range of valid values is 0 to `D3D12_REQ_SUBRESOURCES`.
+- `UINT NumSubresources`: The number of subresources in the resource to be updated. The range of valid values is 0 to (`D3D12_REQ_SUBRESOURCES` – `FirstSubresource`).
+- [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data) `*pSrcData`: Pointer to an array (of length `NumSubresources`) of pointers to [`D3D12_SUBRESOURCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_subresource_data) structures containing descriptions of the subresource data used for the update.
 
 For buffer resources, the `FirstSubresource` is always 0 and the `NumSubresources` is always 1 (or 0, but then this function does nothing) because buffers only have a single subresource at index 0.
 
@@ -1157,17 +1157,17 @@ For buffer resources, the `FirstSubresource` is always 0 and the `NumSubresource
 
 The `LoadContent` function is used to load all of the content that is required by the demo. In summary, the `LoadContent` function will perform the following steps:
 
-1.  Upload the Vertex buffer data for a cube mesh
-    -   Create a vertex buffer view
-2.  Upload the index buffer data for a cube mesh
-    -   Create an index buffer view
-3.  Create a descriptor heap for the depth-stencil view
-4.  Load the vertex shader
-5.  Load the pixel shader
-6.  Create the input layout for the vertex shader
-7.  Create a root signature
-8.  Create a graphics pipeline state object (PSO)
-9.  Create a depth buffer
+1. Upload the Vertex buffer data for a cube mesh
+    - Create a vertex buffer view
+2. Upload the index buffer data for a cube mesh
+    - Create an index buffer view
+3. Create a descriptor heap for the depth-stencil view
+4. Load the vertex shader
+5. Load the pixel shader
+6. Create the input layout for the vertex shader
+7. Create a root signature
+8. Create a graphics pipeline state object (PSO)
+9. Create a depth buffer
 
 The vertex buffer data and index buffer data require a [`ID3D12GraphicsCommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12graphicscommandlist) to perform the copy operation. Creating and retrieving command lists was described in the [Command Queue Class](#the-command-queue-class) section above. The `LoadContent` function uses the (copy) `CommandQueue` class to retrieve a command list that can be used to upload the buffer data to the GPU resources.
 
@@ -1213,9 +1213,9 @@ typedef struct D3D12_VERTEX_BUFFER_VIEW {
 
 And has the following members:
 
--   `D3D12_GPU_VIRTUAL_ADDRESS BufferLocation`: Specifies a `D3D12_GPU_VIRTUAL_ADDRESS` that identifies the address of the buffer.
--   `UINT SizeInBytes`: Specifies the size in bytes of the buffer.
--   `UINT StrideInBytes`: Specifies the size in bytes of each vertex entry.
+- `D3D12_GPU_VIRTUAL_ADDRESS BufferLocation`: Specifies a `D3D12_GPU_VIRTUAL_ADDRESS` that identifies the address of the buffer.
+- `UINT SizeInBytes`: Specifies the size in bytes of the buffer.
+- `UINT StrideInBytes`: Specifies the size in bytes of each vertex entry.
 
 The index buffer data is uploaded next.
 
@@ -1256,9 +1256,9 @@ typedef struct D3D12_INDEX_BUFFER_VIEW {
 
 And has the following members:
 
--   `D3D12_GPU_VIRTUAL_ADDRESS BufferLocation`: The GPU virtual address of the index buffer.
--   `UINT SizeInBytes`: The size in bytes of the index buffer.
--   [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) `Format`: A [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)\-typed value for the index-buffer format. In this case, the [`DXGI_FORMAT_R16_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format#constants) enumeration value is used to indicate that each value in the index buffer is a single component 16-bit unsigned integer.
+- `D3D12_GPU_VIRTUAL_ADDRESS BufferLocation`: The GPU virtual address of the index buffer.
+- `UINT SizeInBytes`: The size in bytes of the index buffer.
+- [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) `Format`: A [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)\-typed value for the index-buffer format. In this case, the [`DXGI_FORMAT_R16_UINT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format#constants) enumeration value is used to indicate that each value in the index buffer is a single component 16-bit unsigned integer.
 
 #### DSV Descriptor Heap
 
@@ -1294,14 +1294,14 @@ typedef struct D3D12_DESCRIPTOR_HEAP_DESC {
 
 And has the following members:
 
--   [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type)`Type`: A [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type)\-typed value that specifies the types of descriptors in the heap.
--   `UINT NumDescriptors`: The number of descriptors in the heap. In this case, only one descriptor is needed.
--   [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags) `Flags`: A combination of [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags)\-typed values that are combined by using a bitwise OR operation. The resulting value specifies options for the heap. The following options are available for descriptor heaps:
-    -   [`D3D12_DESCRIPTOR_HEAP_FLAG_NONE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants): Indicates default usage of a heap.
-    -   [`D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants): The flag [`D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants) can optionally be set on a descriptor heap to indicate it can be be bound on a command list for reference by shaders. Descriptor heaps created without this flag allow applications the option to stage descriptors in CPU memory before copying them to a shader visible descriptor heap, as a convenience. But it is also fine for applications to directly create descriptors into shader visible descriptor heaps with no requirement to stage anything on the CPU.  
+- [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type)`Type`: A [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type)\-typed value that specifies the types of descriptors in the heap.
+- `UINT NumDescriptors`: The number of descriptors in the heap. In this case, only one descriptor is needed.
+- [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags) `Flags`: A combination of [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags)\-typed values that are combined by using a bitwise OR operation. The resulting value specifies options for the heap. The following options are available for descriptor heaps:
+    - [`D3D12_DESCRIPTOR_HEAP_FLAG_NONE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants): Indicates default usage of a heap.
+    - [`D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants): The flag [`D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants) can optionally be set on a descriptor heap to indicate it can be be bound on a command list for reference by shaders. Descriptor heaps created without this flag allow applications the option to stage descriptors in CPU memory before copying them to a shader visible descriptor heap, as a convenience. But it is also fine for applications to directly create descriptors into shader visible descriptor heaps with no requirement to stage anything on the CPU.  
            
         This flag only applies to CBV, SRV, UAV and samplers. It does not apply to other descriptor heap types (RTV, DSV) since shaders do not directly reference the other types.
--   `UINT NodeMask`: For single-adapter operation, set this to zero. If there are multiple adapter nodes, set a bit to identify the node (one of the device’s physical adapters) to which the descriptor heap applies. Each bit in the mask corresponds to a single node. Only one bit must be set.
+- `UINT NodeMask`: For single-adapter operation, set this to zero. If there are multiple adapter nodes, set a bit to identify the node (one of the device’s physical adapters) to which the descriptor heap applies. Each bit in the mask corresponds to a single node. Only one bit must be set.
 
 The descriptor heap is created on line 146 using the [`ID3D12Device::CreateDescriptorHeap`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12device-createdescriptorheap) method.
 
@@ -1339,8 +1339,8 @@ The **Input Layout** describes the layout of the vertex buffers that are bound t
 
 These two attributes can be described in words as:
 
-1.  The first parameter is a 3-component floating-point value bound to the `POSITION` semantic.
-2.  The second parameter is a 3-component floating-point value bound to the `COLOR` semantic.
+1. The first parameter is a 3-component floating-point value bound to the `POSITION` semantic.
+2. The second parameter is a 3-component floating-point value bound to the `COLOR` semantic.
 
 As described previously, vertex attributes can be passed to the vertex shader in either **packed** or **interleaved** buffer format. There is no way to specify whether the vertex attributes are passed as packed or interleaved formats in HLSL. The only way to specify the buffer format is by using the **Input Layout**.
 
@@ -1360,15 +1360,15 @@ typedef struct D3D12_INPUT_ELEMENT_DESC {
 
 And has the following members:
 
--   `LPCSTR SemanticName`: The HLSL semantic associated with this element in a shader input-signature.
--   `UINT SemanticIndex`: The semantic index for the element. A semantic index modifies a semantic, with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic. For example, a 4×4 matrix would have four components each with the semantic name matrix, however each of the four component would have different semantic indices (0, 1, 2, and 3).
--   [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) `Format`: A [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)\-typed value that specifies the format of the element data.
--   `UINT InputSlot`: An integer value that identifies the input-assembler. For more info, see [Input Slots](https://learn.microsoft.com/windows/win32/direct3d11/d3d10-graphics-programming-guide-input-assembler-stage-getting-started). Valid values are between 0 and 15.
--   `UINT AlignedByteOffset`: Offset, in bytes, between each element. Use `D3D12_APPEND_ALIGNED_ELEMENT` (`0xffffffff`) for convenience to define the current element directly after the previous one, including any packing if necessary.
--   [`D3D12_INPUT_CLASSIFICATION`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_input_classification) `InputSlotClass`: A value that identifies the input data class for a single input slot. Valid values for **InputSlotClass** are:
-    -   [`D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_input_classification#constants): Input data is per-vertex data.
-    -   [`D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_input_classification#constants): Input data is per-instance data.
--   `UINT InstanceDataStepRate`: The number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to [`D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_input_classification#constants)).
+- `LPCSTR SemanticName`: The HLSL semantic associated with this element in a shader input-signature.
+- `UINT SemanticIndex`: The semantic index for the element. A semantic index modifies a semantic, with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic. For example, a 4×4 matrix would have four components each with the semantic name matrix, however each of the four component would have different semantic indices (0, 1, 2, and 3).
+- [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) `Format`: A [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)\-typed value that specifies the format of the element data.
+- `UINT InputSlot`: An integer value that identifies the input-assembler. For more info, see [Input Slots](https://learn.microsoft.com/windows/win32/direct3d11/d3d10-graphics-programming-guide-input-assembler-stage-getting-started). Valid values are between 0 and 15.
+- `UINT AlignedByteOffset`: Offset, in bytes, between each element. Use `D3D12_APPEND_ALIGNED_ELEMENT` (`0xffffffff`) for convenience to define the current element directly after the previous one, including any packing if necessary.
+- [`D3D12_INPUT_CLASSIFICATION`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_input_classification) `InputSlotClass`: A value that identifies the input data class for a single input slot. Valid values for **InputSlotClass** are:
+    - [`D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_input_classification#constants): Input data is per-vertex data.
+    - [`D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_input_classification#constants): Input data is per-instance data.
+- `UINT InstanceDataStepRate`: The number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to [`D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_input_classification#constants)).
 
 The **Input Layout** for the simple vertex shader for this lesson is:
 
@@ -1404,14 +1404,14 @@ Next, the root signature flags are defined.
 
 The supported root signature flags are [\[16\]](#cite-16):
 
--   [`D3D12_ROOT_SIGNATURE_FLAG_NONE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): The default behaviour.
--   [`D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): The app is opting in to using the Input Assembler (requiring an input layout that defines a set of vertex buffer bindings). Omitting this flag can result in one root argument space being saved on some hardware. Omit this flag if the Input Assembler is not required, though the optimization is minor.
--   [`D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): Denies the vertex shader access to the root signature.
--   [`D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): Denies the hull shader access to the root signature.
--   [`D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): Denies the domain shader access to the root signature.
--   [`D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): Denies the geometry shader access to the root signature.
--   [`D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): Denies the pixel shader access to the root signature.
--   [`D3D12_ROOT_SIGNATURE_FLAG_ALLOW_STREAM_OUTPUT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): The root signature allows stream output. This flag can be specified for root signatures authored in HLSL, similar to how the other flags are specified. [`ID3D12Device::CreateGraphicsPipelineState`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12device-creategraphicspipelinestate) will fail if the geometry shader contains stream output but the root signature does not have this flag set. Omit this flag if stream output is not required.
+- [`D3D12_ROOT_SIGNATURE_FLAG_NONE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): The default behaviour.
+- [`D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): The app is opting in to using the Input Assembler (requiring an input layout that defines a set of vertex buffer bindings). Omitting this flag can result in one root argument space being saved on some hardware. Omit this flag if the Input Assembler is not required, though the optimization is minor.
+- [`D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): Denies the vertex shader access to the root signature.
+- [`D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): Denies the hull shader access to the root signature.
+- [`D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): Denies the domain shader access to the root signature.
+- [`D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): Denies the geometry shader access to the root signature.
+- [`D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): Denies the pixel shader access to the root signature.
+- [`D3D12_ROOT_SIGNATURE_FLAG_ALLOW_STREAM_OUTPUT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags#constants): The root signature allows stream output. This flag can be specified for root signatures authored in HLSL, similar to how the other flags are specified. [`ID3D12Device::CreateGraphicsPipelineState`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12device-creategraphicspipelinestate) will fail if the geometry shader contains stream output but the root signature does not have this flag set. Omit this flag if stream output is not required.
 
 For this simple demo, only the vertex shader stage requires root signature access. Denying access to shader stages that do not require root signature access is a minor optimization on some hardware.
 
@@ -1422,10 +1422,10 @@ The root signature consists of a single 32-bit constant parameter.
 
 The [`CD3DX12_ROOT_PARAMETER1`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-root-parameter1) is a helper structure from the `d3dx12.h` header file that allows for easy initialization of a [`D3D12_ROOT_PARAMETER1`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_root_parameter1) structure. The `InitAsConstants` method takes the following parameters:
 
--   `UINT num32BitValues`: The number of 32-bit constants. In this case, the `XMMATRIX` structure contains 16 32-bit floating-point values.
--   `UINT shaderRegister`: The shader register to bind to. This parameter is bound to `b0` in the vertex shader.
--   `UINT registerSpace`: The register space to bind to. Since no shader register space was specified in the vertex shader, this defaults to `space0`.
--   [`D3D12_SHADER_VISIBILITY`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_shader_visibility) `visibility`: Specifies the shader stages that are allowed to access the contents at that root signature slot. In this case, the visibility of the 32-bit constants is restricted to the vertex shader stage.
+- `UINT num32BitValues`: The number of 32-bit constants. In this case, the `XMMATRIX` structure contains 16 32-bit floating-point values.
+- `UINT shaderRegister`: The shader register to bind to. This parameter is bound to `b0` in the vertex shader.
+- `UINT registerSpace`: The register space to bind to. Since no shader register space was specified in the vertex shader, this defaults to `space0`.
+- [`D3D12_SHADER_VISIBILITY`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_shader_visibility) `visibility`: Specifies the shader stages that are allowed to access the contents at that root signature slot. In this case, the visibility of the 32-bit constants is restricted to the vertex shader stage.
 
 After describing the parameters (and samplers) that are used by the root signature, the next step is to create the the root signature description.
 
@@ -1436,11 +1436,11 @@ The [`CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC`](https://learn.microsoft.com/window
 
 The `Init_1_1` method takes the following parameters:
 
--   `UINT numParameters`: The number of root parameters in the root signature. In this case, there is only a single root parameter.
--   [`D3D12_ROOT_PARAMETER1`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_root_parameter1)`* _pParameters`: An array of **numParameters** root parameters. The array of root parameters contains only a single 32-bit root constant parameter.
--   `UINT numStaticSamplers`: The number of static samplers in the root signature.
--   [`D3D12_STATIC_SAMPLER_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_static_sampler_desc)`* _pStaticSamplers`: An array of **numStaticSamplers** static samplers.
--   [`D3D12_ROOT_SIGNATURE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags) `flags`: Flags that determine the root signature visibility to the various shader stages.
+- `UINT numParameters`: The number of root parameters in the root signature. In this case, there is only a single root parameter.
+- [`D3D12_ROOT_PARAMETER1`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_root_parameter1)`* _pParameters`: An array of **numParameters** root parameters. The array of root parameters contains only a single 32-bit root constant parameter.
+- `UINT numStaticSamplers`: The number of static samplers in the root signature.
+- [`D3D12_STATIC_SAMPLER_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_static_sampler_desc)`* _pStaticSamplers`: An array of **numStaticSamplers** static samplers.
+- [`D3D12_ROOT_SIGNATURE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_root_signature_flags) `flags`: Flags that determine the root signature visibility to the various shader stages.
 
 The final step for creating the root signature is to serialize the root signature description into a binary object that can be used to create the actual root signature.
 
@@ -1459,13 +1459,13 @@ The next step is to create the **Pipeline State Object** (PSO). The PSO is descr
 
 For this simple demo, only the following stream tokens need to be defined in the **Pipeline State Stream** structure:
 
--   Root Signature
--   Input Layout
--   Primitive Topology
--   Vertex Shader
--   Pixel Shader
--   Depth-Stencil Format
--   Render Target Format(s)
+- Root Signature
+- Input Layout
+- Primitive Topology
+- Vertex Shader
+- Pixel Shader
+- Depth-Stencil Format
+- Render Target Format(s)
 
 The order that the stream tokens appear in the **Pipeline State Stream** structure are not important. When the **Pipeline State Stream** is parsed, the type of each token is used to determine how the PSO is created.
 
@@ -1483,29 +1483,29 @@ Make sure you are always using the latest version of the `d3dx12.h` header file 
 
 Currently the following helper classes are available in the `d3dx12.h` header file for defining the `PipelineStateStream` structure:
 
--   [`CD3DX12_PIPELINE_STATE_STREAM_FLAGS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-flags): Wrapper for a [`D3D12_PIPELINE_STATE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_pipeline_state_flags) enumeration.
--   [`CD3DX12_PIPELINE_STATE_STREAM_NODE_MASK`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-node-mask): Describes the pipeline state node mask as a UINT, which is used to identify the nodes (physical adapters of the device) that the PSO applies to in Multi-Adapter scenarios; each bit in the mask corresponds to a single node. For single-adapter scenarios, set this value to 0.
--   [`CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-root-signature): Wrapper for a pointer to a [`ID3D12RootSignature`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12rootsignature).
--   [`CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-input-layout): Wrapper for a [`D3D12_INPUT_LAYOUT_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_input_layout_desc). Specifies the input layout for the input assembly stage.
--   [`CD3DX12_PIPELINE_STATE_STREAM_IB_STRIP_CUT_VALUE`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-ib-strip-cut-value): Wrapper for a [`D3D12_INDEX_BUFFER_STRIP_CUT_VALUE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_index_buffer_strip_cut_value) enumeration. Used to specify the index buffer value to split line strips or triangle strips.
--   [`CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-primitive-topology): Wrapper for a [`D3D12_PRIMITIVE_TOPOLOGY_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_primitive_topology_type) enumeration. Used to specify the primitive topology type (point, line, triangle or patch). Do not mistake this with the [`D3D_PRIMITIVE_TOPOLOGY`](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_primitive_topology) enumeration!
--   [`CD3DX12_PIPELINE_STATE_STREAM_VS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-vs): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Vertex Shader** (VS).
--   [`CD3DX12_PIPELINE_STATE_STREAM_GS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-gs): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Geometry Shader** (GS).
--   [`CD3DX12_PIPELINE_STATE_STREAM_STREAM_OUTPUT`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-stream-output): Wrapper for a [`D3D12_STREAM_OUTPUT_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_stream_output_desc) structure. Describes the streaming output buffers for the **Stream Output** (SO) stage.
--   [`CD3DX12_PIPELINE_STATE_STREAM_HS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-hs): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Hull Shader** (HS).
--   [`CD3DX12_PIPELINE_STATE_STREAM_DS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-ds): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Domain Shader** (DS).
--   [`CD3DX12_PIPELINE_STATE_STREAM_PS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-ps): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Pixel Shader** (PS).
--   [`CD3DX12_PIPELINE_STATE_STREAM_CS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-cs): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Compute Shader** (CS).
--   [`CD3DX12_PIPELINE_STATE_STREAM_BLEND_DESC`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-blend-desc): Wraper for a [`D3D12_BLEND_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_blend_desc) structure. Used to describes the blend state.
--   [`CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-depth-stencil)Wrapper for a [`D3D12_DEPTH_STENCIL_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_depth_stencil_desc) structure. Used to describe the depth-stencil state.
--   [`CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL1`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-depth-stencil1): Wrapper for a [`D3D12_DEPTH_STENCIL_DESC1`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_depth_stencil_desc1) structure. Used to describe the depth-stencil state. This version adds the ability to enable depth-bounds testing.
--   [`CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-depth-stencil-format): Wrapper for a [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) enumeration. Describes the format of the depth-stencil buffer.
--   [`CD3DX12_PIPELINE_STATE_STREAM_RASTERIZER`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-rasterizer): Wrapper for the [`D3D12_RASTERIZER_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_rasterizer_desc) structure. Used to describe the **Rasterizer State** (RS)
--   [`CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-render-target-formats): Wrapper for the [`D3D12_RT_FORMAT_ARRAY`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_rt_format_array) structure which is a wrapper for an array of render target formats.
--   [`CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_DESC`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-sample-desc): Wrapper for the [`DXGI_SAMPLE_DESC`](https://learn.microsoft.com/windows/win32/api/dxgicommon/ns-dxgicommon-dxgi_sample_desc) structure. Used to describe the multi-sampling. The render targets must also be created with multisampling enabled.
--   [`CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_MASK`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-sample-mask): A `UINT` that describes the sample mask for the blend state.
--   [`CD3DX12_PIPELINE_STATE_STREAM_CACHED_PSO`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-cached-pso): A wrapper for the [`D3D12_CACHED_PIPELINE_STATE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cached_pipeline_state) structure. The cached PSO can be used to quickly load the PSO after it has been created. Using cached PSO’s can improve load times.
--   `CD3DX12_PIPELINE_STATE_STREAM_VIEW_INSTANCING`: A wrapper for a [`D3D12_VIEW_INSTANCING_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_view_instancing_desc) structure. Allows shaders to render to multiple views with a single draw call. Useful for stereo vision or cubemap generation.
+- [`CD3DX12_PIPELINE_STATE_STREAM_FLAGS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-flags): Wrapper for a [`D3D12_PIPELINE_STATE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_pipeline_state_flags) enumeration.
+- [`CD3DX12_PIPELINE_STATE_STREAM_NODE_MASK`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-node-mask): Describes the pipeline state node mask as a UINT, which is used to identify the nodes (physical adapters of the device) that the PSO applies to in Multi-Adapter scenarios; each bit in the mask corresponds to a single node. For single-adapter scenarios, set this value to 0.
+- [`CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-root-signature): Wrapper for a pointer to a [`ID3D12RootSignature`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12rootsignature).
+- [`CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-input-layout): Wrapper for a [`D3D12_INPUT_LAYOUT_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_input_layout_desc). Specifies the input layout for the input assembly stage.
+- [`CD3DX12_PIPELINE_STATE_STREAM_IB_STRIP_CUT_VALUE`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-ib-strip-cut-value): Wrapper for a [`D3D12_INDEX_BUFFER_STRIP_CUT_VALUE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_index_buffer_strip_cut_value) enumeration. Used to specify the index buffer value to split line strips or triangle strips.
+- [`CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-primitive-topology): Wrapper for a [`D3D12_PRIMITIVE_TOPOLOGY_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_primitive_topology_type) enumeration. Used to specify the primitive topology type (point, line, triangle or patch). Do not mistake this with the [`D3D_PRIMITIVE_TOPOLOGY`](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_primitive_topology) enumeration!
+- [`CD3DX12_PIPELINE_STATE_STREAM_VS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-vs): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Vertex Shader** (VS).
+- [`CD3DX12_PIPELINE_STATE_STREAM_GS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-gs): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Geometry Shader** (GS).
+- [`CD3DX12_PIPELINE_STATE_STREAM_STREAM_OUTPUT`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-stream-output): Wrapper for a [`D3D12_STREAM_OUTPUT_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_stream_output_desc) structure. Describes the streaming output buffers for the **Stream Output** (SO) stage.
+- [`CD3DX12_PIPELINE_STATE_STREAM_HS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-hs): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Hull Shader** (HS).
+- [`CD3DX12_PIPELINE_STATE_STREAM_DS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-ds): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Domain Shader** (DS).
+- [`CD3DX12_PIPELINE_STATE_STREAM_PS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-ps): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Pixel Shader** (PS).
+- [`CD3DX12_PIPELINE_STATE_STREAM_CS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-cs): Wrapper for a [`D3D12_SHADER_BYTECODE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_shader_bytecode) structure. Used to specify the compiled **Compute Shader** (CS).
+- [`CD3DX12_PIPELINE_STATE_STREAM_BLEND_DESC`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-blend-desc): Wraper for a [`D3D12_BLEND_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_blend_desc) structure. Used to describes the blend state.
+- [`CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-depth-stencil)Wrapper for a [`D3D12_DEPTH_STENCIL_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_depth_stencil_desc) structure. Used to describe the depth-stencil state.
+- [`CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL1`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-depth-stencil1): Wrapper for a [`D3D12_DEPTH_STENCIL_DESC1`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_depth_stencil_desc1) structure. Used to describe the depth-stencil state. This version adds the ability to enable depth-bounds testing.
+- [`CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-depth-stencil-format): Wrapper for a [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) enumeration. Describes the format of the depth-stencil buffer.
+- [`CD3DX12_PIPELINE_STATE_STREAM_RASTERIZER`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-rasterizer): Wrapper for the [`D3D12_RASTERIZER_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_rasterizer_desc) structure. Used to describe the **Rasterizer State** (RS)
+- [`CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-render-target-formats): Wrapper for the [`D3D12_RT_FORMAT_ARRAY`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_rt_format_array) structure which is a wrapper for an array of render target formats.
+- [`CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_DESC`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-sample-desc): Wrapper for the [`DXGI_SAMPLE_DESC`](https://learn.microsoft.com/windows/win32/api/dxgicommon/ns-dxgicommon-dxgi_sample_desc) structure. Used to describe the multi-sampling. The render targets must also be created with multisampling enabled.
+- [`CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_MASK`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-sample-mask): A `UINT` that describes the sample mask for the blend state.
+- [`CD3DX12_PIPELINE_STATE_STREAM_CACHED_PSO`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-pipeline-state-stream-cached-pso): A wrapper for the [`D3D12_CACHED_PIPELINE_STATE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cached_pipeline_state) structure. The cached PSO can be used to quickly load the PSO after it has been created. Using cached PSO’s can improve load times.
+- `CD3DX12_PIPELINE_STATE_STREAM_VIEW_INSTANCING`: A wrapper for a [`D3D12_VIEW_INSTANCING_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_view_instancing_desc) structure. Allows shaders to render to multiple views with a single draw call. Useful for stereo vision or cubemap generation.
 
 The helper classes listed are the ones that are available at the time this article was written but more could become available at any time. For example, the DirectX 12 Raytracing API was recently announced ([Announcing Microsoft DirectX Raytracing!](https://devblogs.microsoft.com/directx/announcing-microsoft-directx-raytracing/)) which will no doubt introduce more Pipeline State Stream Tokens to the rendering pipeline.
 
@@ -1570,16 +1570,16 @@ The [`D3D12_CLEAR_VALUE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns
 
 The [`CD3DX12_RESOURCE_DESC::Tex2D`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-resource-desc) method is a helper function used to create a [`D3D12_RESOURCE_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_resource_desc) structure. The [`CD3DX12_RESOURCE_DESC::Tex2D`](https://learn.microsoft.com/windows/win32/direct3d12/cd3dx12-resource-desc) method takes the following arguments [\[17\]](#cite-17):
 
--   [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) `format`: The format of the texture.
--   `UINT64 width`: Width of the texture in pixels.
--   `UINT height`: The height of the texture in pixels.
--   `UINT16 arraySize`: The number of texture elements. For a single texture this value must be 1.
--   `UINT16 mipLevels`: The number of mip levels. A value of 0 will cause the number of mip levels to be calculated automatically based on the maximum of either the width or the height of the texture.
--   `UINT sampleCount`: The number of milti-samples per pixel. The default value for `sampleCount` is 1.
--   `UINT sampleQuality`: The quality level for multi-sampling. The default value for `sampleQuality` is 0.
--   [`D3D12_RESOURCE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags) `flags`: A bitwise combination of [`D3D12_RESOURCE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags) enumeration values. Since this is a depth-stencil buffer, the [`D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags#constants) flag must be specified.
--   [`D3D12_TEXTURE_LAYOUT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_texture_layout) `layout`: Specifies the texture layout options. The default value is [`D3D12_TEXTURE_LAYOUT_UNKNOWN`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_texture_layout#constants) which allows the driver to choose the most optimized layout based on the properties of the texture.
--   `UINT64 alignment`: Specify the alignment of the texture. This can be 4KB, 64KB, or 4MB. The default value of 0 can be used to allow the API to automatically choose the alignment based on the texture properties. Multi-sample textures will be created with 4MB alignment and 64KB for single-sample textures. Smaller alignments are used if the texture is sufficiently small (if the number of 4KB tiles is less than 16 for the highest (largest) mip level of the texture).
+- [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) `format`: The format of the texture.
+- `UINT64 width`: Width of the texture in pixels.
+- `UINT height`: The height of the texture in pixels.
+- `UINT16 arraySize`: The number of texture elements. For a single texture this value must be 1.
+- `UINT16 mipLevels`: The number of mip levels. A value of 0 will cause the number of mip levels to be calculated automatically based on the maximum of either the width or the height of the texture.
+- `UINT sampleCount`: The number of milti-samples per pixel. The default value for `sampleCount` is 1.
+- `UINT sampleQuality`: The quality level for multi-sampling. The default value for `sampleQuality` is 0.
+- [`D3D12_RESOURCE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags) `flags`: A bitwise combination of [`D3D12_RESOURCE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags) enumeration values. Since this is a depth-stencil buffer, the [`D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags#constants) flag must be specified.
+- [`D3D12_TEXTURE_LAYOUT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_texture_layout) `layout`: Specifies the texture layout options. The default value is [`D3D12_TEXTURE_LAYOUT_UNKNOWN`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_texture_layout#constants) which allows the driver to choose the most optimized layout based on the properties of the texture.
+- `UINT64 alignment`: Specify the alignment of the texture. This can be 4KB, 64KB, or 4MB. The default value of 0 can be used to allow the API to automatically choose the alignment based on the texture properties. Multi-sample textures will be created with 4MB alignment and 64KB for single-sample textures. Smaller alignments are used if the texture is sufficiently small (if the number of 4KB tiles is less than 16 for the highest (largest) mip level of the texture).
 
 Textures will be revisited in the following lessons.
 
@@ -1608,16 +1608,16 @@ typedef struct D3D12_DEPTH_STENCIL_VIEW_DESC {
 
 And has the following members:
 
--   [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) `Format`: The depth-stencil format. This should be the same format that was used to create the texture but it could be a different format if the view is for a Shader Resource.
--   [`D3D12_DSV_DIMENSION`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_dsv_dimension) `ViewDimension`: One value from the [`D3D12_DSV_DIMENSION`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_dsv_dimension) enumeration. In this case, it is a 2D texture.
--   [`D3D12_DSV_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_dsv_flags) `Flags`: A combination of [`D3D12_DSV_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_dsv_flags) enumeration constants that are combined by using a bitwise OR operation. The resulting value specifies whether the texture is read only. Pass 0 to specify that it isn’t read only; otherwise, pass one or more of the members of the [`D3D12_DSV_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_dsv_flags) enumerated type.
--   One of the following is specified depending on the value of the `ViewDimension` member:
-    -   [`D3D12_TEX1D_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex1d_dsv) `Texture1D`: A [`D3D12_TEX1D_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex1d_dsv) structure that specifies a 1D texture subresource.
-    -   [`D3D12_TEX1D_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex1d_array_dsv) `Texture1DArray`: A [`D3D12_TEX1D_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex1d_array_dsv) structure that specifies an array of 1D texture subresources.
-    -   [`D3D12_TEX2D_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2d_dsv) `Texture2D`: A [`D3D12_TEX2D_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2d_dsv) structure that specifies a 2D texture subresource.
-    -   [`D3D12_TEX2D_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2d_array_dsv) `Texture2DArray`: A [`D3D12_TEX2D_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2d_array_dsv) structure that specifies an array of 2D texture subresources.
-    -   [`D3D12_TEX2DMS_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2dms_dsv) `Texture2DMS`: A [`D3D12_TEX2DMS_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2dms_dsv) structure that specifies a multisampled 2D texture.
-    -   [`D3D12_TEX2DMS_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2dms_array_dsv) `Texture2DMSArray`: A [`D3D12_TEX2DMS_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2dms_array_dsv) structure that specifies an array of multisampled 2D textures.
+- [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) `Format`: The depth-stencil format. This should be the same format that was used to create the texture but it could be a different format if the view is for a Shader Resource.
+- [`D3D12_DSV_DIMENSION`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_dsv_dimension) `ViewDimension`: One value from the [`D3D12_DSV_DIMENSION`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_dsv_dimension) enumeration. In this case, it is a 2D texture.
+- [`D3D12_DSV_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_dsv_flags) `Flags`: A combination of [`D3D12_DSV_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_dsv_flags) enumeration constants that are combined by using a bitwise OR operation. The resulting value specifies whether the texture is read only. Pass 0 to specify that it isn’t read only; otherwise, pass one or more of the members of the [`D3D12_DSV_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_dsv_flags) enumerated type.
+- One of the following is specified depending on the value of the `ViewDimension` member:
+    - [`D3D12_TEX1D_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex1d_dsv) `Texture1D`: A [`D3D12_TEX1D_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex1d_dsv) structure that specifies a 1D texture subresource.
+    - [`D3D12_TEX1D_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex1d_array_dsv) `Texture1DArray`: A [`D3D12_TEX1D_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex1d_array_dsv) structure that specifies an array of 1D texture subresources.
+    - [`D3D12_TEX2D_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2d_dsv) `Texture2D`: A [`D3D12_TEX2D_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2d_dsv) structure that specifies a 2D texture subresource.
+    - [`D3D12_TEX2D_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2d_array_dsv) `Texture2DArray`: A [`D3D12_TEX2D_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2d_array_dsv) structure that specifies an array of 2D texture subresources.
+    - [`D3D12_TEX2DMS_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2dms_dsv) `Texture2DMS`: A [`D3D12_TEX2DMS_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2dms_dsv) structure that specifies a multisampled 2D texture.
+    - [`D3D12_TEX2DMS_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2dms_array_dsv) `Texture2DMSArray`: A [`D3D12_TEX2DMS_ARRAY_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_tex2dms_array_dsv) structure that specifies an array of multisampled 2D textures.
 
 On line 268, the depth-stencil view is created using the [`ID3D12Device::CreateDepthStencilView`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12device-createdepthstencilview) method. The [`ID3D12Device::CreateDepthStencilView`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12device-createdepthstencilview) method has the following syntax [\[19\]](#cite-19):
 
@@ -1631,13 +1631,13 @@ void CreateDepthStencilView(
 
 And has the following parameters:
 
--   [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) `*pResource`: A pointer to the [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) object that represents the depth stencil buffer.  
+- [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) `*pResource`: A pointer to the [`ID3D12Resource`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12resource) object that represents the depth stencil buffer.  
        
     At least one of `pResource` or `pDesc` must be provided. A null `pResource` is used to initialize a null descriptor, which guarantees D3D11-like null binding behavior (reading 0s, writes are discarded), but must have a valid `pDesc` in order to determine the descriptor type.
--   [`D3D12_DEPTH_STENCIL_VIEW_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_depth_stencil_view_desc) `*pDesc`: A pointer to a [`D3D12_DEPTH_STENCIL_VIEW_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_depth_stencil_view_desc) structure that describes the depth-stencil view.  
+- [`D3D12_DEPTH_STENCIL_VIEW_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_depth_stencil_view_desc) `*pDesc`: A pointer to a [`D3D12_DEPTH_STENCIL_VIEW_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_depth_stencil_view_desc) structure that describes the depth-stencil view.  
        
     A null `pDesc` is used to initialize a default descriptor, if possible. This behavior is identical to the D3D11 null descriptor behavior, where defaults are filled in. This behavior inherits the resource format and dimension (if not typeless) and DSVs target the first mip and all array slices. Not all resources support null descriptor initialization.
--   [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `DestDescriptor`: Describes the CPU descriptor handle that represents the start of the heap that holds the depth-stencil view.
+- [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `DestDescriptor`: Describes the CPU descriptor handle that represents the start of the heap that holds the depth-stencil view.
 
 ### Tutorial2::OnResize
 
@@ -1718,22 +1718,22 @@ The [`ID3D12GraphicsCommandList::ClearDepthStencilView`](https://learn.microsoft
 
 The method that performs all of the rendering for the scene is the `OnRender` method. The basic steps to rendering are as follows:
 
--   Clear the color and depth buffers
--   For each object in the scene:
+- Clear the color and depth buffers
+- For each object in the scene:
 
--   Transition any resources to the required state
--   Bind the Pipeline State Object (PSO)
--   Bind the Root Signature
--   Bind any resources (CBV, UAV, SRV, Samplers, etc..) to the shader stages
--   Set the primitive topology for the Input Assembler (IA)
--   Bind the vertex buffer to the IA
--   Bind the index buffer to the IA
--   Set the viewport(s) for the Rasterizer Stage (RS)
--   Set the scissor rectangle(s) for the RS
--   Bind the color and depth-stencil render targets to the Output Merger (OM)
--   Draw the geometry
+- Transition any resources to the required state
+- Bind the Pipeline State Object (PSO)
+- Bind the Root Signature
+- Bind any resources (CBV, UAV, SRV, Samplers, etc..) to the shader stages
+- Set the primitive topology for the Input Assembler (IA)
+- Bind the vertex buffer to the IA
+- Bind the index buffer to the IA
+- Set the viewport(s) for the Rasterizer Stage (RS)
+- Set the scissor rectangle(s) for the RS
+- Bind the color and depth-stencil render targets to the Output Merger (OM)
+- Draw the geometry
 
--   Present the rendered image to the screen
+- Present the rendered image to the screen
 
 Not every step needs to be repeated for each scene object. For example, if the PSO doesn’t change between draw calls, then it doesn’t need to be bound again. Resources only need to be bound if either the root signature has changed between draw calls or resources (textures or constant buffers) need to be swapped. It is also possible to leave the vertex and index buffers in place between draw calls if different objects share the same vertex and index buffers (but have a different start vertex within the vertex buffer).
 
@@ -1790,9 +1790,9 @@ The **primitive topology type** (point, line, triangle, or patch) was specified 
 
 The vertex buffer is bound to the Input Assembler using the [`ID3D12GraphicsCommandList::IASetVertexBuffers`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-iasetvertexbuffers) method. This method takes the following parameters [\[20\]](#cite-20):
 
--   `UINT StartSlot`: Index into the device’s zero-based array to begin setting vertex buffers. In this case, only a single vertex buffer is bound to slot 0.
--   `UINT NumViews`: The number of views in the `pViews` array. In this case, there is only a single vertex buffer.
--   [`D3D12_VERTEX_BUFFER_VIEW`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_vertex_buffer_view)`* pViews`: Specifies the vertex buffer views in an array of [`D3D12_VERTEX_BUFFER_VIEW`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_vertex_buffer_view) structures.
+- `UINT StartSlot`: Index into the device’s zero-based array to begin setting vertex buffers. In this case, only a single vertex buffer is bound to slot 0.
+- `UINT NumViews`: The number of views in the `pViews` array. In this case, there is only a single vertex buffer.
+- [`D3D12_VERTEX_BUFFER_VIEW`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_vertex_buffer_view)`* pViews`: Specifies the vertex buffer views in an array of [`D3D12_VERTEX_BUFFER_VIEW`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_vertex_buffer_view) structures.
 
 The index buffer is bound to the Input Assembler using the [`ID3D12GraphicsCommandList::IASetIndexBuffer`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-iasetindexbuffer) method. Only a single index buffer can be bound to the Input Assembler at at time.
 
@@ -1805,8 +1805,8 @@ The viewport and scissor rectangle are set on the **Rasterizer State** (RS).
 
 The viewport is specified using the [`ID3D12GraphicsCommandList::RSSetViewports`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-rssetviewports) method. This method takes the following parameters [\[21\]](#cite-21):
 
--   `UINT NumViewports`: The number of viewports to bind. The range of valid values is (0 to [`D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE`](https://learn.microsoft.com/windows/win32/direct3d12/constants)). Currently, the maximum number of viewports that can be bound is 16.
--   [`D3D12_VIEWPORT`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_viewport)`* pViewports`: An array of [`D3D12_VIEWPORT`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_viewport) structures to bind to the device.
+- `UINT NumViewports`: The number of viewports to bind. The range of valid values is (0 to [`D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE`](https://learn.microsoft.com/windows/win32/direct3d12/constants)). Currently, the maximum number of viewports that can be bound is 16.
+- [`D3D12_VIEWPORT`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_viewport)`* pViewports`: An array of [`D3D12_VIEWPORT`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_viewport) structures to bind to the device.
 
 The viewport to render to is determined by the [`SV_ViewportArrayIndex`](https://learn.microsoft.com/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics) semantic output by the geometry shader. If the geometry shader does not specify the semantic, the first viewport in the array is used.
 
@@ -1832,10 +1832,10 @@ void OMSetRenderTargets(
 
 And has the the following parameters:
 
--   `UINT NumRenderTargetDescriptors`: The number of entries in the `pRenderTargetDescriptors` array.
--   [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle)`* pRenderTargetDescriptors`: Specifies an array of [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) structures that describe the CPU descriptor handles that represents the start of the heap of render target descriptors.
--   `BOOL RTsSingleHandleToDescriptorRange`: `TRUE` means the handle passed in is the pointer to a contiguous range of `NumRenderTargetDescriptors` descriptors. This case is useful if the set of descriptors to bind already happens to be contiguous in memory (so all that’s needed is a handle to the first one). `FALSE` means that the pointer is the first element of an array of discontiguous `NumRenderTargetDescriptors` handles. The false case allows an application to bind a set of descriptors from different locations at once.
--   [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle)`* pDepthStencilDescriptor`: A pointer to a [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) structure that describes the descriptor handle that represents the start of the heap that holds the depth-stencil descriptor.
+- `UINT NumRenderTargetDescriptors`: The number of entries in the `pRenderTargetDescriptors` array.
+- [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle)`* pRenderTargetDescriptors`: Specifies an array of [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) structures that describe the CPU descriptor handles that represents the start of the heap of render target descriptors.
+- `BOOL RTsSingleHandleToDescriptorRange`: `TRUE` means the handle passed in is the pointer to a contiguous range of `NumRenderTargetDescriptors` descriptors. This case is useful if the set of descriptors to bind already happens to be contiguous in memory (so all that’s needed is a handle to the first one). `FALSE` means that the pointer is the first element of an array of discontiguous `NumRenderTargetDescriptors` handles. The false case allows an application to bind a set of descriptors from different locations at once.
+- [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle)`* pDepthStencilDescriptor`: A pointer to a [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) structure that describes the descriptor handle that represents the start of the heap that holds the depth-stencil descriptor.
 
 #### Update the Root Parameters
 
@@ -1857,10 +1857,10 @@ void SetGraphicsRoot32BitConstants(
 
 And takes the following parameters:
 
--   `UINT RootParameterIndex`: The slot number for binding. This value corresponds to the index in the root parameters array that was used to create the root signature.
--   `UINT Num32BitValuesToSet`: The number of 32-bit constants to set in the root signature.
--   `void* pSrcData`: A pointer to the source data for the group of constants to set.
--   `UINT DestOffsetIn32BitValues`: The offset, in 32-bit values, to set the first constant of the group in the root signature.
+- `UINT RootParameterIndex`: The slot number for binding. This value corresponds to the index in the root parameters array that was used to create the root signature.
+- `UINT Num32BitValuesToSet`: The number of 32-bit constants to set in the root signature.
+- `void* pSrcData`: A pointer to the source data for the group of constants to set.
+- `UINT DestOffsetIn32BitValues`: The offset, in 32-bit values, to set the first constant of the group in the root signature.
 
 At this point, the pipeline is setup and ready to draw the cube.
 
@@ -1885,11 +1885,11 @@ void DrawIndexedInstanced(
 
 And takes the following arguments:
 
--   `UINT IndexCountPerInstance`: Number of indices read from the index buffer for each instance.
--   `UINT InstanceCount`: Number of instances to draw.
--   `UINT StartIndexLocation`: The location of the first index read by the GPU from the index buffer.
--   `INT BaseVertexLocation`: A value added to each index before reading a vertex from the vertex buffer.
--   `UINT StartInstanceLocation`: A value added to each index before reading per-instance data from a vertex buffer.
+- `UINT IndexCountPerInstance`: Number of indices read from the index buffer for each instance.
+- `UINT InstanceCount`: Number of instances to draw.
+- `UINT StartIndexLocation`: The location of the first index read by the GPU from the index buffer.
+- `INT BaseVertexLocation`: A value added to each index before reading a vertex from the vertex buffer.
+- `UINT StartInstanceLocation`: A value added to each index before reading per-instance data from a vertex buffer.
 
 #### Present
 
@@ -1925,9 +1925,9 @@ The `OnKeyPressed` method is called on the `Game` class whenever the user presse
 
 Admittedly this not a very interesting function but keyboard events need to be handled somewhere. The following keyboard keys are handled:
 
--   <kbd>Esc</kbd>: Pressing <kbd>Esc</kbd> causes the application to quit.
--   <kbd>Alt</kbd>+<kbd>Enter</kbd>, <kbd>F11</kbd>: Pressing either <kbd>Alt</kbd>+<kbd>Enter</kbd> or <kbd>F11</kbd> toggles the fullscreen state of the window.
--   <kbd>V</kbd>: Pressing <kbd>V</kbd> toggles V-sync mode.
+- <kbd>Esc</kbd>: Pressing <kbd>Esc</kbd> causes the application to quit.
+- <kbd>Alt</kbd>+<kbd>Enter</kbd>, <kbd>F11</kbd>: Pressing either <kbd>Alt</kbd>+<kbd>Enter</kbd> or <kbd>F11</kbd> toggles the fullscreen state of the window.
+- <kbd>V</kbd>: Pressing <kbd>V</kbd> toggles V-sync mode.
 
 In addition to handling keyboard events, the mouse scroll wheel events are also handled.
 

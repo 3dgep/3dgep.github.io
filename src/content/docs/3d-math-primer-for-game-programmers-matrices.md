@@ -13,9 +13,9 @@ In this article, I will discuss matrices and operations on matrices. It is assum
 
 Throughout this article, I will use a convention when referring to vectors, scalars, and matrices.
 
-1.  Scalars are represented by lower-case italic characters ($a,b,\theta,\lambda$).
-2.  Vectors are represented by lower-case bold characters ($\mathbf{x,y,z}$)
-3.  Matrices are represented by upper-case bold characters ($\mathbf{R,S,T,M}$)
+1. Scalars are represented by lower-case italic characters ($a,b,\theta,\lambda$).
+2. Vectors are represented by lower-case bold characters ($\mathbf{x,y,z}$)
+3. Matrices are represented by upper-case bold characters ($\mathbf{R,S,T,M}$)
 
 Vectors are column vectors (transformed as $\mathbf{v}'=\mathbf{Mv}$) and rotations are expressed using the right-handed coordinate system.
 
@@ -23,8 +23,8 @@ Vectors are column vectors (transformed as $\mathbf{v}'=\mathbf{Mv}$) and rotati
 
 A linear transformation is defined as a transformation between two vector spaces $\mathbf{V}$ and $\mathbf{W}$ denoted $\mathbf{T} : \mathbf{V} \rightarrow \mathbf{W}$ and must preserve the operations of vector addition and scalar multiplication.  That is,
 
-1.  $T(\mathbf{v_1}+\mathbf{v_2})=T(\mathbf{v_1})+T(\mathbf{v_2})$ for any vectors $\mathbf{v_1}$ and $\mathbf{v_2}$
-2.  $T(\alpha\mathbf{v})=\alpha{T}(\mathbf{v})$ for any scalar $\alpha$
+1. $T(\mathbf{v_1}+\mathbf{v_2})=T(\mathbf{v_1})+T(\mathbf{v_2})$ for any vectors $\mathbf{v_1}$ and $\mathbf{v_2}$
+2. $T(\alpha\mathbf{v})=\alpha{T}(\mathbf{v})$ for any scalar $\alpha$
 
 This property also implies that any linear transformation will transform the zero vector into the zero vector.  Since a non-zero translation will transform the zero vector into a non-zero vector then any transformation that translates a vector is not a linear transformation. A few examples of linear transformations of three-dimensional space $\mathbb{R}^{3}$ are:
 
@@ -292,13 +292,13 @@ $$
 
 From this, we can make some interpretations:
 
--   The dot product of a vector with itself is one if and only if the vector has a length of one, that is it is a unit vector.
--   The dot product of two vectors is zero if and only if they are perpendicular.
+- The dot product of a vector with itself is one if and only if the vector has a length of one, that is it is a unit vector.
+- The dot product of two vectors is zero if and only if they are perpendicular.
 
 So for a matrix to be orthogonal, the following must be true:
 
--   Each column of the matrix must be a unit vector. This fact implies that there can be no scale applied to the matrix.
--   The columns of the matrix must be mutually perpendicular.
+- Each column of the matrix must be a unit vector. This fact implies that there can be no scale applied to the matrix.
+- The columns of the matrix must be mutually perpendicular.
 
 ## References
 

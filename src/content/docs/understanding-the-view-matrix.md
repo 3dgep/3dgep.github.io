@@ -17,8 +17,8 @@ Imagine you are holding a video camera, taking a picture of a car. You can get a
 
 In order to understand this correctly, we must think in terms of two different things:
 
-1.  **The Camera Transformation Matrix**: The transformation that places the camera in the correct position and orientation in world space (this is the transformation that you would apply to a 3D model of the camera if you wanted to represent it in the scene).
-2.  **The View Matrix**: This matrix will transform vertices from world-space to view-space.  This matrix is the inverse of the camera’s transformation matrix.
+1. **The Camera Transformation Matrix**: The transformation that places the camera in the correct position and orientation in world space (this is the transformation that you would apply to a 3D model of the camera if you wanted to represent it in the scene).
+2. **The View Matrix**: This matrix will transform vertices from world-space to view-space.  This matrix is the inverse of the camera’s transformation matrix.
 
 <span id="attachment-5287"></span>
 
@@ -297,9 +297,9 @@ The main point is that whatever convention you use, you stick with it and be con
 
 When rendering a scene in 3D space, there are usually 3 transformations that are applied to the 3D geometry in the scene:
 
-1.  **World Transform**: The world transform (or sometimes referred to as the object transform or model matrix) will transform a models vertices (and normals) from object space (this is the space that the model was created in using a 3D content creation tool like 3D Studio Max or Maya) into world space. World space is the position, orientation (and sometimes scale) that positions the model in the correct place in the world.
-2.  **View Transform**: The world space vertex positions (and normals) need to be transformed into a space that is relative to the view of the camera. This is called “view space” (sometimes referred to “camera space”) and is the transformation that will be studied in this article.
-3.  **Projection Transform**: Vertices that have been transformed into view space need to be transformed by the projection transformation matrix into a space called “clip space”. This is the final space that the graphics programmer needs to worry about. The projection transformation matrix will not be discussed in this article.
+1. **World Transform**: The world transform (or sometimes referred to as the object transform or model matrix) will transform a models vertices (and normals) from object space (this is the space that the model was created in using a 3D content creation tool like 3D Studio Max or Maya) into world space. World space is the position, orientation (and sometimes scale) that positions the model in the correct place in the world.
+2. **View Transform**: The world space vertex positions (and normals) need to be transformed into a space that is relative to the view of the camera. This is called “view space” (sometimes referred to “camera space”) and is the transformation that will be studied in this article.
+3. **Projection Transform**: Vertices that have been transformed into view space need to be transformed by the projection transformation matrix into a space called “clip space”. This is the final space that the graphics programmer needs to worry about. The projection transformation matrix will not be discussed in this article.
 
 If we think of the camera as an object in the scene (like any other object that is placed in the scene) then we can say that even the camera has a transformation matrix that can be used to orient and position it in the world space of the scene (the world transform, or in the context of this article, I will refer to this transform as the “camera transform” to differentiate it from the “view transform”). But since we want to render the scene from the view of the camera, we need to find a transformation matrix that will transform the camera into “view space”. In other words, we need a transformation matrix that will place the camera object at the origin of the world pointing down the Z-axis (the positive or negative Z-axis depends on whether we are working in a left-handed or right-handed coordinate system. For an explanation on left-handed and right-handed coordinate systems, you can refer to my article titled [Coordinate Systems](/3d-math-primer-for-game-programmers/)). In other words, we need to find a matrix $\mathbf{V}$ such that:
 
@@ -574,12 +574,12 @@ view matrix $\mathbf{V}$. The small world view shows the camera itself (its axes
 world with the camera's transformation matrix $\mathbf{M}=\mathbf{V}^{-1}$. Both matrices are shown next to the
 view, so you can see how the rows of $\mathbf{V}$ and the columns of $\mathbf{M}$ change as the camera moves.
 
--   **Look At**: move the target (the look-at point) with <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd>, <kbd>D</kbd>, up and down with <kbd>Q</kbd> and <kbd>E</kbd>;
+- **Look At**: move the target (the look-at point) with <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd>, <kbd>D</kbd>, up and down with <kbd>Q</kbd> and <kbd>E</kbd>;
     the eye stays where it is and the camera turns to follow. Drag in the view to move the eye around the target, or use
     the sliders for the eye and target positions.
--   **FPS**: drag to change the pitch and yaw; move with <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd>, <kbd>D</kbd>, up and down with <kbd>Q</kbd> and <kbd>E</kbd>,
+- **FPS**: drag to change the pitch and yaw; move with <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd>, <kbd>D</kbd>, up and down with <kbd>Q</kbd> and <kbd>E</kbd>,
     and hold <kbd>Shift</kbd> to move faster (click the view first).
--   **Arcball**: drag to rotate the camera around the selected object; the mouse wheel changes the distance.
+- **Arcball**: drag to rotate the camera around the selected object; the mouse wheel changes the distance.
 
 Drag in the world view to look at the scene from another angle.
 

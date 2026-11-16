@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Collision Tests</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--shape: #5fb8ff;
+		--fixed: #a9b1c2;
+		--hit: #f26d5b;
+		--push: #e0b85a;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		--shape: #1f6fc2;
+		--fixed: #6b7385;
+		--hit: #d1382a;
+		--push: #a86d00;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	[hidden] { display: none !important; }
+	.key { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+	.arrow-swatch { width: 18px; height: 3px; background: var(--push); border-radius: 2px; flex: none; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+	canvas.dragging { cursor: grabbing; }
+	#bar {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+		padding: 6px 8px; border-top: 1px solid var(--border); background: var(--panel);
+	}
+	.group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+	.group > span { color: var(--muted); margin-right: 2px; }
+	button {
+		font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border);
+		border-radius: 5px; padding: 3px 8px; cursor: pointer; user-select: none;
+	}
+	button:hover { border-color: var(--accent); }
+	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="Drag a shape over another one: it turns red when the two overlap, and an arrow shows how far it must move to stop overlapping."></canvas>
+	</div>
+	<div id="bar">
+		<div class="group" id="tests">
+			<span>test</span>
+			<button id="cc" type="button" aria-pressed="true">circle - circle</button>
+			<button id="bb" type="button" aria-pressed="false">box - box</button>
+			<button id="cb" type="button" aria-pressed="false">circle - box</button>
+		</div>
+		<div class="group">
+			<span class="key"><span class="arrow-swatch"></span>MTV: how far the blue shape must move to stop overlapping</span>
+		</div>
+		<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+	</div>
+</div>
+<script>
+'use strict';
+// World units are pixels of a 600 x 360 field, scaled to fit the canvas. The dragged shape is "a", the fixed one "b".
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W = 1, H = 1, DPR = 1, scale = 1, ox = 0, oy = 0;
+const FieldW = 600, FieldH = 360;
+let mode = 'cc';
+const a = { x: 170, y: 150 };          // the middle of the dragged shape
+const circleA = 50, boxA = { w: 120, h: 80 };
+const circleB = { x: 360, y: 190, r: 70 };
+const boxB = { x: 290, y: 130, w: 170, h: 110 }; // top-left corner and size
+
+// ---- the tests (the same as in the C++ code) ----
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+// A distance for the text, with one decimal, rounded towards the right answer: down when the shapes overlap (so
+// 119.97 shows as 119.9 < 120, not as 120.0 < 120), up when they don't.
+const shown = (d, hit) => ((hit ? Math.floor : Math.ceil)(d * 10) / 10).toFixed(1);
+function circleCircle() {
+	const dx = a.x - circleB.x, dy = a.y - circleB.y, d = Math.hypot(dx, dy), sum = circleA + circleB.r;
+	const hit = d < sum;
+	const push = hit ? (d > 0 ? [dx / d * (sum - d), dy / d * (sum - d)] : [sum, 0]) : null;
+	return { hit, push, text: `distance ${shown(d, hit)} ${hit ? '<' : '≥'} ${circleA} + ${circleB.r} = ${sum}` };
+}
+function boxBox() {
+	const amin = [a.x - boxA.w / 2, a.y - boxA.h / 2], amax = [a.x + boxA.w / 2, a.y + boxA.h / 2];
+	const bmin = [boxB.x, boxB.y], bmax = [boxB.x + boxB.w, boxB.y + boxB.h];
+	const ox = amin[0] < bmax[0] && bmin[0] < amax[0], oy = amin[1] < bmax[1] && bmin[1] < amax[1];
+	const hit = ox && oy;
+	let push = null;
+	if (hit) { // the smallest of the four pushes: left, right, up or down
+		const options = [[bmin[0] - amax[0], 0], [bmax[0] - amin[0], 0], [0, bmin[1] - amax[1]], [0, bmax[1] - amin[1]]];
+		push = options.reduce((p, q) => (Math.hypot(...q) < Math.hypot(...p) ? q : p));
+	}
+	return { hit, push, ox, oy, text: `x ${ox ? 'overlaps' : 'apart'}, y ${oy ? 'overlaps' : 'apart'}: ${hit ? 'overlap' : 'no overlap'}` };
+}
+function circleBox() {
+	const qx = clamp(a.x, boxB.x, boxB.x + boxB.w), qy = clamp(a.y, boxB.y, boxB.y + boxB.h);
+	const dx = a.x - qx, dy = a.y - qy, d = Math.hypot(dx, dy);
+	const hit = d < circleA;
+	let push = null;
+	if (hit && d > 0) push = [dx / d * (circleA - d), dy / d * (circleA - d)];
+	else if (hit) { // the middle of the circle is inside the box: out through the nearest side
+		const left = a.x - boxB.x, right = boxB.x + boxB.w - a.x, top = a.y - boxB.y, bottom = boxB.y + boxB.h - a.y;
+		const m = Math.min(left, right, top, bottom);
+		push = m === left ? [-(left + circleA), 0] : m === right ? [right + circleA, 0] : m === top ? [0, -(top + circleA)] : [0, bottom + circleA];
+	}
+	return { hit, push, q: [qx, qy], text: `distance to the closest point ${shown(d, hit)} ${hit ? '<' : '≥'} radius ${circleA}` };
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--shape', '--fixed', '--hit', '--push'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	// room for the text at the top, and for the intervals of the box - box test at the left and the bottom
+	scale = Math.min((W - 50) / FieldW, (H - 30 - 24) / FieldH);
+	ox = 30 + (W - 50 - FieldW * scale) / 2; oy = 30 + (H - 30 - 24 - FieldH * scale) / 2;
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+function shapePath(kind, x, y, sizeOrW, h) {
+	ctx.beginPath();
+	if (kind === 'circle') ctx.arc(ox + x * scale, oy + y * scale, sizeOrW * scale, 0, 2 * Math.PI);
+	else ctx.rect(ox + x * scale, oy + y * scale, sizeOrW * scale, h * scale);
+}
+function fillStroke(color, alpha) {
+	ctx.globalAlpha = alpha; ctx.fillStyle = color; ctx.fill(); ctx.globalAlpha = 1;
+	ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+}
+function arrow(x1, y1, x2, y2, color) {
+	const X1 = ox + x1 * scale, Y1 = oy + y1 * scale, X2 = ox + x2 * scale, Y2 = oy + y2 * scale;
+	const len = Math.hypot(X2 - X1, Y2 - Y1); if (len < 1) return;
+	const ux = (X2 - X1) / len, uy = (Y2 - Y1) / len, head = Math.min(10, len * 0.5);
+	ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2.5;
+	ctx.beginPath(); ctx.moveTo(X1, Y1); ctx.lineTo(X2 - ux * head * 0.8, Y2 - uy * head * 0.8); ctx.stroke();
+	ctx.beginPath(); ctx.moveTo(X2, Y2); ctx.lineTo(X2 - ux * head - uy * head * 0.5, Y2 - uy * head + ux * head * 0.5);
+	ctx.lineTo(X2 - ux * head + uy * head * 0.5, Y2 - uy * head - ux * head * 0.5); ctx.closePath(); ctx.fill();
+}
+function dot(x, y, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(ox + x * scale, oy + y * scale, 4, 0, 2 * Math.PI); ctx.fill(); }
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg']; ctx.fillRect(0, 0, W, H);
+	const r = mode === 'cc' ? circleCircle() : mode === 'bb' ? boxBox() : circleBox();
+	const aColor = r.hit ? colors['--hit'] : colors['--shape'];
+
+	// the fixed shape
+	if (mode === 'cc') shapePath('circle', circleB.x, circleB.y, circleB.r);
+	else shapePath('box', boxB.x, boxB.y, boxB.w, boxB.h);
+	fillStroke(colors['--fixed'], 0.15);
+
+	// the dragged shape
+	if (mode === 'bb') shapePath('box', a.x - boxA.w / 2, a.y - boxA.h / 2, boxA.w, boxA.h);
+	else shapePath('circle', a.x, a.y, circleA);
+	fillStroke(aColor, 0.25);
+
+	// what the test looks at
+	ctx.setLineDash([5, 5]); ctx.strokeStyle = colors['--muted']; ctx.lineWidth = 1.5;
+	if (mode === 'cc') {
+		ctx.beginPath(); ctx.moveTo(ox + a.x * scale, oy + a.y * scale); ctx.lineTo(ox + circleB.x * scale, oy + circleB.y * scale); ctx.stroke();
+		dot(a.x, a.y, aColor); dot(circleB.x, circleB.y, colors['--fixed']);
+	} else if (mode === 'cb') {
+		ctx.beginPath(); ctx.moveTo(ox + a.x * scale, oy + a.y * scale); ctx.lineTo(ox + r.q[0] * scale, oy + r.q[1] * scale); ctx.stroke();
+		dot(boxB.x + boxB.w / 2, boxB.y + boxB.h / 2, colors['--fixed']); // the centre of the box
+		dot(a.x, a.y, aColor); dot(r.q[0], r.q[1], colors['--text']);
+	} else { // the intervals of both boxes on the x and the y axis
+		const axisY = oy + FieldH * scale + 14, axisX = ox - 14;
+		ctx.setLineDash([]); ctx.lineWidth = 4;
+		const seg = (x1, y1, x2, y2, c) => { ctx.strokeStyle = c; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); };
+		seg(ox + boxB.x * scale, axisY, ox + (boxB.x + boxB.w) * scale, axisY, colors['--fixed']);
+		seg(ox + (a.x - boxA.w / 2) * scale, axisY - 6, ox + (a.x + boxA.w / 2) * scale, axisY - 6, r.ox ? colors['--hit'] : colors['--shape']);
+		seg(axisX, oy + boxB.y * scale, axisX, oy + (boxB.y + boxB.h) * scale, colors['--fixed']);
+		seg(axisX - 6, oy + (a.y - boxA.h / 2) * scale, axisX - 6, oy + (a.y + boxA.h / 2) * scale, r.oy ? colors['--hit'] : colors['--shape']);
+		// the centres of both boxes: the push moves the centre of the blue box
+		dot(a.x, a.y, aColor); dot(boxB.x + boxB.w / 2, boxB.y + boxB.h / 2, colors['--fixed']);
+	}
+	ctx.setLineDash([]);
+
+	if (r.push) arrow(a.x, a.y, a.x + r.push[0], a.y + r.push[1], colors['--push']);
+
+	ctx.fillStyle = r.hit ? colors['--hit'] : colors['--text'];
+	ctx.font = '13px system-ui, sans-serif'; ctx.textBaseline = 'top';
+	ctx.fillText(r.text, 10, 8);
+	ctx.fillStyle = colors['--muted'];
+	ctx.textAlign = 'right'; ctx.fillText('drag the blue shape', W - 10, 8); ctx.textAlign = 'left';
+}
+
+// ---- dragging ----
+let drag = null;
+canvas.addEventListener('pointerdown', (e) => {
+	const r = canvas.getBoundingClientRect();
+	drag = { x: (e.clientX - r.left - ox) / scale - a.x, y: (e.clientY - r.top - oy) / scale - a.y };
+	canvas.setPointerCapture(e.pointerId); canvas.classList.add('dragging');
+	move(e);
+});
+function move(e) {
+	if (!drag) return;
+	const r = canvas.getBoundingClientRect();
+	a.x = clamp((e.clientX - r.left - ox) / scale - drag.x, 0, FieldW);
+	a.y = clamp((e.clientY - r.top - oy) / scale - drag.y, 0, FieldH);
+	draw();
+}
+canvas.addEventListener('pointermove', move);
+canvas.addEventListener('pointerup', () => { drag = null; canvas.classList.remove('dragging'); });
+canvas.addEventListener('pointercancel', () => { drag = null; canvas.classList.remove('dragging'); });
+
+function setMode(m) {
+	mode = m;
+	for (const id of ['cc', 'bb', 'cb']) document.getElementById(id).setAttribute('aria-pressed', String(id === m));
+	draw();
+}
+for (const id of ['cc', 'bb', 'cb']) document.getElementById(id).addEventListener('click', () => setMode(id));
+
+// ?test=cc, bb or cb shows one test only (without the buttons to choose)
+const params = new URLSearchParams(location.search);
+if (['cc', 'bb', 'cb'].includes(params.get('test'))) {
+	setMode(params.get('test'));
+	document.getElementById('tests').hidden = true;
+}
+
+applyTheme();
+resize();
+</script>
+</body>
+</html>

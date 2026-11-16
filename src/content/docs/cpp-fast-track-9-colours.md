@@ -156,7 +156,7 @@ Now let's return to colours. A colour on the screen is a mix of red, green and b
 <svg class="bits-diagram" viewBox="0 0 700 112" role="img" aria-label="The 32 bits of yellow, 0x00C8C800: alpha 0, red 200, green 200 and blue 0, 8 bits each">
 <text class="title title" x="30" y="20">yellow: 0x00C8C800</text>
 <text class="label alpha" x="80.4" y="41">alpha: 0</text>
-<text class="count" x="110.0" y="91" text-anchor="middle">bits 31–24</text>
+<text class="count" x="110.0" y="91" text-anchor="middle">bits 31-24</text>
 <rect class="field alpha" x="30.0" y="50" width="160.0" height="24" rx="3"/>
 <text class="bit alpha" x="40.0" y="66.5" text-anchor="middle">0</text>
 <line class="cell alpha" x1="50.0" y1="50" x2="50.0" y2="74"/>
@@ -174,7 +174,7 @@ Now let's return to colours. A colour on the screen is a mix of red, green and b
 <line class="cell alpha" x1="170.0" y1="50" x2="170.0" y2="74"/>
 <text class="bit alpha" x="180.0" y="66.5" text-anchor="middle">0</text>
 <text class="label red" x="214.5" y="41">red: 200 (0xC8)</text>
-<text class="count" x="270.0" y="91" text-anchor="middle">bits 23–16</text>
+<text class="count" x="270.0" y="91" text-anchor="middle">bits 23-16</text>
 <rect class="field red" x="190.0" y="50" width="160.0" height="24" rx="3"/>
 <text class="bit red" x="200.0" y="66.5" text-anchor="middle">1</text>
 <line class="cell red" x1="210.0" y1="50" x2="210.0" y2="74"/>
@@ -192,7 +192,7 @@ Now let's return to colours. A colour on the screen is a mix of red, green and b
 <line class="cell red" x1="330.0" y1="50" x2="330.0" y2="74"/>
 <text class="bit red" x="340.0" y="66.5" text-anchor="middle">0</text>
 <text class="label green" x="367.1" y="41">green: 200 (0xC8)</text>
-<text class="count" x="430.0" y="91" text-anchor="middle">bits 15–8</text>
+<text class="count" x="430.0" y="91" text-anchor="middle">bits 15-8</text>
 <rect class="field green" x="350.0" y="50" width="160.0" height="24" rx="3"/>
 <text class="bit green" x="360.0" y="66.5" text-anchor="middle">1</text>
 <line class="cell green" x1="370.0" y1="50" x2="370.0" y2="74"/>
@@ -210,7 +210,7 @@ Now let's return to colours. A colour on the screen is a mix of red, green and b
 <line class="cell green" x1="490.0" y1="50" x2="490.0" y2="74"/>
 <text class="bit green" x="500.0" y="66.5" text-anchor="middle">0</text>
 <text class="label blue" x="564.1" y="41">blue: 0</text>
-<text class="count" x="590.0" y="91" text-anchor="middle">bits 7–0</text>
+<text class="count" x="590.0" y="91" text-anchor="middle">bits 7-0</text>
 <rect class="field blue" x="510.0" y="50" width="160.0" height="24" rx="3"/>
 <text class="bit blue" x="520.0" y="66.5" text-anchor="middle">0</text>
 <line class="cell blue" x1="530.0" y1="50" x2="530.0" y2="74"/>
@@ -227,7 +227,7 @@ Now let's return to colours. A colour on the screen is a mix of red, green and b
 <text class="bit blue" x="640.0" y="66.5" text-anchor="middle">0</text>
 <line class="cell blue" x1="650.0" y1="50" x2="650.0" y2="74"/>
 <text class="bit blue" x="660.0" y="66.5" text-anchor="middle">0</text>
-<g transform="translate(679 91) scale(0.7)" opacity="0.35"><title>Made with Claude</title><path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z" fill="#D97757"/></g>
+<image href="/images/claude-logo.svg" x="679" y="91" width="16.8" height="16.8" opacity="0.35"><title>Made with Claude</title></image>
 </svg>
 
 <div class="caption">
@@ -435,7 +435,7 @@ In binary, this happens:
 <line class="cell blue" x1="650.0" y1="154" x2="650.0" y2="178"/>
 <text class="bit blue" x="660.0" y="170.5" text-anchor="middle">0</text>
 <text class="title title" x="30" y="228">colour & mask: 0x0000ED00</text>
-<text class="count" x="110.0" y="299" text-anchor="middle">bits 31–24</text>
+<text class="count" x="110.0" y="299" text-anchor="middle">bits 31-24</text>
 <rect class="field alpha" x="30.0" y="258" width="160.0" height="24" rx="3"/>
 <text class="bit alpha" x="40.0" y="274.5" text-anchor="middle">0</text>
 <line class="cell alpha" x1="50.0" y1="258" x2="50.0" y2="282"/>
@@ -452,7 +452,7 @@ In binary, this happens:
 <text class="bit alpha" x="160.0" y="274.5" text-anchor="middle">0</text>
 <line class="cell alpha" x1="170.0" y1="258" x2="170.0" y2="282"/>
 <text class="bit alpha" x="180.0" y="274.5" text-anchor="middle">0</text>
-<text class="count" x="270.0" y="299" text-anchor="middle">bits 23–16</text>
+<text class="count" x="270.0" y="299" text-anchor="middle">bits 23-16</text>
 <rect class="field red" x="190.0" y="258" width="160.0" height="24" rx="3"/>
 <text class="bit red" x="200.0" y="274.5" text-anchor="middle">0</text>
 <line class="cell red" x1="210.0" y1="258" x2="210.0" y2="282"/>
@@ -470,7 +470,7 @@ In binary, this happens:
 <line class="cell red" x1="330.0" y1="258" x2="330.0" y2="282"/>
 <text class="bit red" x="340.0" y="274.5" text-anchor="middle">0</text>
 <text class="label green" x="344.9" y="249">only green is left: 237</text>
-<text class="count" x="430.0" y="299" text-anchor="middle">bits 15–8</text>
+<text class="count" x="430.0" y="299" text-anchor="middle">bits 15-8</text>
 <rect class="field green" x="350.0" y="258" width="160.0" height="24" rx="3"/>
 <text class="bit green" x="360.0" y="274.5" text-anchor="middle">1</text>
 <line class="cell green" x1="370.0" y1="258" x2="370.0" y2="282"/>
@@ -487,7 +487,7 @@ In binary, this happens:
 <text class="bit green" x="480.0" y="274.5" text-anchor="middle">0</text>
 <line class="cell green" x1="490.0" y1="258" x2="490.0" y2="282"/>
 <text class="bit green" x="500.0" y="274.5" text-anchor="middle">1</text>
-<text class="count" x="590.0" y="299" text-anchor="middle">bits 7–0</text>
+<text class="count" x="590.0" y="299" text-anchor="middle">bits 7-0</text>
 <rect class="field blue" x="510.0" y="258" width="160.0" height="24" rx="3"/>
 <text class="bit blue" x="520.0" y="274.5" text-anchor="middle">0</text>
 <line class="cell blue" x1="530.0" y1="258" x2="530.0" y2="282"/>
@@ -504,7 +504,7 @@ In binary, this happens:
 <text class="bit blue" x="640.0" y="274.5" text-anchor="middle">0</text>
 <line class="cell blue" x1="650.0" y1="258" x2="650.0" y2="282"/>
 <text class="bit blue" x="660.0" y="274.5" text-anchor="middle">0</text>
-<g transform="translate(679 299) scale(0.7)" opacity="0.35"><title>Made with Claude</title><path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z" fill="#D97757"/></g>
+<image href="/images/claude-logo.svg" x="679" y="299" width="16.8" height="16.8" opacity="0.35"><title>Made with Claude</title></image>
 </svg>
 
 <div class="caption">
@@ -537,7 +537,7 @@ There's a lot more to explore when it comes to bit magic, and trust me, you will
 
 Here are your tasks for today:
 
-1.  Load an image, display it, and fade it (slowly) to black. Note: there are two ways to do this. The easy way uses floating point operations; the slightly harder way uses integers only. Try both, and measure the speed difference (remember `deltaTime` from [part 6](/cpp-fast-track-6-floats/)?). You can use your own image, or this one: [kodim03.png](/downloads/kodim03.png), from the Kodak Lossless True Color Image Suite: a set of images that is often used to test image processing. It is 768 pixels wide, so it fits on the screen with a small border.
+1. Load an image, display it, and fade it (slowly) to black. Note: there are two ways to do this. The easy way uses floating point operations; the slightly harder way uses integers only. Try both, and measure the speed difference (remember `deltaTime` from [part 6](/cpp-fast-track-6-floats/)?). You can use your own image, or this one: [kodim03.png](/downloads/kodim03.png), from the Kodak Lossless True Color Image Suite: a set of images that is often used to test image processing. It is 768 pixels wide, so it fits on the screen with a small border.
 
     <iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-9-assignment/index.html" title="A photo of colourful caps that fades to black" loading="lazy" allowfullscreen></iframe>
 
@@ -547,7 +547,7 @@ Here are your tasks for today:
 
     </div>
 
-2.  Convert an image to greyscale. For every pixel, extract red, green and blue, and replace each of them with their average. Then try a weighted average instead: $0.299 \times \text{red} + 0.587 \times \text{green} + 0.114 \times \text{blue}$. Which of the two looks more natural? And why do you think green counts so much more than blue? A good image to test this with is [kodim23.png](/downloads/kodim23.png): the parrots from the same Kodak image suite.
+2. Convert an image to greyscale. For every pixel, extract red, green and blue, and replace each of them with their average. Then try a weighted average instead: $0.299 \times \text{red} + 0.587 \times \text{green} + 0.114 \times \text{blue}$. Which of the two looks more natural? And why do you think green counts so much more than blue? A good image to test this with is [kodim23.png](/downloads/kodim23.png): the parrots from the same Kodak image suite.
 
     <div class="figure-row equal">
     <figure>
@@ -564,7 +564,7 @@ Here are your tasks for today:
     </figure>
     </div>
 
-3.  **EXTRA** / **HARD**: draw the colours of the rainbow in vertical lines. This will require some research; what you are looking for is a conversion from wavelength to red/green/blue.
+3. **EXTRA** / **HARD**: draw the colours of the rainbow in vertical lines. This will require some research; what you are looking for is a conversion from wavelength to red/green/blue.
 
     <img src="/images/cpp-fast-track-9/assignment-rainbow.png" alt="The colours of the rainbow in vertical lines, from violet on the left to dark red on the right" width="800" height="512" class="screenshot" />
 

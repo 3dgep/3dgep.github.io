@@ -764,9 +764,9 @@ $$
 
 The general steps to apply this equation are:
 
--   Compute the difference between $\mathbf{p_1}$ and $\mathbf{p_2}$.
--   Take the fractional part of that difference.
--   Adjust the original value by the fractional difference between the two points.
+- Compute the difference between $\mathbf{p_1}$ and $\mathbf{p_2}$.
+- Take the fractional part of that difference.
+- Adjust the original value by the fractional difference between the two points.
 
 We can use the same basic principle to interpolate between two quaternion orientations.
 
@@ -895,16 +895,16 @@ At the ends of the sequence, the helper quaternions are usually chosen as $s_1=q
 
 Despite being extremely difficult to understand, quaternions provide a few obvious advantages over using matrices or Euler angles for representing rotations.
 
--   Quaternion interpolation using SLERP and SQUAD provide a way to interpolate smoothly between orientations in space.
--   Rotation concatenation using quaternions is faster than combining rotations expressed in matrix form.
--   For unit-norm quaternions, the inverse of the rotation is taken by negating the vector part of the quaternion. Computing the inverse of a rotation matrix is considerably slower if the matrix is not orthonormalized (if it is, then it’s just the transpose of the matrix).
--   Converting quaternions to matrices is slightly faster than for Euler angles.
--   Quaternions only require 4 numbers (3 if they are normalized. The Real part can be computed at run-time) to represent a rotation where a matrix requires at least 9 values.
+- Quaternion interpolation using SLERP and SQUAD provide a way to interpolate smoothly between orientations in space.
+- Rotation concatenation using quaternions is faster than combining rotations expressed in matrix form.
+- For unit-norm quaternions, the inverse of the rotation is taken by negating the vector part of the quaternion. Computing the inverse of a rotation matrix is considerably slower if the matrix is not orthonormalized (if it is, then it’s just the transpose of the matrix).
+- Converting quaternions to matrices is slightly faster than for Euler angles.
+- Quaternions only require 4 numbers (3 if they are normalized. The Real part can be computed at run-time) to represent a rotation where a matrix requires at least 9 values.
 
 However for all of the advantages in favor of using quaternions, there are also a few disadvantages.
 
--   Quaternions can become invalid because of floating-point round-off error however this “error creep” can be resolved by re-normalizing the quaternion.
--   And probably the most significant deterrent for using quaternions is that they are very hard to understand. I hope that this issue is resolved after reading this article.
+- Quaternions can become invalid because of floating-point round-off error however this “error creep” can be resolved by re-normalizing the quaternion.
+- And probably the most significant deterrent for using quaternions is that they are very hard to understand. I hope that this issue is resolved after reading this article.
 
 There are several math libraries that implement quaternions and a few of those libraries implement quaternions correctly. In my personal experience, I find [GLM](https://glm.g-truc.net/) (OpenGL Math Library) to be a good math library with a good implementation of quaternions. If you are interested in using quaternions in your own applications, this is the library I would recommend.
 

@@ -402,9 +402,9 @@ ID3D11Buffer* g_d3dConstantBuffers[NumConstantBuffers];
 
 Here we declare three constant buffers. Constant buffers are used to store shader variables that remain constant during current draw call. An example of a constant shader variable is the camera’s projection matrix. Since the projection matrix will be the same for every vertex of the object, this variable does not need to be passed to the shader using vertex data. Instead, we declare a constant buffer that stores the projection matrix of the camera and this shader variable only needs to be updated when the camera’s projection matrix is modified (which is to say, not often).
 
-1.  **Application**: The application level constant buffer stores variables that rarely change. The contents of this constant buffer are being updated once during application startup and perhaps are not updated again. An example of an application level shader variable is the camera’s projection matrix. Usually the projection matrix is initialized once when the render window is created and only needs to be updated if the dimensions of the render window are changed (for example, if the window is resized).
-2.  **Frame**: The frame level constant buffer stores variables that change each frame. An example of a frame level shader variable would be the camera’s view matrix which changes whenever the camera moves. This variable only needs to be updated once at the beginning of the render function and generally stays the same for all objects rendered that frame.
-3.  **Object**: The object level constant buffer stores variables that are different for every object being rendered. An example of an object level shader variable is the object’s world matrix. Since each object in the scene will probably have a different world matrix this shader variable needs to be updated for every separate draw call.
+1. **Application**: The application level constant buffer stores variables that rarely change. The contents of this constant buffer are being updated once during application startup and perhaps are not updated again. An example of an application level shader variable is the camera’s projection matrix. Usually the projection matrix is initialized once when the render window is created and only needs to be updated if the dimensions of the render window are changed (for example, if the window is resized).
+2. **Frame**: The frame level constant buffer stores variables that change each frame. An example of a frame level shader variable would be the camera’s view matrix which changes whenever the camera moves. This variable only needs to be updated once at the beginning of the render function and generally stays the same for all objects rendered that frame.
+3. **Object**: The object level constant buffer stores variables that are different for every object being rendered. An example of an object level shader variable is the object’s world matrix. Since each object in the scene will probably have a different world matrix this shader variable needs to be updated for every separate draw call.
 
 This separation of shader variables is arbitrary and you can choose whatever method you would like to separate your constant buffers in your own shaders. Generally you should split up constant buffers in your shader based on the frequency the variables need to be updated.
 
@@ -508,37 +508,37 @@ typedef struct tagWNDCLASSEX {
 
 And the members have the following definition:
 
--   **UINT cbSize**: The size, in bytes, of this structure. Set this member to sizeof(WNDCLASSEX).
--   **UINT style**: The class style. In this case we use the **CS\_HREDRAW** class style which causes the entire window to redraw if a movement or size adjustment changes the width of the client area and the **CS\_VREDRAW** class style which causes the entire window to redraw if a movement or a size adjustment changes the height of the client area.
--   **WNDPROC lpfnWndProc**: A pointer to the windows procedure that will handle window events for any windows created using this class. In this case we specify the yet undefined **WndProc** function which was declared earlier.
--   **int cbClsExtra**: The number of extra bytes to allocate following the window-class structure. This parameter is not used here and should be set to 0.
--   **int cpWndExtra**: The number of extra bytes to allocate following the window instance. This parameter is not used here and should be set to 0.
--   **HINSTANCE hInstance**: A handle to the instance of the module that owns this window class. This module instance handle is passed to the **WinMain** function which will be shown later.
--   **HICON hIcon**: A handle to the class icon. This icon will be used to represent a window created with this class in the task bar and in the top-left corner of the window’s title bar. You can load an icon from a resource file using the [LoadIcon](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-loadicona) function. If this value is **NULL** (or **nullptr**) then the default application icon is used.
--   **HCURSOR hCursor**: A handle to the class cursor. This must be a handle to a valid cursor resource. For this demo, we will use the default arrow icon by specifying **LoadCursor( nullptr, IDC\_ARROW )**.
--   **HBRUSH hbrBackground**: A handle to the class background brush. This member can be a handle to the brush to be used for painting the background, or it can be a color value. A color value must be one of the following standard system colors (the value 1 must be added to the chosen color). If a color value is given, you must convert it to one of the following **HBRUSH** types:
-    -   **COLOR\_ACTIVEBORDER**
-    -   **COLOR\_ACTIVECAPTION**
-    -   **COLOR\_APPWORKSPACE**
-    -   **COLOR\_BACKGROUND**
-    -   **COLOR\_BTNFACE**
-    -   **COLOR\_BTNSHADOW**
-    -   **COLOR\_BTNTEXT**
-    -   **COLOR\_CAPTIONTEXT**
-    -   **COLOR\_GRAYTEXT**
-    -   **COLOR\_HIGHLIGHT**
-    -   **COLOR\_HIGHLIGHTTEXT**
-    -   **COLOR\_INACTIVEBORDER**
-    -   **COLOR\_INACTIVECAPTION**
-    -   **COLOR\_MENU**
-    -   **COLOR\_MENUTEXT**
-    -   **COLOR\_SCROLLBAR**
-    -   **COLOR\_WINDOW**
-    -   **COLOR\_WINDOWFRAME**
-    -   **COLOR\_WINDOWTEXT**
--   **LPCTSTR lpszMenuName**: Pointer to a null-terminated character string that specifies the resource name of the class menu, as the name appears in the resource file. If this member is NULL, windows belonging to this class have no default menu.
--   **LPCTSTR lpszClassName**: A pointer to a null-terminated const string which is used to uniquely identify this window class. This class name will be used to create the window instance.
--   **HICON hIconSm**: A handle to a small icon that is associated with the window class. If this member is **NULL** (or nullptr), the system searches the icon resource specified by the **hIcon** member for an icon of the appropriate size to use as the small icon.
+- **UINT cbSize**: The size, in bytes, of this structure. Set this member to sizeof(WNDCLASSEX).
+- **UINT style**: The class style. In this case we use the **CS\_HREDRAW** class style which causes the entire window to redraw if a movement or size adjustment changes the width of the client area and the **CS\_VREDRAW** class style which causes the entire window to redraw if a movement or a size adjustment changes the height of the client area.
+- **WNDPROC lpfnWndProc**: A pointer to the windows procedure that will handle window events for any windows created using this class. In this case we specify the yet undefined **WndProc** function which was declared earlier.
+- **int cbClsExtra**: The number of extra bytes to allocate following the window-class structure. This parameter is not used here and should be set to 0.
+- **int cpWndExtra**: The number of extra bytes to allocate following the window instance. This parameter is not used here and should be set to 0.
+- **HINSTANCE hInstance**: A handle to the instance of the module that owns this window class. This module instance handle is passed to the **WinMain** function which will be shown later.
+- **HICON hIcon**: A handle to the class icon. This icon will be used to represent a window created with this class in the task bar and in the top-left corner of the window’s title bar. You can load an icon from a resource file using the [LoadIcon](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-loadicona) function. If this value is **NULL** (or **nullptr**) then the default application icon is used.
+- **HCURSOR hCursor**: A handle to the class cursor. This must be a handle to a valid cursor resource. For this demo, we will use the default arrow icon by specifying **LoadCursor( nullptr, IDC\_ARROW )**.
+- **HBRUSH hbrBackground**: A handle to the class background brush. This member can be a handle to the brush to be used for painting the background, or it can be a color value. A color value must be one of the following standard system colors (the value 1 must be added to the chosen color). If a color value is given, you must convert it to one of the following **HBRUSH** types:
+    - **COLOR\_ACTIVEBORDER**
+    - **COLOR\_ACTIVECAPTION**
+    - **COLOR\_APPWORKSPACE**
+    - **COLOR\_BACKGROUND**
+    - **COLOR\_BTNFACE**
+    - **COLOR\_BTNSHADOW**
+    - **COLOR\_BTNTEXT**
+    - **COLOR\_CAPTIONTEXT**
+    - **COLOR\_GRAYTEXT**
+    - **COLOR\_HIGHLIGHT**
+    - **COLOR\_HIGHLIGHTTEXT**
+    - **COLOR\_INACTIVEBORDER**
+    - **COLOR\_INACTIVECAPTION**
+    - **COLOR\_MENU**
+    - **COLOR\_MENUTEXT**
+    - **COLOR\_SCROLLBAR**
+    - **COLOR\_WINDOW**
+    - **COLOR\_WINDOWFRAME**
+    - **COLOR\_WINDOWTEXT**
+- **LPCTSTR lpszMenuName**: Pointer to a null-terminated character string that specifies the resource name of the class menu, as the name appears in the resource file. If this member is NULL, windows belonging to this class have no default menu.
+- **LPCTSTR lpszClassName**: A pointer to a null-terminated const string which is used to uniquely identify this window class. This class name will be used to create the window instance.
+- **HICON hIconSm**: A handle to a small icon that is associated with the window class. If this member is **NULL** (or nullptr), the system searches the icon resource specified by the **hIcon** member for an icon of the appropriate size to use as the small icon.
 
 With the window class structure initialized, the window class is registered on line 114 using the [RegisterClassEx](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-registerclassexa) function.
 
@@ -571,17 +571,17 @@ The **\_In\_**, **\_Out\_**, **\_Outptr\_**, **\_Inout\_** etc. macros are part 
 
 And the properties to this function have the following definition:
 
--   **LPCTSTR lpClassName**: The name of the window class to use as a template to create the window instance. The class name must match one of the classes that were previously registered using **RegisterClass** or **RegisterClassEx** and associated to the **hInstance** module.
--   **LPCTSTR lpWindowName**: The name of the window instance. When creating a window with a title bar, the window name will be displayed in the title bar.
--   **DWORD dwStyle**: The style of the window being created. This parameter can be a combination of any of the [window styles](https://learn.microsoft.com/windows/win32/winmsg/window-styles).
--   **int x**: The initial horizontal position of the window. For an overlapped or pop-up window, the x parameter is the initial x-coordinate of the window’s upper-left corner, in screen coordinates. If this parameter is set to **CW\_USEDEFAULT**, the system selects the default position for the window’s upper-left corner and ignores the y parameter.
--   **int y**: The initial vertical position of the window. For an overlapped or pop-up window, the y parameter is the initial y-coordinate of the window’s upper-left corner, in screen coordinates. If an overlapped window is created with the **WS\_VISIBLE** style bit set and the x parameter is set to **CW\_USEDEFAULT**, then the y parameter determines how the window is shown. If the y parameter is **CW\_USEDEFAULT**, then the window manager calls [ShowWindow](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-showwindow) with the **SW\_SHOW** flag after the window has been created. If the y parameter is some other value, then the window manager calls **ShowWindow** with that value as the **nCmdShow** parameter.
--   **int nWidth**: The width, in device units, of the window. For overlapped windows, nWidth is either the window’s width, in screen coordinates, or **CW\_USEDEFAULT**. If **nWidth** is **CW\_USEDEFAULT**, the system selects a default width and height for the window; the default width extends from the initial x-coordinate to the right edge of the screen, and the default height extends from the initial y-coordinate to the top of the icon area. **CW\_USEDEFAULT** is valid only for overlapped windows. In this case, we set the initial window width to the total width of the adjusted window rectangle.
--   **int nHeight**: The height, in device units, of the window. For overlapped windows, **nHeight** is the window’s height, in screen coordinates. If **nWidth** is set to **CW\_USEDEFAULT**, the system ignores **nHeight**. In this case, we set the initial window height to the total height of the adjusted window rectangle.
--   **HWND hWndParent**: A handle to the parent window. Since we are creating a top-level window, this parameter can be **NULL** (or nullptr).
--   **HMENU hMenu**: A handle to a window or NULL to use the menu that was specified in the window class template. If both the window class and this parameter are **NULL**, no menu will be created for this window.
--   **HINSTANCE hInstance**: A handle to the instance of the module to be associated with the window.
--   **LPVOID lpParam**: A pointer to a value to be passed to the window through the [CREATESTRUCT](https://learn.microsoft.com/windows/win32/api/winuser/ns-winuser-createstructa) structure (**lpCreateParams** member) pointed to by the lParam param of the [WM\_CREATE](https://learn.microsoft.com/windows/win32/winmsg/wm-create) message. This message is sent to the created window by this function before it returns.
+- **LPCTSTR lpClassName**: The name of the window class to use as a template to create the window instance. The class name must match one of the classes that were previously registered using **RegisterClass** or **RegisterClassEx** and associated to the **hInstance** module.
+- **LPCTSTR lpWindowName**: The name of the window instance. When creating a window with a title bar, the window name will be displayed in the title bar.
+- **DWORD dwStyle**: The style of the window being created. This parameter can be a combination of any of the [window styles](https://learn.microsoft.com/windows/win32/winmsg/window-styles).
+- **int x**: The initial horizontal position of the window. For an overlapped or pop-up window, the x parameter is the initial x-coordinate of the window’s upper-left corner, in screen coordinates. If this parameter is set to **CW\_USEDEFAULT**, the system selects the default position for the window’s upper-left corner and ignores the y parameter.
+- **int y**: The initial vertical position of the window. For an overlapped or pop-up window, the y parameter is the initial y-coordinate of the window’s upper-left corner, in screen coordinates. If an overlapped window is created with the **WS\_VISIBLE** style bit set and the x parameter is set to **CW\_USEDEFAULT**, then the y parameter determines how the window is shown. If the y parameter is **CW\_USEDEFAULT**, then the window manager calls [ShowWindow](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-showwindow) with the **SW\_SHOW** flag after the window has been created. If the y parameter is some other value, then the window manager calls **ShowWindow** with that value as the **nCmdShow** parameter.
+- **int nWidth**: The width, in device units, of the window. For overlapped windows, nWidth is either the window’s width, in screen coordinates, or **CW\_USEDEFAULT**. If **nWidth** is **CW\_USEDEFAULT**, the system selects a default width and height for the window; the default width extends from the initial x-coordinate to the right edge of the screen, and the default height extends from the initial y-coordinate to the top of the icon area. **CW\_USEDEFAULT** is valid only for overlapped windows. In this case, we set the initial window width to the total width of the adjusted window rectangle.
+- **int nHeight**: The height, in device units, of the window. For overlapped windows, **nHeight** is the window’s height, in screen coordinates. If **nWidth** is set to **CW\_USEDEFAULT**, the system ignores **nHeight**. In this case, we set the initial window height to the total height of the adjusted window rectangle.
+- **HWND hWndParent**: A handle to the parent window. Since we are creating a top-level window, this parameter can be **NULL** (or nullptr).
+- **HMENU hMenu**: A handle to a window or NULL to use the menu that was specified in the window class template. If both the window class and this parameter are **NULL**, no menu will be created for this window.
+- **HINSTANCE hInstance**: A handle to the instance of the module to be associated with the window.
+- **LPVOID lpParam**: A pointer to a value to be passed to the window through the [CREATESTRUCT](https://learn.microsoft.com/windows/win32/api/winuser/ns-winuser-createstructa) structure (**lpCreateParams** member) pointed to by the lParam param of the [WM\_CREATE](https://learn.microsoft.com/windows/win32/winmsg/wm-create) message. This message is sent to the created window by this function before it returns.
 
 If the window creation succeeded, the window is shown with the [ShowWindow](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-showwindow) function and the [UpdateWindow](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-updatewindow) function is called to force the client area of the window to be painted.
 
@@ -606,10 +606,10 @@ LRESULT CALLBACK WindowProc(
 
 Where:
 
--   **HWND hwnd**: A handle to the window for which the event is intended.
--   **UINT uMsg**: The event message. For lists of the system-provided messages, see [System-Defined Messages](https://learn.microsoft.com/windows/win32/winmsg/about-messages-and-message-queues).
--   **WPARAM wParam**: Additional message information. The contents of this parameter depend on the value of the **uMsg** parameter.
--   **LPARAM lParam**: Additional message information. The contents of this parameter depend on the value of the **uMsg** parameter.
+- **HWND hwnd**: A handle to the window for which the event is intended.
+- **UINT uMsg**: The event message. For lists of the system-provided messages, see [System-Defined Messages](https://learn.microsoft.com/windows/win32/winmsg/about-messages-and-message-queues).
+- **WPARAM wParam**: Additional message information. The contents of this parameter depend on the value of the **uMsg** parameter.
+- **LPARAM lParam**: Additional message information. The contents of this parameter depend on the value of the **uMsg** parameter.
 
 The return value is the result of the message processing and depends on the message sent [\[52\]](#ref-windowproc).
 
@@ -731,12 +731,12 @@ In this function we will initialize the Direct3D 11 device, context and swap cha
 
 The process of initializing a Direct3D rendering device consists of several steps:
 
-1.  Create the device and swap chain,
-2.  Create a render target view of the swap chain’s back buffer,
-3.  Create a texture for the depth-stencil buffer,
-4.  Create a depth-stencil view from the depth-stencil buffer,
-5.  Create a depth-stencil state object that defines the behaviour of the output merger stage,
-6.  Create a rasterizer state object that defines the behaviour of the rasterizer stage.
+1. Create the device and swap chain,
+2. Create a render target view of the swap chain’s back buffer,
+3. Create a texture for the depth-stencil buffer,
+4. Create a depth-stencil view from the depth-stencil buffer,
+5. Create a depth-stencil state object that defines the behaviour of the output merger stage,
+6. Create a rasterizer state object that defines the behaviour of the rasterizer stage.
 
 #### Create Device and Swap Chain
 
@@ -762,37 +762,37 @@ typedef struct DXGI_SWAP_CHAIN_DESC {
 
 The members of the **DXGI\_SWAP\_CHAIN\_DESC** struct are defined as:
 
--   **DXGI\_MODE\_DESC BufferDesc**: This parameter is a type [DXGI\_MODE\_DESC](https://learn.microsoft.com/previous-versions/windows/desktop/legacy/bb173064(v=vs.85)) and has the following members:
-    -   **UINT Width**: A value that describes the resolution width. If you specify the width as zero when you call the [IDXGIFactory::CreateSwapChain](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-createswapchain) method to create a swap chain, the runtime obtains the width from the output window and assigns this width value to the swap-chain description.
-    -   **UINT Height**: A value describing the resolution height. If you specify the height as zero when you call the [IDXGIFactory::CreateSwapChain](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-createswapchain) method to create a swap chain, the runtime obtains the height from the output window and assigns this height value to the swap-chain description.
-    -   **DXGI\_RATIONAL RefreshRate**: A [DXGI\_RATIONAL](https://learn.microsoft.com/windows/win32/api/dxgicommon/ns-dxgicommon-dxgi_rational) structure describing the refresh rate in hertz. We can use 0/1 to specify an unbounded refresh rate. This is useful if we don’t intend to synchronize the presentation of the scene with the refresh rate of the screen. If the window contents are to be displayed full-screen, then this should be the ideal refresh rate at the specified display resolution. If it is a windowed application, then it should be the refresh rate of the desktop.
-    -   **DXGI\_FORMAT Format**: The pixel format of the display. For a list of possible display formats see [DXGI\_FORMAT](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format). In this case we specify **DXGI\_FORMAT\_R8G8B8A8\_UNORM** which creates a 4-component 32-bit unsigned normalized integer format that supports 8 bits per channel including alpha [\[20\]](#ref-dxgi-format).
-    -   **DXGI\_MODE\_SCANLINE\_ORDER ScanlineOrdering**: Describes the scan-line drawing mode and can be one of the following values [\[21\]](#ref-dxgi-mode-scanline-order):
-        -   **DXGI\_MODE\_SCANLINE\_ORDER\_UNSPECIFIED** (Default): The scanline order is unspecified.
-        -   **DXGI\_MODE\_SCANLINE\_ORDER\_PROGRESSIVE**: The image is created from the first scanline to the last without skipping any.
-        -   **DXGI\_MODE\_SCANLINE\_ORDER\_UPPER\_FIELD\_FIRST**: The image is created beginning with the upper field.
-        -   **DXGI\_MODE\_SCANLINE\_ORDER\_LOWER\_FIELD\_FIRST**: The image is created beginning with the lower field.
-    -   **DXGI\_MODE\_SCALING Scaling**: This parameter describes the scaling mode and can be one of the following values [\[22\]](#ref-dxgi-mode-scaling):
-        -   **DXGI\_MODE\_SCALING\_UNSPECIFIED** (Default): Unspecified scaling.
-        -   **DXGI\_MODE\_SCALING\_CENTERED**: Specifies no scaling. The image is centered on the display. This flag is typically used for a fixed-dot-pitch display (such as an LED display).
-        -   **DXGI\_MODE\_SCALING\_STRETCHED**: Specifies stretched scaling.
--   **DXGI\_SAMPLE\_DESC SampleDesc**: A **DXGI\_SAMPLE\_DESC** structure that describes multi-sampling parameters. The **DXGI\_SAMPLE\_DESC** structure has the following members [\[23\]](#ref-dxgi-sample-desc):
-    -   **UINT Count**: The number of multisamples per pixel.
-    -   **UINT Quality**: The image quality level. The higher the quality, the lower the performance. The valid range is between zero and one less than the level returned by [ID3D11Device::CheckMultisampleQualityLevels](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11device-checkmultisamplequalitylevels). The default sampler mode, with no anti-aliasing, has a count of 1 and a quality level of 0.
--   **DXGI\_USAGE BufferUsage**: A member of the **DXGI\_USAGE** enumerated type that describes the surface usage and CPU access options for the back buffer. This parameter can be one of the following values [\[24\]](#ref-dxgi-usage):
-    -   **DXGI\_USAGE\_BACK\_BUFFER**: The surface or resource is used as a back buffer. You don’t need to pass **DXGI\_USAGE\_BACK\_BUFFER** when you create a swap chain.
-    -   **DXGI\_USAGE\_READ\_ONLY**: Use the surface or resource for reading only.
-    -   **DXGI\_USAGE\_RENDER\_TARGET\_OUTPUT**: Use the surface or resource as an output render target.
-    -   **DXGI\_USAGE\_SHADER\_INPUT**: Use the surface or resource as an input to a shader.
-    -   **DXGI\_USAGE\_SHARED**: Share the surface or resource.
-    -   **DXGI\_USAGE\_UNORDERED\_ACCESS**: Use the surface or resource for unordered access.
--   **UINT BufferCount**: A value that describes the number of buffers in the swap chain.
--   **HWND OutputWindow**: An **HWND** handle to the output window. This member must not be **NULL**.
--   **BOOL Windowed**: A Boolean value that specifies whether the output is in windowed mode.
--   **DXGI\_SWAP\_EFFECT SwapEffect**: A member of the [DXGI\_SWAP\_EFFECT](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect) enumerated type that describes options for handling the contents of the presentation buffer after presenting a surface. This parameter can have one of the following values [\[25\]](#ref-dxgi-swap-effect):
-    -   **DXGI\_SWAP\_EFFECT\_DISCARD** (Default): Use this flag to specify the bit-block transfer (bitblt) model and to specify that DXGI discard the contents of the back buffer after you call [IDXGISwapChain::Present](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present). Use this flag to enable the display driver to select the most efficient presentation technique for the swap chain.
-    -   **DXGI\_SWAP\_EFFECT\_SEQUENTIAL**: Use this flag to specify the bitblt model and to specify that DXGI persist the contents of the back buffer after you call [IDXGISwapChain::Present](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present). Use this option to present the contents of the swap chain in order, from the first buffer (buffer 0) to the last buffer. This flag cannot be used with multisampling.
--   **UINT Flags**: A member of the [DXGI\_SWAP\_CHAIN\_FLAG](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_chain_flag) enumerated type that describes options for swap-chain behavior.
+- **DXGI\_MODE\_DESC BufferDesc**: This parameter is a type [DXGI\_MODE\_DESC](https://learn.microsoft.com/previous-versions/windows/desktop/legacy/bb173064(v=vs.85)) and has the following members:
+    - **UINT Width**: A value that describes the resolution width. If you specify the width as zero when you call the [IDXGIFactory::CreateSwapChain](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-createswapchain) method to create a swap chain, the runtime obtains the width from the output window and assigns this width value to the swap-chain description.
+    - **UINT Height**: A value describing the resolution height. If you specify the height as zero when you call the [IDXGIFactory::CreateSwapChain](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-createswapchain) method to create a swap chain, the runtime obtains the height from the output window and assigns this height value to the swap-chain description.
+    - **DXGI\_RATIONAL RefreshRate**: A [DXGI\_RATIONAL](https://learn.microsoft.com/windows/win32/api/dxgicommon/ns-dxgicommon-dxgi_rational) structure describing the refresh rate in hertz. We can use 0/1 to specify an unbounded refresh rate. This is useful if we don’t intend to synchronize the presentation of the scene with the refresh rate of the screen. If the window contents are to be displayed full-screen, then this should be the ideal refresh rate at the specified display resolution. If it is a windowed application, then it should be the refresh rate of the desktop.
+    - **DXGI\_FORMAT Format**: The pixel format of the display. For a list of possible display formats see [DXGI\_FORMAT](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format). In this case we specify **DXGI\_FORMAT\_R8G8B8A8\_UNORM** which creates a 4-component 32-bit unsigned normalized integer format that supports 8 bits per channel including alpha [\[20\]](#ref-dxgi-format).
+    - **DXGI\_MODE\_SCANLINE\_ORDER ScanlineOrdering**: Describes the scan-line drawing mode and can be one of the following values [\[21\]](#ref-dxgi-mode-scanline-order):
+        - **DXGI\_MODE\_SCANLINE\_ORDER\_UNSPECIFIED** (Default): The scanline order is unspecified.
+        - **DXGI\_MODE\_SCANLINE\_ORDER\_PROGRESSIVE**: The image is created from the first scanline to the last without skipping any.
+        - **DXGI\_MODE\_SCANLINE\_ORDER\_UPPER\_FIELD\_FIRST**: The image is created beginning with the upper field.
+        - **DXGI\_MODE\_SCANLINE\_ORDER\_LOWER\_FIELD\_FIRST**: The image is created beginning with the lower field.
+    - **DXGI\_MODE\_SCALING Scaling**: This parameter describes the scaling mode and can be one of the following values [\[22\]](#ref-dxgi-mode-scaling):
+        - **DXGI\_MODE\_SCALING\_UNSPECIFIED** (Default): Unspecified scaling.
+        - **DXGI\_MODE\_SCALING\_CENTERED**: Specifies no scaling. The image is centered on the display. This flag is typically used for a fixed-dot-pitch display (such as an LED display).
+        - **DXGI\_MODE\_SCALING\_STRETCHED**: Specifies stretched scaling.
+- **DXGI\_SAMPLE\_DESC SampleDesc**: A **DXGI\_SAMPLE\_DESC** structure that describes multi-sampling parameters. The **DXGI\_SAMPLE\_DESC** structure has the following members [\[23\]](#ref-dxgi-sample-desc):
+    - **UINT Count**: The number of multisamples per pixel.
+    - **UINT Quality**: The image quality level. The higher the quality, the lower the performance. The valid range is between zero and one less than the level returned by [ID3D11Device::CheckMultisampleQualityLevels](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11device-checkmultisamplequalitylevels). The default sampler mode, with no anti-aliasing, has a count of 1 and a quality level of 0.
+- **DXGI\_USAGE BufferUsage**: A member of the **DXGI\_USAGE** enumerated type that describes the surface usage and CPU access options for the back buffer. This parameter can be one of the following values [\[24\]](#ref-dxgi-usage):
+    - **DXGI\_USAGE\_BACK\_BUFFER**: The surface or resource is used as a back buffer. You don’t need to pass **DXGI\_USAGE\_BACK\_BUFFER** when you create a swap chain.
+    - **DXGI\_USAGE\_READ\_ONLY**: Use the surface or resource for reading only.
+    - **DXGI\_USAGE\_RENDER\_TARGET\_OUTPUT**: Use the surface or resource as an output render target.
+    - **DXGI\_USAGE\_SHADER\_INPUT**: Use the surface or resource as an input to a shader.
+    - **DXGI\_USAGE\_SHARED**: Share the surface or resource.
+    - **DXGI\_USAGE\_UNORDERED\_ACCESS**: Use the surface or resource for unordered access.
+- **UINT BufferCount**: A value that describes the number of buffers in the swap chain.
+- **HWND OutputWindow**: An **HWND** handle to the output window. This member must not be **NULL**.
+- **BOOL Windowed**: A Boolean value that specifies whether the output is in windowed mode.
+- **DXGI\_SWAP\_EFFECT SwapEffect**: A member of the [DXGI\_SWAP\_EFFECT](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect) enumerated type that describes options for handling the contents of the presentation buffer after presenting a surface. This parameter can have one of the following values [\[25\]](#ref-dxgi-swap-effect):
+    - **DXGI\_SWAP\_EFFECT\_DISCARD** (Default): Use this flag to specify the bit-block transfer (bitblt) model and to specify that DXGI discard the contents of the back buffer after you call [IDXGISwapChain::Present](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present). Use this flag to enable the display driver to select the most efficient presentation technique for the swap chain.
+    - **DXGI\_SWAP\_EFFECT\_SEQUENTIAL**: Use this flag to specify the bitblt model and to specify that DXGI persist the contents of the back buffer after you call [IDXGISwapChain::Present](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present). Use this option to present the contents of the swap chain in order, from the first buffer (buffer 0) to the last buffer. This flag cannot be used with multisampling.
+- **UINT Flags**: A member of the [DXGI\_SWAP\_CHAIN\_FLAG](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_chain_flag) enumerated type that describes options for swap-chain behavior.
 
 The **QueryRefreshRate** function is used to query the ideal refresh rate given the specified screen dimensions. If the **vSync** flag is **FALSE** then this function simply returns 0/1 which indicates that the screen should be refreshed as quickly as possible without waiting for a vertical sync. You can see the implementation of the **QueryRefreshRate** function by downloading the demo available at the end of this article.
 
@@ -828,24 +828,24 @@ HRESULT D3D11CreateDeviceAndSwapChain(
 
 Which has the following properties:
 
--   **IDXGIAdapter \*pAdapter**: A pointer to the video adapter to use when creating a device. Pass **NULL** (or **nullptr**) to use the default adapter, which is the first adapter enumerated by the [IDXGIFactory::EnumAdapters](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-enumadapters) method.
--   **D3D\_DRIVER\_TYPE DriverType**: The Direct3D driver which implements the device. It must be one of the following values [\[28\]](#ref-d3d-driver-type):
-    -   **D3D\_DRIVER\_TYPE\_UNKNOWN**: Unknown driver type. I’m not sure why or when you would ever use this value.
-    -   **D3D\_DRIVER\_TYPE\_HARDWARE**: A hardware driver, which implements Direct3D features in hardware. This is the primary driver that you should use in your Direct3D applications because it provides the best performance.
-    -   **D3D\_DRIVER\_TYPE\_REFERENCE**: A reference driver, which is a software implementation that supports every Direct3D feature. A reference driver is designed for accuracy rather than speed and as a result is slow but accurate. The rasterizer portion of the driver does make use of special CPU instructions whenever it can, but it is not intended for retail applications; use it only for feature testing, demonstration of functionality, debugging, or verifying bugs in other drivers.
-    -   **D3D\_DRIVER\_TYPE\_NULL**: A NULL driver, which is a reference driver without render capability. This driver is commonly used for debugging non-rendering API calls, it is not appropriate for retail applications.
-    -   **D3D\_DRIVER\_TYPE\_SOFTWARE**: A software driver, which is a driver implemented completely in software. The software implementation is not intended for a high-performance application due to its very slow performance.
-    -   **D3D\_DRIVER\_TYPE\_WARP**: A WARP driver, which is a high-performance software rasterizer. The rasterizer supports feature levels 9\_1 through level 10\_1 with a high performance software implementation. For information about limitations creating a WARP device on certain feature levels, see [Limitations Creating WARP and Reference Devices](https://learn.microsoft.com/windows/win32/direct3d11/overviews-direct3d-11-devices-limitations).
--   **HMODULE Software**: A handle to a DLL that implements a software rasterizer. The value should be non-**NULL** when **D3D\_DRIVER\_TYPE** is **D3D\_DRIVER\_TYPE\_SOFTWARE** and **NULL** otherwise.
--   **UINT Flags**: The runtime layers to enable (see [D3D11\_CREATE\_DEVICE\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_create_device_flag)); values can be bitwise OR’d together.
--   **const D3D\_FEATURE\_LEVEL \*pFeatureLevels**: A pointer to an array of [D3D\_FEATURE\_LEVEL](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_feature_level)s, which determine the order of feature levels to attempt to create.
--   **UINT FeatureLevels**: The number of elements in the **pFeatureLevels** array.
--   **UINT SDKVersion**: The SDK version. Since we are using the DirectX 11 SDK, this value must always be **D3D11\_SDK\_VERSION**.
--   **const DXGI\_SWAP\_CHAIN\_DESC \*pSwapChainDesc**: A pointer to a swap chain description which was created earlier.
--   **IDXGISwapChain \*\*ppSwapChain**: Returns the address of a pointer to the [IDXGISwapChain](https://learn.microsoft.com/windows/win32/api/dxgi/nn-dxgi-idxgiswapchain) object that represents the swap chain used for rendering.
--   **ID3D11Device \*\*ppDevice**: Returns the address of a pointer to an [ID3D11Device](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11device) object that represents the device created.
--   **D3D\_FEATURE\_LEVEL \*pFeatureLevel**: Returns a pointer to a [D3D\_FEATURE\_LEVEL](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_feature_level), which represents the first element in an array of feature levels supported by the device.
--   **ID3D11DeviceContext \*\*ppImmediateContext**: Returns the address of a pointer to an [ID3D11DeviceContext](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11devicecontext) object that represents the device context.
+- **IDXGIAdapter \*pAdapter**: A pointer to the video adapter to use when creating a device. Pass **NULL** (or **nullptr**) to use the default adapter, which is the first adapter enumerated by the [IDXGIFactory::EnumAdapters](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-enumadapters) method.
+- **D3D\_DRIVER\_TYPE DriverType**: The Direct3D driver which implements the device. It must be one of the following values [\[28\]](#ref-d3d-driver-type):
+    - **D3D\_DRIVER\_TYPE\_UNKNOWN**: Unknown driver type. I’m not sure why or when you would ever use this value.
+    - **D3D\_DRIVER\_TYPE\_HARDWARE**: A hardware driver, which implements Direct3D features in hardware. This is the primary driver that you should use in your Direct3D applications because it provides the best performance.
+    - **D3D\_DRIVER\_TYPE\_REFERENCE**: A reference driver, which is a software implementation that supports every Direct3D feature. A reference driver is designed for accuracy rather than speed and as a result is slow but accurate. The rasterizer portion of the driver does make use of special CPU instructions whenever it can, but it is not intended for retail applications; use it only for feature testing, demonstration of functionality, debugging, or verifying bugs in other drivers.
+    - **D3D\_DRIVER\_TYPE\_NULL**: A NULL driver, which is a reference driver without render capability. This driver is commonly used for debugging non-rendering API calls, it is not appropriate for retail applications.
+    - **D3D\_DRIVER\_TYPE\_SOFTWARE**: A software driver, which is a driver implemented completely in software. The software implementation is not intended for a high-performance application due to its very slow performance.
+    - **D3D\_DRIVER\_TYPE\_WARP**: A WARP driver, which is a high-performance software rasterizer. The rasterizer supports feature levels 9\_1 through level 10\_1 with a high performance software implementation. For information about limitations creating a WARP device on certain feature levels, see [Limitations Creating WARP and Reference Devices](https://learn.microsoft.com/windows/win32/direct3d11/overviews-direct3d-11-devices-limitations).
+- **HMODULE Software**: A handle to a DLL that implements a software rasterizer. The value should be non-**NULL** when **D3D\_DRIVER\_TYPE** is **D3D\_DRIVER\_TYPE\_SOFTWARE** and **NULL** otherwise.
+- **UINT Flags**: The runtime layers to enable (see [D3D11\_CREATE\_DEVICE\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_create_device_flag)); values can be bitwise OR’d together.
+- **const D3D\_FEATURE\_LEVEL \*pFeatureLevels**: A pointer to an array of [D3D\_FEATURE\_LEVEL](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_feature_level)s, which determine the order of feature levels to attempt to create.
+- **UINT FeatureLevels**: The number of elements in the **pFeatureLevels** array.
+- **UINT SDKVersion**: The SDK version. Since we are using the DirectX 11 SDK, this value must always be **D3D11\_SDK\_VERSION**.
+- **const DXGI\_SWAP\_CHAIN\_DESC \*pSwapChainDesc**: A pointer to a swap chain description which was created earlier.
+- **IDXGISwapChain \*\*ppSwapChain**: Returns the address of a pointer to the [IDXGISwapChain](https://learn.microsoft.com/windows/win32/api/dxgi/nn-dxgi-idxgiswapchain) object that represents the swap chain used for rendering.
+- **ID3D11Device \*\*ppDevice**: Returns the address of a pointer to an [ID3D11Device](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11device) object that represents the device created.
+- **D3D\_FEATURE\_LEVEL \*pFeatureLevel**: Returns a pointer to a [D3D\_FEATURE\_LEVEL](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_feature_level), which represents the first element in an array of feature levels supported by the device.
+- **ID3D11DeviceContext \*\*ppImmediateContext**: Returns the address of a pointer to an [ID3D11DeviceContext](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11devicecontext) object that represents the device context.
 
 If we execute the [D3D11CreateDeviceAndSwapChain](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-d3d11createdeviceandswapchain) function on a computer with a video card driver that does not implement the Windows Display Driver Model version 1.2 ([WDDM 1.2](https://learn.microsoft.com/windows-hardware/drivers/display/what-s-new-for-windows-8-display-drivers)) or higher and we speicfy **D3D\_FEATURE\_LEVEL\_11\_1** in the feature levels array then this function will fail. The initial version of Windows 7 provided WDDM 1.1 which provides support for the **D3D\_FEATURE\_LEVEL\_11\_0** feature level and earlier but if we specify **D3D\_FEATURE\_LEVEL\_11\_1** then the **D3D11CreateDeviceAndSwapChain** function will fail. In fact, if you do not have the latest version of the Windows SDK, the **D3D\_FEATURE\_LEVEL\_11\_1** enumeration value may not even be defined and you won’t be able to compile this code. If this is the case for you, make sure you update Visual Studio 2012 to the latest version using the Windows Update utility. In the case this function does fail, we simply try again, but this time we remove the **D3D\_FEATURE\_LEVEL\_11\_1** value from the **featureLevels** array.
 
@@ -883,9 +883,9 @@ HRESULT CreateRenderTargetView(
 
 Where:
 
--   **ID3D11Resource \*pResource**: Pointer to a [ID3D11Resource](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11resource) that represents a render target. This resource must have been created with the [D3D11\_BIND\_RENDER\_TARGET](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag) flag.
--   **const D3D11\_RENDER\_TARGET\_VIEW\_DESC \*pDesc**: Pointer to a [D3D11\_RENDER\_TARGET\_VIEW\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_render_target_view_desc) that represents a render-target view description. Set this parameter to **NULL** to create a view that accesses all of the subresources in mipmap level 0.
--   **ID3D11RenderTargetView \*\*ppRTView**: Address of a pointer to an [ID3D11RenderTargetView](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11rendertargetview). Set this parameter to **NULL** to validate the other input parameters (the method will return **S\_FALSE** if the other input parameters pass validation).
+- **ID3D11Resource \*pResource**: Pointer to a [ID3D11Resource](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11resource) that represents a render target. This resource must have been created with the [D3D11\_BIND\_RENDER\_TARGET](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag) flag.
+- **const D3D11\_RENDER\_TARGET\_VIEW\_DESC \*pDesc**: Pointer to a [D3D11\_RENDER\_TARGET\_VIEW\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_render_target_view_desc) that represents a render-target view description. Set this parameter to **NULL** to create a view that accesses all of the subresources in mipmap level 0.
+- **ID3D11RenderTargetView \*\*ppRTView**: Address of a pointer to an [ID3D11RenderTargetView](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11rendertargetview). Set this parameter to **NULL** to validate the other input parameters (the method will return **S\_FALSE** if the other input parameters pass validation).
 
 In this case, because we want to create a render target view from the entire back buffer resource, we can pass **NULL** (or **nullptr**) for the 2nd parameter to this method.
 
@@ -921,20 +921,20 @@ typedef struct D3D11_TEXTURE2D_DESC {
 
 Where:
 
--   **UINT Width**: Texture width (in texels). This should be the same width as the swap chain’s back buffer.
--   **UINT Height**: Texture height (in texels). This should be the same height as the swap chain’s back buffer.
--   **UINT MipLevels**: The maximum number of mipmap levels in the texture. See the remarks in [D3D11\_TEX1D\_SRV](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_tex1d_srv). Use 1 for a multisampled texture; or 0 to generate a full set of subtextures.
--   **UINT ArraySize**: Number of textures in the texture array. For single textures, use 1.
--   **DXGI\_FORMAT Format**: The texture format. For this texture, we use **DXGI\_FORMAT\_D24\_UNORM\_S8\_UINT** which is a 32-bit z-buffer format that supports 24 bits for depth and 8 bits for stencil. (See [DXGI\_FORMAT](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)).
--   **DXGI\_SAMPLE\_DESC SampleDesc**: Structure that specifies multisampling parameters for the texture. See [DXGI\_SAMPLE\_DESC](https://learn.microsoft.com/windows/win32/api/dxgicommon/ns-dxgicommon-dxgi_sample_desc). The value of the **SampleDesc** member should match the **SampleDesc** member of the [DXGI\_SWAP\_CHAIN\_DESC](https://learn.microsoft.com/windows/win32/api/dxgi/ns-dxgi-dxgi_swap_chain_desc) structure which was created earlier.
--   **D3D11\_USAGE Usage**: Value that identifies how the texture is to be read from and written to. It can be one of the following values [\[31\]](#ref-d3d11-usage):
-    -   **D3D11\_USAGE\_DEFAULT** (Default): A resource that requires read and write access by the GPU. This is likely to be the most common usage choice.
-    -   **D3D11\_USAGE\_IMMUTABLE**: A resource that can only be read by the GPU. It cannot be written by the GPU, and cannot be accessed at all by the CPU. This type of resource must be initialized when it is created, since it cannot be changed after creation.
-    -   **D3D11\_USAGE\_DYNAMIC**: A resource that is accessible by both the GPU (read only) and the CPU (write only). A dynamic resource is a good choice for a resource that will be updated by the CPU at least once per frame. To update a dynamic resource, use a **Map** method.
-    -   **D3D11\_USAGE\_STAGING**: A resource that supports data transfer (copy) from the GPU to the CPU.
--   **UINT BindFlags**: Identifies how to bind a resource to the pipeline (see [D3D11\_BIND\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag)). In this case, we specify **D3D11\_BIND\_DEPTH\_STENCIL** which indicates that this buffer is to be used as a depth-stencil target for the output-merger stage.
--   **UINT CPUAccessFlags**: Specifies the types of CPU access allowed for a resource (see [D3D11\_CPU\_ACCESS\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_cpu_access_flag)). This value can be **0** in which case no CPU access is required for the resource.
--   **UINT MiscFlags**: Identifies additional options for resources (see [D3D11\_RESOURCE\_MISC\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_resource_misc_flag)).
+- **UINT Width**: Texture width (in texels). This should be the same width as the swap chain’s back buffer.
+- **UINT Height**: Texture height (in texels). This should be the same height as the swap chain’s back buffer.
+- **UINT MipLevels**: The maximum number of mipmap levels in the texture. See the remarks in [D3D11\_TEX1D\_SRV](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_tex1d_srv). Use 1 for a multisampled texture; or 0 to generate a full set of subtextures.
+- **UINT ArraySize**: Number of textures in the texture array. For single textures, use 1.
+- **DXGI\_FORMAT Format**: The texture format. For this texture, we use **DXGI\_FORMAT\_D24\_UNORM\_S8\_UINT** which is a 32-bit z-buffer format that supports 24 bits for depth and 8 bits for stencil. (See [DXGI\_FORMAT](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format)).
+- **DXGI\_SAMPLE\_DESC SampleDesc**: Structure that specifies multisampling parameters for the texture. See [DXGI\_SAMPLE\_DESC](https://learn.microsoft.com/windows/win32/api/dxgicommon/ns-dxgicommon-dxgi_sample_desc). The value of the **SampleDesc** member should match the **SampleDesc** member of the [DXGI\_SWAP\_CHAIN\_DESC](https://learn.microsoft.com/windows/win32/api/dxgi/ns-dxgi-dxgi_swap_chain_desc) structure which was created earlier.
+- **D3D11\_USAGE Usage**: Value that identifies how the texture is to be read from and written to. It can be one of the following values [\[31\]](#ref-d3d11-usage):
+    - **D3D11\_USAGE\_DEFAULT** (Default): A resource that requires read and write access by the GPU. This is likely to be the most common usage choice.
+    - **D3D11\_USAGE\_IMMUTABLE**: A resource that can only be read by the GPU. It cannot be written by the GPU, and cannot be accessed at all by the CPU. This type of resource must be initialized when it is created, since it cannot be changed after creation.
+    - **D3D11\_USAGE\_DYNAMIC**: A resource that is accessible by both the GPU (read only) and the CPU (write only). A dynamic resource is a good choice for a resource that will be updated by the CPU at least once per frame. To update a dynamic resource, use a **Map** method.
+    - **D3D11\_USAGE\_STAGING**: A resource that supports data transfer (copy) from the GPU to the CPU.
+- **UINT BindFlags**: Identifies how to bind a resource to the pipeline (see [D3D11\_BIND\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag)). In this case, we specify **D3D11\_BIND\_DEPTH\_STENCIL** which indicates that this buffer is to be used as a depth-stencil target for the output-merger stage.
+- **UINT CPUAccessFlags**: Specifies the types of CPU access allowed for a resource (see [D3D11\_CPU\_ACCESS\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_cpu_access_flag)). This value can be **0** in which case no CPU access is required for the resource.
+- **UINT MiscFlags**: Identifies additional options for resources (see [D3D11\_RESOURCE\_MISC\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_resource_misc_flag)).
 
 With the **D3D11\_TEXTURE2D\_DESC** variable configured, we can create the texture resource with the **ID3D11Device::CreateTexture2D** method. This method has the following signature [\[32\]](#ref-createtexture2d):
 
@@ -948,9 +948,9 @@ HRESULT CreateTexture2D(
 
 Where:
 
--   **const D3D11\_TEXTURE2D\_DESC \*pDesc**: A pointer to a [D3D11\_TEXTURE2D\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_texture2d_desc) structure that describes a 2D texture resource.
--   **const D3D11\_SUBRESOURCE\_DATA \*pInitialData**: A pointer to an array of [D3D11\_SUBRESOURCE\_DATA](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_subresource_data) structures that describe subresources for the 2D texture resource. If the resource is multisampled, **pInitialData** must be **NULL** because multisampled resources cannot be initialized with data when they are created. If the resource is created using the **D3D11\_USAGE\_IMMUTABLE** usage flag, then **pInitialData** must be valid and cannot be **NULL**.
--   **ID3D11Texture2D \*\*ppTexture2D**: A pointer to a buffer that receives a pointer to a ID3D11Texture2D interface for the created texture.
+- **const D3D11\_TEXTURE2D\_DESC \*pDesc**: A pointer to a [D3D11\_TEXTURE2D\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_texture2d_desc) structure that describes a 2D texture resource.
+- **const D3D11\_SUBRESOURCE\_DATA \*pInitialData**: A pointer to an array of [D3D11\_SUBRESOURCE\_DATA](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_subresource_data) structures that describe subresources for the 2D texture resource. If the resource is multisampled, **pInitialData** must be **NULL** because multisampled resources cannot be initialized with data when they are created. If the resource is created using the **D3D11\_USAGE\_IMMUTABLE** usage flag, then **pInitialData** must be valid and cannot be **NULL**.
+- **ID3D11Texture2D \*\*ppTexture2D**: A pointer to a buffer that receives a pointer to a ID3D11Texture2D interface for the created texture.
 
 #### Create a Depth-Stencil View
 
@@ -971,9 +971,9 @@ HRESULT CreateDepthStencilView(
 
 Where:
 
--   **ID3D11Resource \*pResource**: Pointer to the resource that will serve as the depth-stencil surface. This resource must have been created with the **D3D11\_BIND\_DEPTH\_STENCIL** flag.
--   **const D3D11\_DEPTH\_STENCIL\_VIEW\_DESC \*pDesc**: Pointer to a depth-stencil-view description (see [D3D11\_DEPTH\_STENCIL\_VIEW\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_depth_stencil_view_desc)). Set this parameter to **NULL** to create a view that accesses mipmap level 0 of the entire resource (using the format the resource was created with).
--   **ID3D11DepthStencilView \*\*ppDepthStencilView**: Address of a pointer to an [ID3D11DepthStencilView](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11depthstencilview).
+- **ID3D11Resource \*pResource**: Pointer to the resource that will serve as the depth-stencil surface. This resource must have been created with the **D3D11\_BIND\_DEPTH\_STENCIL** flag.
+- **const D3D11\_DEPTH\_STENCIL\_VIEW\_DESC \*pDesc**: Pointer to a depth-stencil-view description (see [D3D11\_DEPTH\_STENCIL\_VIEW\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_depth_stencil_view_desc)). Set this parameter to **NULL** to create a view that accesses mipmap level 0 of the entire resource (using the format the resource was created with).
+- **ID3D11DepthStencilView \*\*ppDepthStencilView**: Address of a pointer to an [ID3D11DepthStencilView](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11depthstencilview).
 
 Similar to the color buffer of the swap chain, we want to create a depth-stencil-view of the entire resource. In this case, we can simply supply **NULL** (or **nullptr**) for the 2nd parameter to the **CreateDepthStencilView** method.
 
@@ -1003,16 +1003,16 @@ typedef struct D3D11_DEPTH_STENCIL_DESC {
 
 Where:
 
--   **BOOL DepthEnable**: Set to **TRUE** to enable depth testing, or set to **FALSE** to disable depth testing.
--   **D3D11\_DEPTH\_WRITE\_MASK DepthWriteMask**: Identify a portion of the depth-stencil buffer that can be modified by depth data. This variable can be one of the following values [\[35\]](#ref-d3d11-depth-write-mask):
-    -   **D3D11\_DEPTH\_WRITE\_MASK\_ZERO**: Turn off writes to the depth-stencil buffer.
-    -   **D3D11\_DEPTH\_WRITE\_MASK\_ALL**: Turn on writes to the depth-stencil buffer.
--   **D3D11\_COMPARISON\_FUNC DepthFunc**: A function that compares depth data against existing depth data. The function options are listed in [D3D11\_COMPARISON\_FUNC](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_comparison_func).
--   **BOOL StencilEnable**: Set to **TRUE** to enable stencil testing, or set to **FALSE** to disable stencil testing.
--   **UINT8 StencilReadMask**: Identify a portion of the depth-stencil buffer for reading stencil data.
--   **UINT8 StencilWriteMask**: Identify a portion of the depth-stencil buffer for writing stencil data.
--   **D3D11\_DEPTH\_STENCILOP\_DESC FrontFace**: Identify how to use the results of the depth test and the stencil test for pixels whose surface normal is facing towards the camera (see [D3D11\_DEPTH\_STENCILOP\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_depth_stencilop_desc)).
--   **D3D11\_DEPTH\_STENCILOP\_DESC BackFace**: Identify how to use the results of the depth test and the stencil test for pixels whose surface normal is facing away from the camera (see [D3D11\_DEPTH\_STENCILOP\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_depth_stencilop_desc)).
+- **BOOL DepthEnable**: Set to **TRUE** to enable depth testing, or set to **FALSE** to disable depth testing.
+- **D3D11\_DEPTH\_WRITE\_MASK DepthWriteMask**: Identify a portion of the depth-stencil buffer that can be modified by depth data. This variable can be one of the following values [\[35\]](#ref-d3d11-depth-write-mask):
+    - **D3D11\_DEPTH\_WRITE\_MASK\_ZERO**: Turn off writes to the depth-stencil buffer.
+    - **D3D11\_DEPTH\_WRITE\_MASK\_ALL**: Turn on writes to the depth-stencil buffer.
+- **D3D11\_COMPARISON\_FUNC DepthFunc**: A function that compares depth data against existing depth data. The function options are listed in [D3D11\_COMPARISON\_FUNC](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_comparison_func).
+- **BOOL StencilEnable**: Set to **TRUE** to enable stencil testing, or set to **FALSE** to disable stencil testing.
+- **UINT8 StencilReadMask**: Identify a portion of the depth-stencil buffer for reading stencil data.
+- **UINT8 StencilWriteMask**: Identify a portion of the depth-stencil buffer for writing stencil data.
+- **D3D11\_DEPTH\_STENCILOP\_DESC FrontFace**: Identify how to use the results of the depth test and the stencil test for pixels whose surface normal is facing towards the camera (see [D3D11\_DEPTH\_STENCILOP\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_depth_stencilop_desc)).
+- **D3D11\_DEPTH\_STENCILOP\_DESC BackFace**: Identify how to use the results of the depth test and the stencil test for pixels whose surface normal is facing away from the camera (see [D3D11\_DEPTH\_STENCILOP\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_depth_stencilop_desc)).
 
 In this case, we enable depth testing and set the depth function to **D3D11\_COMPARISON\_LESS** which says that if the source data is less than the destination data (that is, the source data is closer to the eye), then the depth comparison passes.
 
@@ -1033,8 +1033,8 @@ HRESULT CreateDepthStencilState(
 
 Where:
 
--   **const D3D11\_DEPTH\_STENCIL\_DESC \*pDepthStencilDesc**: Pointer to a depth-stencil state description (see [D3D11\_DEPTH\_STENCIL\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_depth_stencil_desc)).
--   **ID3D11DepthStencilState \*\*ppDepthStencilState**: Address of a pointer to the depth-stencil state object created (see [ID3D11DepthStencilState](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11depthstencilstate)).
+- **const D3D11\_DEPTH\_STENCIL\_DESC \*pDepthStencilDesc**: Pointer to a depth-stencil state description (see [D3D11\_DEPTH\_STENCIL\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_depth_stencil_desc)).
+- **ID3D11DepthStencilState \*\*ppDepthStencilState**: Address of a pointer to the depth-stencil state object created (see [ID3D11DepthStencilState](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11depthstencilstate)).
 
 #### Create a Rasterizer State Object
 
@@ -1062,22 +1062,22 @@ typedef struct D3D11_RASTERIZER_DESC {
 
 Where:
 
--   **D3D11\_FILL\_MODE FillMode**: Determines the fill mode to use when rendering and can be one of the following values [\[38\]](#ref-d3d11-fill-mode):
-    -   **D3D11\_FILL\_WIREFRAME**: Draw lines connecting the vertices.
-    -   **D3D11\_FILL\_SOLID**: Fill the triangles formed by the vertices.
--   **D3D11\_CULL\_MODE CullMode**: Indicates triangles facing the specified direction are not drawn. This variable can have one of the following values [\[39\]](#ref-d3d11-cull-mode):
-    -   **D3D11\_CULL\_NONE**: Always draw all triangles.
-    -   **D3D11\_CULL\_FRONT**: Do not draw triangles that are front-facing.
-    -   **D3D11\_CULL\_BACK**: Do not draw triangles that are back-facing.
--   **BOOL FrontCounterClockwise**: Determines if a triangle is front- or back-facing. If this parameter is **TRUE**, a triangle will be considered front-facing if its vertices are counter-clockwise on the render target and considered back-facing if they are clockwise. If this parameter is **FALSE**, the opposite is true.
--   **INT DepthBias**: Depth value added to a given pixel. For info about depth bias, see [Depth Bias](https://learn.microsoft.com/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias).
--   **FLOAT DepthBiasClamp**: Maximum depth bias of a pixel. For info about depth bias, see [Depth Bias](https://learn.microsoft.com/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias).
--   **FLOAT SlopeScaledDepthBias**: Scalar on a given pixel’s slope. For info about depth bias, see [Depth Bias](https://learn.microsoft.com/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias).
--   **BOOL DepthClipEnable**: Enable clipping based on distance.  
+- **D3D11\_FILL\_MODE FillMode**: Determines the fill mode to use when rendering and can be one of the following values [\[38\]](#ref-d3d11-fill-mode):
+    - **D3D11\_FILL\_WIREFRAME**: Draw lines connecting the vertices.
+    - **D3D11\_FILL\_SOLID**: Fill the triangles formed by the vertices.
+- **D3D11\_CULL\_MODE CullMode**: Indicates triangles facing the specified direction are not drawn. This variable can have one of the following values [\[39\]](#ref-d3d11-cull-mode):
+    - **D3D11\_CULL\_NONE**: Always draw all triangles.
+    - **D3D11\_CULL\_FRONT**: Do not draw triangles that are front-facing.
+    - **D3D11\_CULL\_BACK**: Do not draw triangles that are back-facing.
+- **BOOL FrontCounterClockwise**: Determines if a triangle is front- or back-facing. If this parameter is **TRUE**, a triangle will be considered front-facing if its vertices are counter-clockwise on the render target and considered back-facing if they are clockwise. If this parameter is **FALSE**, the opposite is true.
+- **INT DepthBias**: Depth value added to a given pixel. For info about depth bias, see [Depth Bias](https://learn.microsoft.com/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias).
+- **FLOAT DepthBiasClamp**: Maximum depth bias of a pixel. For info about depth bias, see [Depth Bias](https://learn.microsoft.com/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias).
+- **FLOAT SlopeScaledDepthBias**: Scalar on a given pixel’s slope. For info about depth bias, see [Depth Bias](https://learn.microsoft.com/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias).
+- **BOOL DepthClipEnable**: Enable clipping based on distance.  
     The hardware always performs x and y clipping of rasterized coordinates. When **DepthClipEnable** is set to the default–**TRUE**, the hardware also clips the z value. When you set **DepthClipEnable** to **FALSE**, the hardware skips the z clipping.
--   **BOOL ScissorEnable**: Enable scissor-rectangle culling. All pixels outside an active scissor rectangle are culled. Scissor rectangles can be specified using the [ID3D11DeviceContext::RSSetScissorRects](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-rssetscissorrects) method.
--   **BOOL MultisampleEnable**: Specifies whether to use the quadrilateral or alpha line anti-aliasing algorithm on multisample antialiasing (MSAA) render targets. Set to **TRUE** to use the quadrilateral line anti-aliasing algorithm and to **FALSE** to use the alpha line anti-aliasing algorithm.
--   **BOOL AntialiasedLineEnable**: Specifies whether to enable line antialiasing; only applies if doing line drawing and **MultisampleEnable** is **FALSE**.
+- **BOOL ScissorEnable**: Enable scissor-rectangle culling. All pixels outside an active scissor rectangle are culled. Scissor rectangles can be specified using the [ID3D11DeviceContext::RSSetScissorRects](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-rssetscissorrects) method.
+- **BOOL MultisampleEnable**: Specifies whether to use the quadrilateral or alpha line anti-aliasing algorithm on multisample antialiasing (MSAA) render targets. Set to **TRUE** to use the quadrilateral line anti-aliasing algorithm and to **FALSE** to use the alpha line anti-aliasing algorithm.
+- **BOOL AntialiasedLineEnable**: Specifies whether to enable line antialiasing; only applies if doing line drawing and **MultisampleEnable** is **FALSE**.
 
 With the **D3D11\_RASTERIZER\_DESC** structure filled in, we can create the **ID3D11RasterizerState** object using the **ID3D11Device::CreateRasterizerState** method.
 
@@ -1092,8 +1092,8 @@ HRESULT CreateRasterizerState(
 
 Where:
 
--   **const D3D11\_RASTERIZER\_DESC \*pRasterizerDesc**: Pointer to a rasterizer state description.
--   **ID3D11RasterizerState \*\*ppRasterizerState**: Address of a pointer to the rasterizer state object created (see [ID3D11RasterizerState](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11rasterizerstate)).
+- **const D3D11\_RASTERIZER\_DESC \*pRasterizerDesc**: Pointer to a rasterizer state description.
+- **ID3D11RasterizerState \*\*ppRasterizerState**: Address of a pointer to the rasterizer state object created (see [ID3D11RasterizerState](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11rasterizerstate)).
 
 #### Initialize the Viewport
 
@@ -1119,12 +1119,12 @@ typedef struct D3D11_VIEWPORT {
 
 Where:
 
--   **FLOAT TopLeftX**: X position of the left hand side of the viewport.
--   **FLOAT TopLeftY**: Y position of the top of the viewport.
--   **FLOAT Width**: Width of the viewport.
--   **FLOAT Height**: Height of the viewport.
--   **FLOAT MinDepth**: Minimum depth of the viewport. Ranges between 0 and 1.
--   **FLOAT MaxDepth**: Maximum depth of the viewport. Ranges between 0 and 1.
+- **FLOAT TopLeftX**: X position of the left hand side of the viewport.
+- **FLOAT TopLeftY**: Y position of the top of the viewport.
+- **FLOAT Width**: Width of the viewport.
+- **FLOAT Height**: Height of the viewport.
+- **FLOAT MinDepth**: Minimum depth of the viewport. Ranges between 0 and 1.
+- **FLOAT MaxDepth**: Maximum depth of the viewport. Ranges between 0 and 1.
 
 Now that we have initialized Direct3D, let’s update the **wWinMain** to include this change.
 
@@ -1389,15 +1389,15 @@ HRESULT WINAPI D3DCompileFromFile(
 
 Where:
 
--   **LPCWSTR pFileName**: A pointer to a constant null-terminated string that contains the name of the file that contains the shader code.
--   **const D3D\_SHADER\_MACRO \*pDefines**: An optional array of [D3D\_SHADER\_MACRO](https://learn.microsoft.com/windows/win32/api/d3dcommon/ns-d3dcommon-d3d_shader_macro) structures that define shader macros. Each macro definition contains a name and a NULL-terminated definition. If not used, set to **NULL**.
--   **ID3DInclude \*pInclude**: An optional pointer to an [ID3DInclude](https://learn.microsoft.com/windows/win32/api/d3dcommon/nn-d3dcommon-id3dinclude) interface that the compiler uses to handle include files. If you set this parameter to **NULL** and the shader contains a **#include** directive, a compile error occurs. You can pass the **D3D\_COMPILE\_STANDARD\_FILE\_INCLUDE** macro, which is a pointer to a default include handler. This default include handler includes files that are relative to the current directory.
--   **LPCSTR pEntrypoint**: A pointer to a constant null-terminated string that contains the name of the shader entry point function where shader execution begins.
--   **LPCSTR pTarget**: A pointer to a constant null-terminated string that specifies the shader target or set of shader features to compile against. The shader target can be a shader model (for example, shader model 2, shader model 3, shader model 4, or shader model 5 and later). The target can also be an effect type (for example, fx\_4\_1). For info about the targets that various profiles support, see [Specifying Compiler Targets](https://learn.microsoft.com/windows/win32/direct3dhlsl/specifying-compiler-targets).
--   **UINT Flags1**: A combination of shader [compile options](https://learn.microsoft.com/windows/win32/direct3dhlsl/d3dcompile-constants) that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the HLSL code.
--   **UINT Flags2**: A combination of [effect compile options](https://learn.microsoft.com/windows/win32/direct3dhlsl/d3dcompile-effect-constants) that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the effect. When you compile a shader and not an effect file, **D3DCompileFromFile** ignores **Flags2** and should be set to 0.
--   **ID3DBlob \*\*ppCode**: A pointer to a variable that receives a pointer to the [ID3DBlob](https://learn.microsoft.com/previous-versions/windows/desktop/legacy/ff728743(v=vs.85)) interface that you can use to access the compiled code.
--   **ID3DBlob \*\*ppErrorMsgs**: An optional pointer to a variable that receives a pointer to the [ID3DBlob](https://learn.microsoft.com/previous-versions/windows/desktop/legacy/ff728743(v=vs.85)) interface that you can use to access compiler error messages, or **NULL** if there are no errors.
+- **LPCWSTR pFileName**: A pointer to a constant null-terminated string that contains the name of the file that contains the shader code.
+- **const D3D\_SHADER\_MACRO \*pDefines**: An optional array of [D3D\_SHADER\_MACRO](https://learn.microsoft.com/windows/win32/api/d3dcommon/ns-d3dcommon-d3d_shader_macro) structures that define shader macros. Each macro definition contains a name and a NULL-terminated definition. If not used, set to **NULL**.
+- **ID3DInclude \*pInclude**: An optional pointer to an [ID3DInclude](https://learn.microsoft.com/windows/win32/api/d3dcommon/nn-d3dcommon-id3dinclude) interface that the compiler uses to handle include files. If you set this parameter to **NULL** and the shader contains a **#include** directive, a compile error occurs. You can pass the **D3D\_COMPILE\_STANDARD\_FILE\_INCLUDE** macro, which is a pointer to a default include handler. This default include handler includes files that are relative to the current directory.
+- **LPCSTR pEntrypoint**: A pointer to a constant null-terminated string that contains the name of the shader entry point function where shader execution begins.
+- **LPCSTR pTarget**: A pointer to a constant null-terminated string that specifies the shader target or set of shader features to compile against. The shader target can be a shader model (for example, shader model 2, shader model 3, shader model 4, or shader model 5 and later). The target can also be an effect type (for example, fx\_4\_1). For info about the targets that various profiles support, see [Specifying Compiler Targets](https://learn.microsoft.com/windows/win32/direct3dhlsl/specifying-compiler-targets).
+- **UINT Flags1**: A combination of shader [compile options](https://learn.microsoft.com/windows/win32/direct3dhlsl/d3dcompile-constants) that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the HLSL code.
+- **UINT Flags2**: A combination of [effect compile options](https://learn.microsoft.com/windows/win32/direct3dhlsl/d3dcompile-effect-constants) that are combined by using a bitwise OR operation. The resulting value specifies how the compiler compiles the effect. When you compile a shader and not an effect file, **D3DCompileFromFile** ignores **Flags2** and should be set to 0.
+- **ID3DBlob \*\*ppCode**: A pointer to a variable that receives a pointer to the [ID3DBlob](https://learn.microsoft.com/previous-versions/windows/desktop/legacy/ff728743(v=vs.85)) interface that you can use to access the compiled code.
+- **ID3DBlob \*\*ppErrorMsgs**: An optional pointer to a variable that receives a pointer to the [ID3DBlob](https://learn.microsoft.com/previous-versions/windows/desktop/legacy/ff728743(v=vs.85)) interface that you can use to access compiler error messages, or **NULL** if there are no errors.
 
 If the shader compilation fails, (which is likely to happen if our shader contains a syntax error) [D3DCompileFromFile](https://learn.microsoft.com/windows/win32/api/d3dcompiler/nf-d3dcompiler-d3dcompilefromfile) returns a [Direct3D 11 error code](https://learn.microsoft.com/windows/win32/direct3d11/d3d11-graphics-reference-returnvalues) and we can use the error blob to determine the error that occured. The [OutputDebugString](https://learn.microsoft.com/windows/win32/api/debugapi/nf-debugapi-outputdebugstringa) function can be used to send the error message directly to the Visual Studio debug log.
 
@@ -1440,12 +1440,12 @@ typedef struct D3D11_BUFFER_DESC {
 
 Where:
 
--   **UINT ByteWidth**: The size of the buffer in bytes.
--   **D3D11\_USAGE Usage**: Identify how the buffer is expected to be read from and written to. Frequency of update is a key factor. The most common value is typically **D3D11\_USAGE\_DEFAULT**; see [D3D11\_USAGE](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_usage) for all possible values.
--   **UINT BindFlags**: Identify how the buffer will be bound to the pipeline (see [D3D11\_BIND\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag)). Since this is a vertex buffer we specify the **D3D11\_BIND\_VERTEX\_BUFFER** which allows this buffer to be bound as a vertex buffer to the input-assembler stage.
--   **UINT CPUAccessFlags**: CPU access flags (see [D3D11\_CPU\_ACCESS\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_cpu_access_flag)) or 0 if no CPU access is necessary.
--   **UINT MiscFlags**: Miscellaneous flags (see [D3D11\_RESOURCE\_MISC\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_resource_misc_flag)) or 0 if unused.
--   **UINT StructureByteStride**: The size of each element in the buffer structure (in bytes) when the buffer represents a structured buffer. For more info about structured buffers, see [Structured Buffer](https://learn.microsoft.com/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources).
+- **UINT ByteWidth**: The size of the buffer in bytes.
+- **D3D11\_USAGE Usage**: Identify how the buffer is expected to be read from and written to. Frequency of update is a key factor. The most common value is typically **D3D11\_USAGE\_DEFAULT**; see [D3D11\_USAGE](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_usage) for all possible values.
+- **UINT BindFlags**: Identify how the buffer will be bound to the pipeline (see [D3D11\_BIND\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag)). Since this is a vertex buffer we specify the **D3D11\_BIND\_VERTEX\_BUFFER** which allows this buffer to be bound as a vertex buffer to the input-assembler stage.
+- **UINT CPUAccessFlags**: CPU access flags (see [D3D11\_CPU\_ACCESS\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_cpu_access_flag)) or 0 if no CPU access is necessary.
+- **UINT MiscFlags**: Miscellaneous flags (see [D3D11\_RESOURCE\_MISC\_FLAG](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_resource_misc_flag)) or 0 if unused.
+- **UINT StructureByteStride**: The size of each element in the buffer structure (in bytes) when the buffer represents a structured buffer. For more info about structured buffers, see [Structured Buffer](https://learn.microsoft.com/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources).
 
 The [D3D11\_SUBRESOURCE\_DATA](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_subresource_data) structure is used to specify the data that is used to initialize a buffer when it is created.
 
@@ -1461,9 +1461,9 @@ typedef struct D3D11_SUBRESOURCE_DATA {
 
 Where:
 
--   **const void \*pSysMem**: A pointer to the data to initialize the buffer with.
--   **UINT SysMemPitch**: The distance (in bytes) from the beginning of one line of a texture to the next line. System-memory pitch is used only for 2D and 3D texture data as it is has no meaning for the other resource types.
--   **UINT SysMemSlicePitch**: The distance (in bytes) from the beginning of one depth level to the next. System-memory-slice pitch is only used for 3D texture data as it has no meaning for the other resource types.
+- **const void \*pSysMem**: A pointer to the data to initialize the buffer with.
+- **UINT SysMemPitch**: The distance (in bytes) from the beginning of one line of a texture to the next line. System-memory pitch is used only for 2D and 3D texture data as it is has no meaning for the other resource types.
+- **UINT SysMemSlicePitch**: The distance (in bytes) from the beginning of one depth level to the next. System-memory-slice pitch is only used for 3D texture data as it has no meaning for the other resource types.
 
 On line 406, we set the **pSysMem** member of the **resourceData** variable to the **g\_Vertices** array which was defined in the main preamble.
 
@@ -1481,9 +1481,9 @@ HRESULT CreateBuffer(
 
 Where:
 
--   **const D3D11\_BUFFER\_DESC \*pDesc**: A pointer to a [D3D11\_BUFFER\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_buffer_desc) structure that describes the buffer.
--   **const D3D11\_SUBRESOURCE\_DATA \*pInitialData**: A pointer to a [D3D11\_SUBRESOURCE\_DATA](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_subresource_data) structure that describes the initialization data; use **NULL** to allocate space only (with the exception that it cannot be **NULL** if the usage flag is **D3D11\_USAGE\_IMMUTABLE**).
--   **ID3D11Buffer \*\*ppBuffer**: Address of a pointer to the [ID3D11Buffer](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11buffer) interface for the buffer object created.
+- **const D3D11\_BUFFER\_DESC \*pDesc**: A pointer to a [D3D11\_BUFFER\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_buffer_desc) structure that describes the buffer.
+- **const D3D11\_SUBRESOURCE\_DATA \*pInitialData**: A pointer to a [D3D11\_SUBRESOURCE\_DATA](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_subresource_data) structure that describes the initialization data; use **NULL** to allocate space only (with the exception that it cannot be **NULL** if the usage flag is **D3D11\_USAGE\_IMMUTABLE**).
+- **ID3D11Buffer \*\*ppBuffer**: Address of a pointer to the [ID3D11Buffer](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11buffer) interface for the buffer object created.
 
 Next, we’ll create an index buffer using a similar method.
 
@@ -1539,9 +1539,9 @@ Now let’s load some shaders.
 
 As mentioned in the [Compiling Shaders](#compiling-shaders) section, there are several ways to load the shader at runtime.
 
-1.  Load and compile the shader at runtime.
-2.  Load a precompiled shader object.
-3.  Create a shader from a byte array.
+1. Load and compile the shader at runtime.
+2. Load a precompiled shader object.
+3. Create a shader from a byte array.
 
 ##### Load and Compile at Runtime
 
@@ -1598,11 +1598,11 @@ HRESULT CreateInputLayout(
 
 Where:
 
--   **const D3D11\_INPUT\_ELEMENT\_DESC \*pInputElementDescs**: An array of the input-assembler stage input data types; each type is described by an element description (see [D3D11\_INPUT\_ELEMENT\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_input_element_desc)). This structure will be described in the next section.
--   **UINT NumElements**: The number of input elements in the **pInputElementDescs** array.
--   **const void \*pShaderBytecodeWithInputSignature**: A pointer to the compiled shader. The compiled shader code contains a input signature which is validated against the array of elements.
--   **SIZE\_T BytecodeLength**: The size in bytes of the **pShaderBytecodeWithInputSignature** array.
--   **ID3D11InputLayout \*\*ppInputLayout**: A pointer to the input-layout object created (see [ID3D11InputLayout](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11inputlayout)).
+- **const D3D11\_INPUT\_ELEMENT\_DESC \*pInputElementDescs**: An array of the input-assembler stage input data types; each type is described by an element description (see [D3D11\_INPUT\_ELEMENT\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_input_element_desc)). This structure will be described in the next section.
+- **UINT NumElements**: The number of input elements in the **pInputElementDescs** array.
+- **const void \*pShaderBytecodeWithInputSignature**: A pointer to the compiled shader. The compiled shader code contains a input signature which is validated against the array of elements.
+- **SIZE\_T BytecodeLength**: The size in bytes of the **pShaderBytecodeWithInputSignature** array.
+- **ID3D11InputLayout \*\*ppInputLayout**: A pointer to the input-layout object created (see [ID3D11InputLayout](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11inputlayout)).
 
 The input-layout is created from an array of [D3D11\_INPUT\_ELEMENT\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_input_element_desc) structures. Each element in the array describes a single element of the vertex buffer that is bound to the input-assembler stage.
 
@@ -1622,15 +1622,15 @@ typedef struct D3D11_INPUT_ELEMENT_DESC {
 
 Where:
 
--   **LPCSTR SemanticName**: The HLSL semantic associated with this element in a shader input-signature.
--   **UINT SemanticIndex**: The semantic index for the element. A semantic index modifies a semantic, with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic.
--   **DXGI\_FORMAT Format**: The data type of the element data. See [DXGI\_FORMAT](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format). For example, if the element describes a 4-component floating point vector, the **Format** flag would be set to **DXGI\_FORMAT\_R32G32B32A32\_FLOAT**.
--   **UINT InputSlot**: If using a single vertex buffer with interleaved vertex attributes then the input slot should always be 0. If using several packed vertex buffers where each vertex buffer contains the vertex data for a single vertex attribute, then the input slot is the index of the vertex buffer that is attached to the input assembler stage.
--   **UINT AlignedByteOffset**: Offset (in bytes) between each element. Use **D3D11\_APPEND\_ALIGNED\_ELEMENT** for convenience to define the current element directly after the previous one, including any packing if necessary.
--   **D3D11\_INPUT\_CLASSIFICATION InputSlotClass**: Identifies the input data class for a single input slot. This member can have one of the following values [\[50\]](#ref-d3d11-input-classification):
-    -   **D3D11\_INPUT\_PER\_VERTEX\_DATA**: Input data is per-vertex data.
-    -   **D3D11\_INPUT\_PER\_INSTANCE\_DATA**: Input data is per-instance data.
--   **UINT InstanceDataStepRate**: The number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to **D3D11\_INPUT\_PER\_VERTEX\_DATA**).
+- **LPCSTR SemanticName**: The HLSL semantic associated with this element in a shader input-signature.
+- **UINT SemanticIndex**: The semantic index for the element. A semantic index modifies a semantic, with an integer index number. A semantic index is only needed in a case where there is more than one element with the same semantic.
+- **DXGI\_FORMAT Format**: The data type of the element data. See [DXGI\_FORMAT](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format). For example, if the element describes a 4-component floating point vector, the **Format** flag would be set to **DXGI\_FORMAT\_R32G32B32A32\_FLOAT**.
+- **UINT InputSlot**: If using a single vertex buffer with interleaved vertex attributes then the input slot should always be 0. If using several packed vertex buffers where each vertex buffer contains the vertex data for a single vertex attribute, then the input slot is the index of the vertex buffer that is attached to the input assembler stage.
+- **UINT AlignedByteOffset**: Offset (in bytes) between each element. Use **D3D11\_APPEND\_ALIGNED\_ELEMENT** for convenience to define the current element directly after the previous one, including any packing if necessary.
+- **D3D11\_INPUT\_CLASSIFICATION InputSlotClass**: Identifies the input data class for a single input slot. This member can have one of the following values [\[50\]](#ref-d3d11-input-classification):
+    - **D3D11\_INPUT\_PER\_VERTEX\_DATA**: Input data is per-vertex data.
+    - **D3D11\_INPUT\_PER\_INSTANCE\_DATA**: Input data is per-instance data.
+- **UINT InstanceDataStepRate**: The number of instances to draw using the same per-instance data before advancing in the buffer by one element. This value must be 0 for an element that contains per-vertex data (the slot class is set to **D3D11\_INPUT\_PER\_VERTEX\_DATA**).
 
 Armed with this information, we can define the **D3D11\_INPUT\_ELEMENT\_DESC** array that defines the layout of our vertex data and create the [ID3D11InputLayout](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11inputlayout) object.
 
@@ -1676,12 +1676,12 @@ void UpdateSubresource(
 
 Where:
 
--   **ID3D11Resource \*pDstResource**: A pointer to the destination resource (see [ID3D11Resource](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11resource)).
--   **UINT DstSubresource**: A zero-based index, that identifies the destination subresource. See [D3D11CalcSubresource](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-d3d11calcsubresource) for more details.
--   **const D3D11\_BOX \*pDstBox**: A pointer to a box that defines the portion of the destination subresource to copy the resource data into. Coordinates are in bytes for buffers and in texels for textures. If NULL, the data is written to the destination subresource with no offset. The dimensions of the source must fit the destination (see [D3D11\_BOX](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_box)).
--   **const void \*pSrcData**: A pointer to the source data in memory.
--   **UINT SrcRowPitch**: The size of one row of the source data.
--   **UINT SrcDepthPitch**: The size of one depth slice of source data.
+- **ID3D11Resource \*pDstResource**: A pointer to the destination resource (see [ID3D11Resource](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11resource)).
+- **UINT DstSubresource**: A zero-based index, that identifies the destination subresource. See [D3D11CalcSubresource](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-d3d11calcsubresource) for more details.
+- **const D3D11\_BOX \*pDstBox**: A pointer to a box that defines the portion of the destination subresource to copy the resource data into. Coordinates are in bytes for buffers and in texels for textures. If NULL, the data is written to the destination subresource with no offset. The dimensions of the source must fit the destination (see [D3D11\_BOX](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_box)).
+- **const void \*pSrcData**: A pointer to the source data in memory.
+- **UINT SrcRowPitch**: The size of one row of the source data.
+- **UINT SrcDepthPitch**: The size of one depth slice of source data.
 
 For a shader-constant buffer; set **pDstBox** to **NULL**. It is not possible to use this method to partially update a shader-constant buffer [\[51\]](#ref-updatesubresource).
 
@@ -1723,16 +1723,16 @@ The **Present** function is called at the end of the drawing code and finalizes 
 
 The [IDXGISwapChain::Present](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present) method is used to flip the back buffer to the front for display in the application window. The [IDXGISwapChain::Present](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present) method takes two parameters [\[55\]](#ref-present):
 
--   **UINT SyncInterval**: An integer that specifies how to synchronize presentation of a frame with the vertical blank. For the bit-block transfer (bitblt) model ([DXGI\_SWAP\_EFFECT\_DISCARD](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants) or [DXGI\_SWAP\_EFFECT\_SEQUENTIAL](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants)), values are:
+- **UINT SyncInterval**: An integer that specifies how to synchronize presentation of a frame with the vertical blank. For the bit-block transfer (bitblt) model ([DXGI\_SWAP\_EFFECT\_DISCARD](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants) or [DXGI\_SWAP\_EFFECT\_SEQUENTIAL](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants)), values are:
     
-    -   **0**: The presentation occurs immediately, there is no synchronization.
-    -   **1,2,3,4**: Synchronize presentation after the **nth** vertical blank.
+    - **0**: The presentation occurs immediately, there is no synchronization.
+    - **1,2,3,4**: Synchronize presentation after the **nth** vertical blank.
     
     For the flip model ([DXGI\_SWAP\_EFFECT\_FLIP\_SEQUENTIAL](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants)), values are:
     
-    -   **0**: Cancel the remaining time on the previously presented frame and discard this frame if a newer frame is queued.
-    -   **n > 0**: Synchronize presentation for at least **n** vertical blanks.
--   **UINT Flags**: An integer value that contains swap-chain presentation options. These options are defined by the [DXGI\_PRESENT](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present) constants.
+    - **0**: Cancel the remaining time on the previously presented frame and discard this frame if a newer frame is queued.
+    - **n > 0**: Synchronize presentation for at least **n** vertical blanks.
+- **UINT Flags**: An integer value that contains swap-chain presentation options. These options are defined by the [DXGI\_PRESENT](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present) constants.
 
 If vertical-sync is enabled, then the presentation of the back buffer will wait until the next vertical blank for the screen. If the vertical sync is not enabled, then the contents of the back buffer will be displayed immediately without synchronization.
 
@@ -1760,11 +1760,11 @@ The first stage of the rendering pipeline is the input assembler (**IA**).
 
 On line 850-853 we setup the various properties of the input assembler stage. On line 851, we bind the vertex buffer to to input assembler stage using the [ID3D11DeviceContext::IASetVertexBuffers](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-iasetvertexbuffers) method. This method takes the following arguments [\[56\]](#ref-iasetvertexbuffers):
 
--   **UINT StartSlot**: The first input slot for binding. The first vertex buffer is explicitly bound to the start slot; this causes each additional vertex buffer in the array to be implicitly bound to each subsequent input slot. The maximum of 16 or 32 input slots (ranges from 0 to **D3D11\_IA\_VERTEX\_INPUT\_RESOURCE\_SLOT\_COUNT** – 1) are available; the [maximum number of input slots depends on the feature level](https://learn.microsoft.com/windows/win32/direct3d11/overviews-direct3d-11-devices-downlevel-intro).
--   **UINT NumBuffers**: The number of vertex buffers in the array. The number of buffers (plus the starting slot) can’t exceed the total number of IA-stage input slots (ranges from 0 to **D3D11\_IA\_VERTEX\_INPUT\_RESOURCE\_SLOT\_COUNT** – **StartSlot**).
--   **ID3D11Buffer \*const \*ppVertexBuffers**: A pointer to an array of vertex buffers (see [ID3D11Buffer](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11buffer)). The vertex buffers must have been created with the [D3D11\_BIND\_VERTEX\_BUFFER](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag) flag.
--   **const UINT \*pStrides**: Pointer to an array of stride values; one stride value for each buffer in the vertex-buffer array. Each stride is the size (in bytes) of the elements that are to be used from that vertex buffer.
--   **const UINT \*pOffsets**: Pointer to an array of offset values; one offset value for each buffer in the vertex-buffer array. Each offset is the number of bytes between the first element of a vertex buffer and the first element that will be used.
+- **UINT StartSlot**: The first input slot for binding. The first vertex buffer is explicitly bound to the start slot; this causes each additional vertex buffer in the array to be implicitly bound to each subsequent input slot. The maximum of 16 or 32 input slots (ranges from 0 to **D3D11\_IA\_VERTEX\_INPUT\_RESOURCE\_SLOT\_COUNT** – 1) are available; the [maximum number of input slots depends on the feature level](https://learn.microsoft.com/windows/win32/direct3d11/overviews-direct3d-11-devices-downlevel-intro).
+- **UINT NumBuffers**: The number of vertex buffers in the array. The number of buffers (plus the starting slot) can’t exceed the total number of IA-stage input slots (ranges from 0 to **D3D11\_IA\_VERTEX\_INPUT\_RESOURCE\_SLOT\_COUNT** – **StartSlot**).
+- **ID3D11Buffer \*const \*ppVertexBuffers**: A pointer to an array of vertex buffers (see [ID3D11Buffer](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11buffer)). The vertex buffers must have been created with the [D3D11\_BIND\_VERTEX\_BUFFER](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag) flag.
+- **const UINT \*pStrides**: Pointer to an array of stride values; one stride value for each buffer in the vertex-buffer array. Each stride is the size (in bytes) of the elements that are to be used from that vertex buffer.
+- **const UINT \*pOffsets**: Pointer to an array of offset values; one offset value for each buffer in the vertex-buffer array. Each offset is the number of bytes between the first element of a vertex buffer and the first element that will be used.
 
 Since we only have a single vertex buffer, the **StartSlot** is always 0 and the **NumBuffers** is 1. The **StartSlot** argument should match the **InputSlot** of the [D3D11\_INPUT\_ELEMENT\_DESC](https://learn.microsoft.com/windows/win32/api/d3d11/ns-d3d11-d3d11_input_element_desc) elements that were configured in the **LoadContent** function.
 
@@ -1772,9 +1772,9 @@ On line 852 the input layout is specified for the input assembler stage using th
 
 On line 853 the index buffer is bound to the input assembler stage using the [ID3D11DeviceContext::IASetIndexBuffer](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-iasetindexbuffer) method. This method takes the following arguments [\[57\]](#ref-iasetindexbuffer):
 
--   **ID3D11Buffer \*pIndexBuffer**: A pointer to an [ID3D11Buffer](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11buffer) object, that contains indices. The index buffer must have been created with the [D3D11\_BIND\_INDEX\_BUFFER](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag) flag.
--   **DXGI\_FORMAT Format**: A [DXGI\_FORMAT](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) that specifies the format of the data in the index buffer. The only formats allowed for index buffer data are 16-bit (**DXGI\_FORMAT\_R16\_UINT**) and 32-bit (**DXGI\_FORMAT\_R32\_UINT**) integers.
--   **UINT Offset**: Offset (in bytes) from the start of the index buffer to the first index to use.
+- **ID3D11Buffer \*pIndexBuffer**: A pointer to an [ID3D11Buffer](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11buffer) object, that contains indices. The index buffer must have been created with the [D3D11\_BIND\_INDEX\_BUFFER](https://learn.microsoft.com/windows/win32/api/d3d11/ne-d3d11-d3d11_bind_flag) flag.
+- **DXGI\_FORMAT Format**: A [DXGI\_FORMAT](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) that specifies the format of the data in the index buffer. The only formats allowed for index buffer data are 16-bit (**DXGI\_FORMAT\_R16\_UINT**) and 32-bit (**DXGI\_FORMAT\_R32\_UINT**) integers.
+- **UINT Offset**: Offset (in bytes) from the start of the index buffer to the first index to use.
 
 And on line 853 the type of primitive that will be used for rendering is specified using the [ID3D11DeviceContext::IASetPrimitiveTopology](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-iasetprimitivetopology) method. In this case we specify the **D3D11\_PRIMITIVE\_TOPOLOGY\_TRIANGLELIST** primitive type which indicates to the input assembler stage that we are rending with a list of discontinuous triangles.
 
@@ -1787,15 +1787,15 @@ The next stage of the rendering pipeline is the vertex shader stage (**VS**). Fo
 
 The vertex shader is bound to the vertex shader stage using the [ID3D11DeviceContext::VSSetShader](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-vssetshader) method. This method takes the following arguments [\[58\]](#ref-vssetshader):
 
--   **ID3D11VertexShader \*pVertexShader**: Pointer to a vertex shader (see [ID3D11VertexShader](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11vertexshader)). Passing in **NULL** disables the shader for this pipeline stage.
--   **ID3D11ClassInstance \*const \*ppClassInstances**: A pointer to an array of class-instance interfaces (see [ID3D11ClassInstance](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11classinstance)). Each interface used by a shader must have a corresponding class instance or the shader will get disabled. Set **ppClassInstances** to **NULL** if the shader does not use any interfaces.
--   **UINT NumClassInstances**: The number of class-instance interfaces in the **ppClassInstances** array.
+- **ID3D11VertexShader \*pVertexShader**: Pointer to a vertex shader (see [ID3D11VertexShader](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11vertexshader)). Passing in **NULL** disables the shader for this pipeline stage.
+- **ID3D11ClassInstance \*const \*ppClassInstances**: A pointer to an array of class-instance interfaces (see [ID3D11ClassInstance](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11classinstance)). Each interface used by a shader must have a corresponding class instance or the shader will get disabled. Set **ppClassInstances** to **NULL** if the shader does not use any interfaces.
+- **UINT NumClassInstances**: The number of class-instance interfaces in the **ppClassInstances** array.
 
 On line 856 the constant buffers used by the vertex shader are bound to the vertex shader stage using the [ID3D11DeviceContext::VSSetConstantBuffers](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-vssetconstantbuffers) method. This method takes the following arguments:
 
--   **UINT StartSlot**: Index into the device’s zero-based array to begin setting constant buffers to (ranges from 0 to **D3D11\_COMMONSHADER\_CONSTANT\_BUFFER\_API\_SLOT\_COUNT** – 1).
--   **UINT NumBuffers**: Number of buffers to set (ranges from 0 to **D3D11\_COMMONSHADER\_CONSTANT\_BUFFER\_API\_SLOT\_COUNT** – StartSlot).
--   **ID3D11Buffer \*const \*ppConstantBuffers**: Array of constant buffers (see [ID3D11Buffer](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11buffer)) being given to the device.
+- **UINT StartSlot**: Index into the device’s zero-based array to begin setting constant buffers to (ranges from 0 to **D3D11\_COMMONSHADER\_CONSTANT\_BUFFER\_API\_SLOT\_COUNT** – 1).
+- **UINT NumBuffers**: Number of buffers to set (ranges from 0 to **D3D11\_COMMONSHADER\_CONSTANT\_BUFFER\_API\_SLOT\_COUNT** – StartSlot).
+- **ID3D11Buffer \*const \*ppConstantBuffers**: Array of constant buffers (see [ID3D11Buffer](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11buffer)) being given to the device.
 
 #### Setup the Rasterizer Stage
 
@@ -1808,8 +1808,8 @@ On line 859 the rasterizer stage is initialized using the [ID3D11DeviceContext::
 
 The rasterizer stage also needs to know about any viewports that are used to map the clip space coordinates into screen space. All viewports are bound to the rasterizer stage using the [ID3D11DeviceContext::RSSetViewports](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-rssetviewports) method. This takes the following arguments [\[59\]](#ref-rssetviewports):
 
--   **UINT NumViewports**: Number of viewports to bind.
--   **const D3D11\_VIEWPORT \*pViewports**: An array of D3D11\_VIEWPORT structures to bind to the device.
+- **UINT NumViewports**: Number of viewports to bind.
+- **const D3D11\_VIEWPORT \*pViewports**: An array of D3D11\_VIEWPORT structures to bind to the device.
 
 All viewports must be set atomically as one operation. Any viewports not defined by the call are disabled.  
 Which viewport to use is determined by the **SV\_ViewportArrayIndex** semantic output by a geometry shader; if a geometry shader does not specify the semantic, Direct3D will use the first viewport in the array [\[59\]](#ref-rssetviewports).
@@ -1832,9 +1832,9 @@ The output merger stage (as it’s name suggests) merges the output from the pix
 
 The back buffer and depth/stencil buffer are bound to the output merger stage using the [ID3D11DeviceContext::OMSetRenderTargets](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-omsetrendertargets) method. This method takes the following arguments [\[60\]](#ref-omsetrendertargets):
 
--   **UINT NumViews**: Number of render targets to bind (ranges between 0 and **D3D11\_SIMULTANEOUS\_RENDER\_TARGET\_COUNT**). If this parameter is nonzero, the number of entries in the array to which **ppRenderTargetViews** points must equal the number in this parameter.
--   **ID3D11RenderTargetView \*const \*ppRenderTargetViews**: Pointer to an array of [ID3D11RenderTargetView](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11rendertargetview) that represent the render targets to bind to the device. If this parameter is **NULL** and NumViews is 0, no render targets are bound.
--   **ID3D11DepthStencilView \*pDepthStencilView**: Pointer to a [ID3D11DepthStencilView](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11depthstencilview) that represents the depth-stencil view to bind to the device. If this parameter is **NULL**, the depth-stencil view is not bound.
+- **UINT NumViews**: Number of render targets to bind (ranges between 0 and **D3D11\_SIMULTANEOUS\_RENDER\_TARGET\_COUNT**). If this parameter is nonzero, the number of entries in the array to which **ppRenderTargetViews** points must equal the number in this parameter.
+- **ID3D11RenderTargetView \*const \*ppRenderTargetViews**: Pointer to an array of [ID3D11RenderTargetView](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11rendertargetview) that represent the render targets to bind to the device. If this parameter is **NULL** and NumViews is 0, no render targets are bound.
+- **ID3D11DepthStencilView \*pDepthStencilView**: Pointer to a [ID3D11DepthStencilView](https://learn.microsoft.com/windows/win32/api/d3d11/nn-d3d11-id3d11depthstencilview) that represents the depth-stencil view to bind to the device. If this parameter is **NULL**, the depth-stencil view is not bound.
 
 You can render to multiple render targets by mapping multiple output values to the **SV\_Target\[n\]** (where **n** is between 0 and **D3D11\_SIMULTANEOUS\_RENDER\_TARGET\_COUNT**) semantic in the pixel shader. Currently, the maximum number of render target views that can be mapped to the output merger stage is eight (8).
 
@@ -1849,9 +1849,9 @@ Now that we have initialized the various stages of the rendering pipeline, we ca
 
 The [ID3D11DeviceContext::DrawIndexed](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-drawindexed) method is used to draw indexed primitives without instancing. The [ID3D11DeviceContext::DrawIndexed](https://learn.microsoft.com/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-drawindexed) method takes the following arguments [\[62\]](#cite-62):
 
--   **UINT IndexCount**: Number of indices in the currently bound index buffer to draw.
--   **UINT StartIndexLocation**: The location of the first index read by the GPU from the index buffer.
--   **INT BaseVertexLocation**: A value added to each index before reading a vertex from the vertex buffer.
+- **UINT IndexCount**: Number of indices in the currently bound index buffer to draw.
+- **UINT StartIndexLocation**: The location of the first index read by the GPU from the index buffer.
+- **INT BaseVertexLocation**: A value added to each index before reading a vertex from the vertex buffer.
 
 #### Present
 

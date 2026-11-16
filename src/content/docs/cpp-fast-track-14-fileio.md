@@ -35,10 +35,10 @@ The map has two layers, and both are saved in the same way. So we start with a f
 
 `SaveLayer` writes the layer row by row: the numbers of one row on one line, separated by commas.
 
--   `file` is the file to write to (a *file stream*, see `SaveMap` below). `file << value` writes a value to the file, just like `std::cout << value` would print it in the console.
--   `std::format("{:3}", layer[y][x])` makes the number at least 3 characters wide (you saw that in [part 9](/cpp-fast-track-9-colours/)). That's not necessary, but it makes the columns line up, so that the file is easy to read for a human.
--   After each number, the code writes a comma, except after the last number of a row: then it writes `"\n"`, the end of a line (a *new line*). The `? :` picks one of the two (it's the *conditional operator*: `condition ? a : b` is `a` when the condition is true, and `b` otherwise).
--   The `&` in `std::ofstream& file` makes the parameter a *reference*: `SaveLayer` doesn't get a copy of the file, but the file of the code that called it. A reference is another name for an existing variable. (A file stream can't even be copied: try it without the `&`, and Visual Studio will complain.) The layer is an array, and an array parameter is always passed as a pointer to its first element (see [part 10](/cpp-fast-track-10-arrays/)), so `SaveLayer` doesn't copy the layer either.
+- `file` is the file to write to (a *file stream*, see `SaveMap` below). `file << value` writes a value to the file, just like `std::cout << value` would print it in the console.
+- `std::format("{:3}", layer[y][x])` makes the number at least 3 characters wide (you saw that in [part 9](/cpp-fast-track-9-colours/)). That's not necessary, but it makes the columns line up, so that the file is easy to read for a human.
+- After each number, the code writes a comma, except after the last number of a row: then it writes `"\n"`, the end of a line (a *new line*). The `? :` picks one of the two (it's the *conditional operator*: `condition ? a : b` is `a` when the condition is true, and `b` otherwise).
+- The `&` in `std::ofstream& file` makes the parameter a *reference*: `SaveLayer` doesn't get a copy of the file, but the file of the code that called it. A reference is another name for an existing variable. (A file stream can't even be copied: try it without the `&`, and Visual Studio will complain.) The layer is an array, and an array parameter is always passed as a pointer to its first element (see [part 10](/cpp-fast-track-10-arrays/)), so `SaveLayer` doesn't copy the layer either.
 
 ### SaveMap
 
@@ -49,11 +49,11 @@ Next, the function that saves the whole map. Add it below `SaveLayer`:
 
 `SaveMap` opens the file, writes the size of the map, and then uses `SaveLayer` twice: once for the ground, and once for the objects, with an empty line in between. It returns `true` when the map was saved, and `false` when it wasn't.
 
--   `std::ofstream` (from `<fstream>`) is an *output file stream*: a file that you write to. `std::ofstream file(filename);` creates a variable `file`, and opens the file with that name. If the file already exists, it is replaced; if it doesn't, it is created.
--   Opening a file can fail: the folder may not exist, or the file may be read-only, or opened by another program. Then `file` is `false`, so `!file` (*not* `file`) is `true`: that's what `if (!file)` checks. In that case, `SaveMap` returns `false`, so that the code that called it knows that the map was not saved.
--   `file << MapWidth << " " << MapHeight` writes the size of the map, with a space in between. `"\n\n"` ends that line, and adds an empty line after it.
--   At the end, `static_cast<bool>(file)` turns the file into `true` if everything went fine, and `false` if anything went wrong while writing (a full disk, for example).
--   Where is the code that closes the file? There is none. `file` is an object, and when the function ends, the object is destroyed, and it closes the file by itself. (It's a class, like the classes of [part 12](/cpp-fast-track-12-classes/): a class can have a *destructor*, a method that runs automatically when the object is destroyed.)
+- `std::ofstream` (from `<fstream>`) is an *output file stream*: a file that you write to. `std::ofstream file(filename);` creates a variable `file`, and opens the file with that name. If the file already exists, it is replaced; if it doesn't, it is created.
+- Opening a file can fail: the folder may not exist, or the file may be read-only, or opened by another program. Then `file` is `false`, so `!file` (*not* `file`) is `true`: that's what `if (!file)` checks. In that case, `SaveMap` returns `false`, so that the code that called it knows that the map was not saved.
+- `file << MapWidth << " " << MapHeight` writes the size of the map, with a space in between. `"\n\n"` ends that line, and adds an empty line after it.
+- At the end, `static_cast<bool>(file)` turns the file into `true` if everything went fine, and `false` if anything went wrong while writing (a full disk, for example).
+- Where is the code that closes the file? There is none. `file` is an object, and when the function ends, the object is destroyed, and it closes the file by itself. (It's a class, like the classes of [part 12](/cpp-fast-track-12-classes/): a class can have a *destructor*, a method that runs automatically when the object is destroyed.)
 
 ### Saving the Map
 
@@ -106,9 +106,9 @@ Just like saving, loading starts with one layer. Add `LoadLayer` below `SaveMap`
 
 `LoadLayer` reads the numbers of one layer, row by row, into the array `layer`. It returns `true` when it could read all the numbers, and `false` when it couldn't.
 
--   `file` is an `std::ifstream`, an *input file stream*: a file that you read from. `file >> layer[y][x]` reads a number from the file into the array: `>>` is the opposite of `<<`. Spaces and new lines are skipped automatically, so `>>` doesn't care how the numbers are spread over the lines.
--   The numbers are separated by commas, and a comma isn't part of a number. So after every number (except the last one of a row), `LoadLayer` reads one character into `comma`. (It doesn't check that it really is a comma: it simply skips it.)
--   A file can be broken: someone may have made a typo, or a file from an older version of the game has a different size. When `>>` can't read a number (for example, because it finds a letter), the file goes into a *fail state*: `file` is then `false` (and `!file` is `true`), and every read after that fails too. So `LoadLayer` doesn't need to check every number: at the end, `static_cast<bool>(file)` is `false` when any of the reads failed.
+- `file` is an `std::ifstream`, an *input file stream*: a file that you read from. `file >> layer[y][x]` reads a number from the file into the array: `>>` is the opposite of `<<`. Spaces and new lines are skipped automatically, so `>>` doesn't care how the numbers are spread over the lines.
+- The numbers are separated by commas, and a comma isn't part of a number. So after every number (except the last one of a row), `LoadLayer` reads one character into `comma`. (It doesn't check that it really is a comma: it simply skips it.)
+- A file can be broken: someone may have made a typo, or a file from an older version of the game has a different size. When `>>` can't read a number (for example, because it finds a letter), the file goes into a *fail state*: `file` is then `false` (and `!file` is `true`), and every read after that fails too. So `LoadLayer` doesn't need to check every number: at the end, `static_cast<bool>(file)` is `false` when any of the reads failed.
 
 :::caution
 `LoadLayer` checks that it could read the numbers, but not that they are real tiles: 0 to 39 for the ground (`terrain.png` has 40 tiles), and -1 to 15 for the objects (no object, or one of the 16 objects). A tile number of 50 in `map.txt` would make `DrawTile` copy pixels from far outside the tile sheet: you get garbage on the screen, or the game crashes. We trust `map.txt` here, to keep the code short. In a real game, check every number that comes from a file before you use it.
@@ -123,10 +123,10 @@ Then the function that loads the whole map. Add it below `LoadLayer`:
 
 `LoadMap` opens the file, checks the size of the map, and uses `LoadLayer` twice: once for the ground, and once for the objects. It returns `true` when the map was loaded, and `false` when it wasn't.
 
--   `std::ifstream file(filename);` opens the file for reading. When the file doesn't exist, `file` is `false` (and `!file` is `true`), and `LoadMap` returns `false`.
--   `file >> width >> height` reads the two numbers at the start of the file. A map of a different size doesn't fit in our arrays, so then `LoadMap` stops too.
--   Why are the width and the height in the file at all, if `LoadMap` only accepts 12 × 8? They protect the game against a file that was made for a different map. Suppose that you make the map 16 tiles wide later, and an old `map.txt` is still around (or the other way around). Without the size, `LoadMap` would just read numbers until the arrays are full: the rows of the file would end up in the wrong places, the end of the ground layer would end up in the object layer, and every read would succeed. You would get a scrambled map, without any error. With the size in the file, `LoadMap` sees right away that the file doesn't fit. The size also makes the file easier to understand for a human.
--   `LoadMap` reads the layers into two temporary arrays first. Only when the whole file is correct, it copies them to `ground` and `objects`. If the file is broken halfway, the game keeps the map that it had: a broken map would be worse than just keeping the old one.
+- `std::ifstream file(filename);` opens the file for reading. When the file doesn't exist, `file` is `false` (and `!file` is `true`), and `LoadMap` returns `false`.
+- `file >> width >> height` reads the two numbers at the start of the file. A map of a different size doesn't fit in our arrays, so then `LoadMap` stops too.
+- Why are the width and the height in the file at all, if `LoadMap` only accepts 12 × 8? They protect the game against a file that was made for a different map. Suppose that you make the map 16 tiles wide later, and an old `map.txt` is still around (or the other way around). Without the size, `LoadMap` would just read numbers until the arrays are full: the rows of the file would end up in the wrong places, the end of the ground layer would end up in the object layer, and every read would succeed. You would get a scrambled map, without any error. With the size in the file, `LoadMap` sees right away that the file doesn't fit. The size also makes the file easier to understand for a human.
+- `LoadMap` reads the layers into two temporary arrays first. Only when the whole file is correct, it copies them to `ground` and `objects`. If the file is broken halfway, the game keeps the map that it had: a broken map would be worse than just keeping the old one.
 
 :::note[Maps of any size]
 With the size in the file, the map size could also be *dynamic*: `LoadMap` would read the width and the height first, and then make arrays of exactly that size, so that every level can have its own size. That needs memory that is allocated while the game runs (with `new` or `std::vector`), and that is beyond the scope of this part. To keep things simple, every map is 12 × 8 tiles.
@@ -234,13 +234,13 @@ The second new method is the editor. Add it below `Update`:
 ```cpp source="tmpl8-part-14/3-editor/game.cpp#L178-L218"
 ```
 
--   `layer` is the layer that you edit, and `brush` holds the tile that you paint, for each of the two layers. `layer = 1 - layer` switches between 0 and 1.
--   <kbd>Z</kbd> and <kbd>X</kbd> choose the previous and the next tile. `lowest` and `highest` are the lowest and highest tile numbers of the layer; after the last tile, you get the first one again.
--   `mousex / TileSize` is the column of the tile under the mouse, and `mousey / TileSize` its row (an integer division, like in `IsFree`). The `if` checks that the mouse really is on the map.
--   `int& tile` is a reference again: `tile` is another name for the tile under the mouse, in the layer that you edit. `tile = brush[layer]` changes the map itself, not a copy. Without the reference, we would need the `layer == 0 ? ... : ...` for every use of the tile.
--   The tile under the mouse is drawn with the tile of the brush, with a white frame around it (`Box` draws a rectangle), so you can see what you are about to paint.
--   `SaveMap` and `LoadMap` return `true` or `false`, and the editor shows a message for 3 seconds (3000 milliseconds of `deltaTime`), so that you know whether it worked.
--   `Edit` draws on top of the map and the tank, so it must run after they are drawn. That's up to `Tick`.
+- `layer` is the layer that you edit, and `brush` holds the tile that you paint, for each of the two layers. `layer = 1 - layer` switches between 0 and 1.
+- <kbd>Z</kbd> and <kbd>X</kbd> choose the previous and the next tile. `lowest` and `highest` are the lowest and highest tile numbers of the layer; after the last tile, you get the first one again.
+- `mousex / TileSize` is the column of the tile under the mouse, and `mousey / TileSize` its row (an integer division, like in `IsFree`). The `if` checks that the mouse really is on the map.
+- `int& tile` is a reference again: `tile` is another name for the tile under the mouse, in the layer that you edit. `tile = brush[layer]` changes the map itself, not a copy. Without the reference, we would need the `layer == 0 ? ... : ...` for every use of the tile.
+- The tile under the mouse is drawn with the tile of the brush, with a white frame around it (`Box` draws a rectangle), so you can see what you are about to paint.
+- `SaveMap` and `LoadMap` return `true` or `false`, and the editor shows a message for 3 seconds (3000 milliseconds of `deltaTime`), so that you know whether it worked.
+- `Edit` draws on top of the map and the tank, so it must run after they are drawn. That's up to `Tick`.
 
 ### Tick
 
@@ -283,9 +283,9 @@ Next, the function that saves the map as a binary file. Add it below `MapHeader`
 
 `SaveMapBinary` opens the file in binary mode, and writes three blocks of bytes: the header, the ground layer and the object layer, exactly as they are in memory. Like `SaveMap`, it returns `true` when the map was saved, and `false` when it wasn't.
 
--   `std::ios::binary` opens the file in *binary mode*. In text mode, Windows writes the end of a line as two characters (a *carriage return* and a *line feed*), and turns them back into one `"\n"` when you read the file. That is fine for text, but in a binary file, any byte can be part of a number: the `int` 10 contains a byte with the value 10, which happens to be the code of a line feed. In binary mode, the bytes are written exactly as they are.
--   `file.write` writes a block of memory: it takes the address of the first byte, and the number of bytes. `sizeof(ground)` is the size of the whole array in bytes: 12 × 8 tiles × 4 bytes = 384 bytes. So one `write` writes the whole layer, and one `read` reads it back. No loops, no commas, no conversions.
--   `write` wants the address as a `const char*` (a `char` is one byte), but `&header` is a `MapHeader*`, and `ground` is an array of `int`'s. `reinterpret_cast` tells the compiler: treat this address as the address of some bytes. It doesn't change anything in memory; it only changes how the compiler looks at the address. It's a dangerous tool (it lets you treat anything as anything), so only use it for jobs like this one.
+- `std::ios::binary` opens the file in *binary mode*. In text mode, Windows writes the end of a line as two characters (a *carriage return* and a *line feed*), and turns them back into one `"\n"` when you read the file. That is fine for text, but in a binary file, any byte can be part of a number: the `int` 10 contains a byte with the value 10, which happens to be the code of a line feed. In binary mode, the bytes are written exactly as they are.
+- `file.write` writes a block of memory: it takes the address of the first byte, and the number of bytes. `sizeof(ground)` is the size of the whole array in bytes: 12 × 8 tiles × 4 bytes = 384 bytes. So one `write` writes the whole layer, and one `read` reads it back. No loops, no commas, no conversions.
+- `write` wants the address as a `const char*` (a `char` is one byte), but `&header` is a `MapHeader*`, and `ground` is an array of `int`'s. `reinterpret_cast` tells the compiler: treat this address as the address of some bytes. It doesn't change anything in memory; it only changes how the compiler looks at the address. It's a dangerous tool (it lets you treat anything as anything), so only use it for jobs like this one.
 
 ### LoadMapBinary
 
@@ -296,9 +296,9 @@ And the function that loads it again. Add it below `SaveMapBinary`:
 
 `LoadMapBinary` reads the same three blocks back: first the header, and then the two layers. It returns `true` when the map was loaded, and `false` when it wasn't.
 
--   `file.read` is the opposite of `file.write`: it reads a number of bytes from the file into memory, at the address that you give it. One `read` fills the whole header, and one `read` fills a whole layer.
--   When the header doesn't start with `TMAP`, it isn't a map file, and `LoadMapBinary` stops right there. When the size in the header isn't 12 × 8, the layers won't fit in our arrays, so it stops too.
--   Like `LoadMap`, `LoadMapBinary` reads the layers into temporary arrays, and only changes the map when the whole file could be read. And like `LoadLayer`, it doesn't check the tile numbers themselves: a broken `map.bin` can still contain anything.
+- `file.read` is the opposite of `file.write`: it reads a number of bytes from the file into memory, at the address that you give it. One `read` fills the whole header, and one `read` fills a whole layer.
+- When the header doesn't start with `TMAP`, it isn't a map file, and `LoadMapBinary` stops right there. When the size in the header isn't 12 × 8, the layers won't fit in our arrays, so it stops too.
+- Like `LoadMap`, `LoadMapBinary` reads the layers into temporary arrays, and only changes the map when the whole file could be read. And like `LoadLayer`, it doesn't check the tile numbers themselves: a broken `map.bin` can still contain anything.
 
 ### Saving and Loading
 
@@ -365,8 +365,8 @@ The result: a screenshot saved by the game, opened in an image editor.
 
 ### Intermediate
 
-1.  Pressing <kbd>P</kbd> again overwrites the screenshot. Give every screenshot its own name: `screenshot001.tga`, `screenshot002.tga`, and so on. Don't overwrite the screenshots of an earlier run of the game either.
-2.  Save the position of the tank in `map.txt` too, after the layers, and put the tank there when the map is loaded. A `map.txt` without a tank position (like the one you have now) must still load.
+1. Pressing <kbd>P</kbd> again overwrites the screenshot. Give every screenshot its own name: `screenshot001.tga`, `screenshot002.tga`, and so on. Don't overwrite the screenshots of an earlier run of the game either.
+2. Save the position of the tank in `map.txt` too, after the layers, and put the tank there when the map is loaded. A `map.txt` without a tank position (like the one you have now) must still load.
 
 :::tip[Hint]
 `std::format("screenshot{:03}.tga", 7)` gives `screenshot007.tga`: at least 3 digits, with zeros in front. `std::filesystem::exists(name)` (from `<filesystem>`) tells you whether a file already exists.
@@ -382,8 +382,8 @@ screenshot003.tga
 
 ### Hard
 
-1.  Every tile number fits in a single byte: a `signed char` holds the numbers from -128 to 127. Make the binary file 4 times smaller, by writing one byte per tile instead of an `int`.
-2.  Old `map.bin` files (with 4 bytes per tile) must still load. Add a *version number* to the header, and make `LoadMapBinary` read both versions. (But how do you recognize a file without a version number? Change the magic number too!)
+1. Every tile number fits in a single byte: a `signed char` holds the numbers from -128 to 127. Make the binary file 4 times smaller, by writing one byte per tile instead of an `int`.
+2. Old `map.bin` files (with 4 bytes per tile) must still load. Add a *version number* to the header, and make `LoadMapBinary` read both versions. (But how do you recognize a file without a version number? Change the magic number too!)
 
 The result: `map.bin` shrinks from 780 bytes to about 200, and the game still loads your old `map.bin`.
 

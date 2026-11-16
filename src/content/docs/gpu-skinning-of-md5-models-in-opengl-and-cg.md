@@ -24,11 +24,11 @@ In this example, I will use vertex buffer objects (VBOâ€™s) to store the modelâ€
 
 The demo shown in this article uses several 3rd party libraries to simplify the development process.
 
--   [The Cg Toolkit (Version 3)](https://developer.nvidia.com/cg-toolkit): The Cg Toolkit provides the tools and API needed to integrate the Cg shader programs in your application.
--   [Boost (1.46.1)](https://www.boost.org/): Boost has some very useful libraries that I use throughout my demo applications. In this demo, I use the Signals, Filesystem, Function, and Bind boost libraries to provide a generic, platform independent functionality that simplifies some of the features used in this demo.
--   [Simple DirectMedia Layer (1.2.14)](https://www.libsdl.org/): Simple DirectMedia Layer (SDL) is a cross-platform multimedia library that I use to create the main application window, initialize OpenGL, and handle keyboard, mouse and joystick input.
--   [OpenGL Mathmatics (GLM)](https://glm.g-truc.net/): An OpenGL centric mathmatics library for 3D graphics applications.
--   [Simple OpenGL Image Library (SOIL)](https://web.archive.org/web/20200728145723/http://lonesock.net/soil.html): SOIL is a tiny C library used primarily for uploading textures into OpenGL.
+- [The Cg Toolkit (Version 3)](https://developer.nvidia.com/cg-toolkit): The Cg Toolkit provides the tools and API needed to integrate the Cg shader programs in your application.
+- [Boost (1.46.1)](https://www.boost.org/): Boost has some very useful libraries that I use throughout my demo applications. In this demo, I use the Signals, Filesystem, Function, and Bind boost libraries to provide a generic, platform independent functionality that simplifies some of the features used in this demo.
+- [Simple DirectMedia Layer (1.2.14)](https://www.libsdl.org/): Simple DirectMedia Layer (SDL) is a cross-platform multimedia library that I use to create the main application window, initialize OpenGL, and handle keyboard, mouse and joystick input.
+- [OpenGL Mathmatics (GLM)](https://glm.g-truc.net/): An OpenGL centric mathmatics library for 3D graphics applications.
+- [Simple OpenGL Image Library (SOIL)](https://web.archive.org/web/20200728145723/http://lonesock.net/soil.html): SOIL is a tiny C library used primarily for uploading textures into OpenGL.
 
 Any dependencies used by the demo are included in the source distribution available at the bottom of the article so you can hopefully just unzip, compile and run the included samples.
 

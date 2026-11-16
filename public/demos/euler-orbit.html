@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Euler Orbit</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--grid: #262c39;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--planet: #e0b85a;
+		--explicit: #f26d5b;
+		--semi: #5fb8ff;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--grid: #dde1e8;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		--planet: #b8860b;
+		--explicit: #d1382a;
+		--semi: #1f6fc2;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; }
+	#bar {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+		padding: 6px 8px; border-top: 1px solid var(--border); background: var(--panel);
+	}
+	.group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+	.group > span { color: var(--muted); margin-right: 2px; }
+	button {
+		font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border);
+		border-radius: 5px; padding: 3px 8px; cursor: pointer; user-select: none;
+	}
+	button:hover { border-color: var(--accent); }
+	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+	.key { display: inline-flex; align-items: center; gap: 5px; }
+	.swatch { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="Two moons orbit a planet. The moon moved with explicit Euler spirals outwards; the moon moved with semi-implicit Euler stays in its orbit."></canvas>
+	</div>
+	<div id="bar">
+		<div class="group">
+			<span class="key"><span class="swatch" style="background: var(--explicit)"></span>explicit: position first</span>
+			<span class="key"><span class="swatch" style="background: var(--semi)"></span>semi-implicit: velocity first</span>
+		</div>
+		<div class="group">
+			<span>step</span>
+			<button id="small" type="button" aria-pressed="true" title="100 steps per orbit">small</button>
+			<button id="large" type="button" aria-pressed="false" title="25 steps per orbit">large</button>
+		</div>
+		<div class="group">
+			<button id="pause" type="button">pause</button>
+			<button id="restart" type="button">restart</button>
+		</div>
+		<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+	</div>
+</div>
+<script>
+'use strict';
+// Two moons start at the same place, with the same velocity: exactly the speed of a circular orbit around the planet.
+// Units: the orbit has radius 1, and the planet pulls with a = -position / |position|^3 (so a circular orbit has
+// speed 1, and takes 2 * PI time units).
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W = 1, H = 1, DPR = 1;
+let dt = 2 * Math.PI / 100, paused = false;
+let moons, timer = 0;
+const TrailLength = 2000;
+
+function restart() {
+	moons = [
+		{ x: 1, y: 0, vx: 0, vy: -1, semi: false, trail: [], gone: false },
+		{ x: 1, y: 0, vx: 0, vy: -1, semi: true, trail: [], gone: false },
+	];
+	for (const m of moons) m.trail.push([m.x, m.y]);
+	timer = 0;
+}
+
+function gravity(x, y) {
+	const r = Math.hypot(x, y), r3 = r * r * r;
+	return [-x / r3, -y / r3];
+}
+
+function step(m) {
+	if (m.gone) return;
+	if (m.semi) { // semi-implicit Euler: first the velocity, then the position (with the new velocity)
+		const [ax, ay] = gravity(m.x, m.y);
+		m.vx += ax * dt; m.vy += ay * dt;
+		m.x += m.vx * dt; m.y += m.vy * dt;
+	} else {      // explicit Euler: first the position (with the old velocity), then the velocity
+		const [ax, ay] = gravity(m.x, m.y);
+		m.x += m.vx * dt; m.y += m.vy * dt;
+		m.vx += ax * dt; m.vy += ay * dt;
+	}
+	m.trail.push([m.x, m.y]);
+	if (m.trail.length > TrailLength) m.trail.shift();
+	if (Math.hypot(m.x, m.y) > 6) m.gone = true; // far outside the view: it has escaped
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--grid', '--planet', '--explicit', '--semi'])
+		colors[k] = cs.getPropertyValue(k).trim();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+new ResizeObserver(resize).observe(canvas);
+
+function draw() {
+	const scale = Math.min(W, H) / 5.2; // the view shows a little more than radius 2.5 around the planet
+	const cx = W / 2, cy = H / 2;
+	const X = (x) => cx + x * scale, Y = (y) => cy + y * scale;
+	ctx.fillStyle = colors['--bg']; ctx.fillRect(0, 0, W, H);
+
+	// the circular orbit, as it should be
+	ctx.setLineDash([4, 5]); ctx.strokeStyle = colors['--muted']; ctx.lineWidth = 1;
+	ctx.beginPath(); ctx.arc(cx, cy, scale, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
+
+	ctx.fillStyle = colors['--planet'];
+	ctx.beginPath(); ctx.arc(cx, cy, Math.max(8, scale * 0.22), 0, 2 * Math.PI); ctx.fill();
+
+	for (const m of moons) {
+		const color = m.semi ? colors['--semi'] : colors['--explicit'];
+		ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.8;
+		ctx.beginPath();
+		m.trail.forEach(([x, y], i) => (i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y))));
+		ctx.stroke(); ctx.globalAlpha = 1;
+		// the steps themselves, as dots on the newest part of the trail
+		ctx.fillStyle = color;
+		for (const [x, y] of m.trail.slice(-12)) { ctx.beginPath(); ctx.arc(X(x), Y(y), 2, 0, 2 * Math.PI); ctx.fill(); }
+		if (!m.gone) { ctx.beginPath(); ctx.arc(X(m.x), Y(m.y), 7, 0, 2 * Math.PI); ctx.fill(); }
+	}
+
+	ctx.fillStyle = colors['--muted']; ctx.font = '12px system-ui, sans-serif'; ctx.textBaseline = 'top';
+	const orbits = (timer * dt / (2 * Math.PI)).toFixed(1);
+	ctx.fillText(`orbits: ${orbits}`, 10, 10);
+	const e = moons[0];
+	ctx.fillStyle = colors['--explicit'];
+	ctx.fillText(e.gone ? 'explicit: escaped' : `explicit: distance ${Math.hypot(e.x, e.y).toFixed(2)}`, 10, 28);
+	const s = moons[1];
+	ctx.fillStyle = colors['--semi'];
+	ctx.fillText(`semi-implicit: distance ${Math.hypot(s.x, s.y).toFixed(2)}`, 10, 46);
+}
+
+let last = 0, accumulator = 0;
+function frame(t) {
+	const elapsed = Math.min(100, t - (last || t)); last = t;
+	if (!paused) {
+		accumulator += elapsed;
+		const msPerStep = 2000 / (2 * Math.PI / dt); // one orbit takes 2 seconds, whatever the step size
+		while (accumulator >= msPerStep) { accumulator -= msPerStep; moons.forEach(step); timer++; }
+	}
+	draw();
+	requestAnimationFrame(frame);
+}
+
+function setStep(large) {
+	dt = 2 * Math.PI / (large ? 25 : 100);
+	document.getElementById('small').setAttribute('aria-pressed', String(!large));
+	document.getElementById('large').setAttribute('aria-pressed', String(large));
+	restart();
+}
+document.getElementById('small').addEventListener('click', () => setStep(false));
+document.getElementById('large').addEventListener('click', () => setStep(true));
+document.getElementById('restart').addEventListener('click', restart);
+document.getElementById('pause').addEventListener('click', (e) => {
+	paused = !paused;
+	e.currentTarget.textContent = paused ? 'play' : 'pause';
+});
+
+applyTheme();
+resize();
+restart();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -13,9 +13,9 @@ In this article I would like to discuss operations on vectors.  This article as
 
 Throughout this article, I will use a convention when referring to vectors, scalars, and matrices.
 
-1.  Scalars are represented by lower-case italic characters ($a,b,\theta,\lambda$).
-2.  Vectors are represented by lower-case bold characters ($\mathbf{x,y,z}$)
-3.  Matrices are represented by upper-case bold characters ($\mathbf{R,S,T,M}$)
+1. Scalars are represented by lower-case italic characters ($a,b,\theta,\lambda$).
+2. Vectors are represented by lower-case bold characters ($\mathbf{x,y,z}$)
+3. Matrices are represented by upper-case bold characters ($\mathbf{R,S,T,M}$)
 
 ## Vector Operations
 
@@ -115,8 +115,8 @@ In words, the normalized vector is the vector divided by the magnitude of itself
 
 We must take care when calculating the normalized vector because zero length vectors cannot be normalized.  Normalizing a zero-length vector will usually result in a “divide-by-zero” error.  Usually we resolve this by performing the normalization in multiple steps:
 
-1.  Calculate the length squared of the vector (only calculate the squared length of the vector because we only need the square root if the squared length is not zero).
-2.  If the squared length is greater than zero, then calculate the square root of that and multiply the vector components by the reciprocal of the length.
+1. Calculate the length squared of the vector (only calculate the squared length of the vector because we only need the square root if the squared length is not zero).
+2. If the squared length is greater than zero, then calculate the square root of that and multiply the vector components by the reciprocal of the length.
 
 ## Distance Between two Points
 

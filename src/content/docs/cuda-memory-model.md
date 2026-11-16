@@ -68,9 +68,9 @@ Variables in local memory have the lifetime of the thread. Once the thread is fi
 
 You cannot decorate a variable declaration with any attribute but the compiler will automatically put variable declarations in local memory under the following conditions:
 
--   Arrays that are accessed with run-time indexes. That is, the compiler can’t determine the indices at compile time.
--   Large structures or arrays that would consume too much register space.
--   Any variable declared that exceeds the number of registers for that kernel (this is called register-spilling).
+- Arrays that are accessed with run-time indexes. That is, the compiler can’t determine the indices at compile time.
+- Large structures or arrays that would consume too much register space.
+- Any variable declared that exceeds the number of registers for that kernel (this is called register-spilling).
 
 The only way you can determine if the compiler has put some function scope variables in local memory is by manual inspection of the PTX assembly code (obtained by compiling with the **\-ptx** or **\-keep** option). Local variables will be declared using the **.local** mnemonic and loaded using the **ld.local** mnemonic and stored with the **st.local** mnemonic.
 
@@ -338,8 +338,8 @@ So the number of 32-bit registers/block is 8,192. So the streaming multiprocesso
 
 Q. If we want to execute a 32 x 32 kernel grid consisting of 16 x 16 thread blocks on a GPU, then what is the maximum amount of shared memory that we can allocate in a kernel function and still achieve 100% thread occupancy on the streaming multiprocessor for devices that support compute capability:
 
-1.  1.3?
-2.  2.0?
+1. 1.3?
+2. 2.0?
 
 A. To properly answer this question, we must first know something about the limitations of the streaming multiprocessor.
 

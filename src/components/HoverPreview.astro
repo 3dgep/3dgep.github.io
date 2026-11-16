@@ -42,6 +42,9 @@
 				if (line.textContent?.trim()) return [line];
 			}
 			if (para?.textContent?.trim()) return [clone(para)];
+			// An anchor right before a note (<div id="..."></div> and then :::note): the note itself.
+			const after = (para ?? target).nextElementSibling;
+			if (after?.matches('aside.starlight-aside')) return [clone(after)];
 			const nodes: Node[] = [];
 			let next = (para ?? target).nextElementSibling;
 			while (next && nodes.length < 2 && (next.querySelector('img') || next.matches('.caption'))) {

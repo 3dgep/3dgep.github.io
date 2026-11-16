@@ -256,9 +256,9 @@ It is a good habit to add assertions like these (well, slightly more sane assert
 
 Debugging is something you need to get used to; once you are familiar with the process you will not be able to live without it. It's a bit hard to give you a debugging assignment, so instead:
 
--   Fix the `Surface::Bar` function (in `surface.cpp`) so that it doesn't crash when coordinates outside the screen are specified.
--   Replace the `ball.png` image with an image you found on the internet (i.e. not an image that is already in the `assets` folder).
--   Change the size of the *LEDs*, so that the full image fits on the screen.
+- Fix the `Surface::Bar` function (in `surface.cpp`) so that it doesn't crash when coordinates outside the screen are specified.
+- Replace the `ball.png` image with an image you found on the internet (i.e. not an image that is already in the `assets` folder).
+- Change the size of the *LEDs*, so that the full image fits on the screen.
 
 With the ball image, it could look like this:
 

@@ -246,8 +246,8 @@ Despite having a boundary limit, our AI tank is a pretty hard opponent to avoid,
 
 It might be helpful if we were to introduce a little inconsistency in his movement. There are 2 simple ways to do this:
 
-1.  Reduce the frequency of decisions: At the moment the tank is making a decision and moving every frame. Suppose he only made a decision every 8th frame. Try adding a timer that counts down each time the decision code is called, and only allows the decision part of your code to function when the timer is `0`. Remember to reset the timer when you make a decision.
-2.  Add some degree of error in decisions: The easiest way to add error, is to provide a degree of randomness to the decision process. After your decisions are made, add some code to overwrite the direction choice with a random value in the range $(0\cdots 3)$ (which will correspond to a direction). Note though: doing this each frame will be very unsatisfactory but try it and see. How could you make this randomness more effective? (\*\*Answer later<span id="ref-q2"></span>[\[2\]](#ref-a2))
+1. Reduce the frequency of decisions: At the moment the tank is making a decision and moving every frame. Suppose he only made a decision every 8th frame. Try adding a timer that counts down each time the decision code is called, and only allows the decision part of your code to function when the timer is `0`. Remember to reset the timer when you make a decision.
+2. Add some degree of error in decisions: The easiest way to add error, is to provide a degree of randomness to the decision process. After your decisions are made, add some code to overwrite the direction choice with a random value in the range $(0\cdots 3)$ (which will correspond to a direction). Note though: doing this each frame will be very unsatisfactory but try it and see. How could you make this randomness more effective? (\*\*Answer later<span id="ref-q2"></span>[\[2\]](#ref-a2))
 
 There are of course many other methods to add inconstancy, but these work well for most things.
 

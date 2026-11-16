@@ -21,10 +21,10 @@ The MD5 Model format has been used by several commercial game projects including
 
 A few dependencies are used by this project to ease the coding process and to make the material more readable.
 
--   [OpenGL Utility Toolkit (GLUT)](http://www.opengl.org/resources/libraries/glut/): Is used for platform-independent window management and window event handling that simplifies the implementation of an OpenGL windowed application.
--   [OpenGL Mathmatics Library (GLM)](https://glm.g-truc.net/): Used for vector classes, quaternion classes, matrix classes and math operations that are suited for OpenGL applications.
--   [Simple OpenGL Image Library (SOIL)](https://web.archive.org/web/20200728145723/http://lonesock.net/soil.html): A library that provides functions to load textures from disc as easy as possible.  This library is ideal for loading images to be used by OpenGL.
--   [boost (1.46.0)](https://www.boost.org/libraries/1-46-1/list/): The boost::filesystem library is used to resolve paths, decompose paths, and open files in a platform independent way.
+- [OpenGL Utility Toolkit (GLUT)](http://www.opengl.org/resources/libraries/glut/): Is used for platform-independent window management and window event handling that simplifies the implementation of an OpenGL windowed application.
+- [OpenGL Mathmatics Library (GLM)](https://glm.g-truc.net/): Used for vector classes, quaternion classes, matrix classes and math operations that are suited for OpenGL applications.
+- [Simple OpenGL Image Library (SOIL)](https://web.archive.org/web/20200728145723/http://lonesock.net/soil.html): A library that provides functions to load textures from disc as easy as possible.  This library is ideal for loading images to be used by OpenGL.
+- [boost (1.46.0)](https://www.boost.org/libraries/1-46-1/list/): The boost::filesystem library is used to resolve paths, decompose paths, and open files in a platform independent way.
 
 All of the dependencies are provided together with the source files and project files that are needed to build the demo in Visual Studio 2008 and Visual Studio 2010.
 
@@ -32,8 +32,8 @@ All of the dependencies are provided together with the source files and project 
 
 A fully animated MD5 model asset consists of two different files.
 
-1.  **The .md5mesh** file: describes the geometry and materials that are used to display the model.
-2.  **The .md5anim** file: describes a single animation that can be applied to the model described in the .md5mesh file.
+1. **The .md5mesh** file: describes the geometry and materials that are used to display the model.
+2. **The .md5anim** file: describes a single animation that can be applied to the model described in the .md5mesh file.
 
 The two files must match the number and name of joints to be valid.
 

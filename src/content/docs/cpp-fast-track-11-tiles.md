@@ -77,9 +77,9 @@ The tile map: 12 × 8 tiles, on a screen of 768 × 512 pixels.
 
 Let's go over the details.
 
--   `ground` is a *two-dimensional* array: an array of 8 rows, where each row is an array of 12 numbers. The first index is the row, the second index is the column, so the tile in column `x` of row `y` is `ground[y][x]`. That is the other way round from what you might expect (we usually write *x* first), but it makes the code look like the map: each line of numbers is a row of the map.
--   The constants `TileSize`, `SheetColumns`, `MapWidth` and `MapHeight` (remember `constexpr` from [part 10](/cpp-fast-track-10-arrays/)) give names to the numbers. You can make the map larger by changing `MapWidth` and `MapHeight` (and adding numbers to `ground`, of course).
--   `Tick` loops over the rows (`y`) and the columns (`x`) of the map, and draws tile `ground[y][x]` at `x * TileSize`, `y * TileSize`. The tile in column $x$ and row $y$ starts at pixel
+- `ground` is a *two-dimensional* array: an array of 8 rows, where each row is an array of 12 numbers. The first index is the row, the second index is the column, so the tile in column `x` of row `y` is `ground[y][x]`. That is the other way round from what you might expect (we usually write *x* first), but it makes the code look like the map: each line of numbers is a row of the map.
+- The constants `TileSize`, `SheetColumns`, `MapWidth` and `MapHeight` (remember `constexpr` from [part 10](/cpp-fast-track-10-arrays/)) give names to the numbers. You can make the map larger by changing `MapWidth` and `MapHeight` (and adding numbers to `ground`, of course).
+- `Tick` loops over the rows (`y`) and the columns (`x`) of the map, and draws tile `ground[y][x]` at `x * TileSize`, `y * TileSize`. The tile in column $x$ and row $y$ starts at pixel
 
     $$
     (p_x, p_y) = (x \times 64,\ y \times 64)
@@ -94,7 +94,7 @@ Let's go over the details.
     :::note
     Rows and columns are counted from 0, just like the elements of an array: the first row is row 0, and the first column is column 0. So row 2 is the third row, and column 3 is the fourth column.
     :::
--   `DrawTile` copies the pixels of a tile. First it finds the column and the row of the tile in the tile sheet: tile 23 is in row `23 / 10 = 2` (an integer division drops the fraction), and in column `23 % 10 = 3` (the remainder; you saw `%` in [part 10](/cpp-fast-track-10-arrays/)). Then it uses pointers (from [part 8](/cpp-fast-track-8-memory-addresses/)): `src` points to the top-left pixel of the tile in the tile sheet, and `dst` to the pixel on the screen where it goes. The loop copies one line of 64 pixels, and then moves both pointers down one line. `GetPitch()` is the number of pixels from one line to the next: 640 for the tile sheet, and 800 for the screen.
+- `DrawTile` copies the pixels of a tile. First it finds the column and the row of the tile in the tile sheet: tile 23 is in row `23 / 10 = 2` (an integer division drops the fraction), and in column `23 % 10 = 3` (the remainder; you saw `%` in [part 10](/cpp-fast-track-10-arrays/)). Then it uses pointers (from [part 8](/cpp-fast-track-8-memory-addresses/)): `src` points to the top-left pixel of the tile in the tile sheet, and `dst` to the pixel on the screen where it goes. The loop copies one line of 64 pixels, and then moves both pointers down one line. `GetPitch()` is the number of pixels from one line to the next: 640 for the tile sheet, and 800 for the screen.
 
 ## Layers
 
@@ -208,17 +208,17 @@ Drive along the sandbags or the small trees, and you will see that the tank some
 
 Besides obstacles, a tile map can store all kinds of information:
 
--   tiles that hurt or destroy the tank, such as mines;
--   tiles with a bonus, such as fuel or ammunition;
--   tiles that move the tank in a certain direction, such as conveyor belts or ice;
--   tiles that slow the tank down, such as mud or sand (see the assignment).
+- tiles that hurt or destroy the tank, such as mines;
+- tiles with a bonus, such as fuel or ammunition;
+- tiles that move the tank in a certain direction, such as conveyor belts or ice;
+- tiles that slow the tank down, such as mud or sand (see the assignment).
 
 ## Further Improvements
 
 There are many things that could improve the code we have so far:
 
--   Typing the numbers of a map by hand is fine for a small map, but not for a large one. That's what tile editors like [Tiled](https://www.mapeditor.org/) and [LDtk](https://ldtk.io/) are for. They can export the layers of a map as a text file of numbers (a *CSV* file), which your game could read: in [part 14](/cpp-fast-track-14-fileio/), you will learn how to read files.
--   The tile map is spread over a number of global variables and functions. It would be much nicer to keep the tiles, the map and its functions together, separated from the rest of the game. This is something we will deal with in the [next part](/cpp-fast-track-12-classes/).
+- Typing the numbers of a map by hand is fine for a small map, but not for a large one. That's what tile editors like [Tiled](https://www.mapeditor.org/) and [LDtk](https://ldtk.io/) are for. They can export the layers of a map as a text file of numbers (a *CSV* file), which your game could read: in [part 14](/cpp-fast-track-14-fileio/), you will learn how to read files.
+- The tile map is spread over a number of global variables and functions. It would be much nicer to keep the tiles, the map and its functions together, separated from the rest of the game. This is something we will deal with in the [next part](/cpp-fast-track-12-classes/).
 
 ## Assignment
 
@@ -226,9 +226,9 @@ The assignment for this tutorial comes in two difficulty settings. The regular d
 
 ### Regular
 
-1.  The ground can have properties too. Make the tank drive at full speed on roads, a bit slower on grass, and even slower on sand. (Hint: look up the ground tile under the middle of the tank, and multiply the speed by a factor that depends on that tile.)
-2.  Draw the collision box of the tank with `screen.Box`. Does the square fit the tank in every direction? Try a few sizes, and find the size that feels best when you drive along the obstacles.
-3.  Make the tank drive diagonally just as fast as straight (see the [note](#player) at the end of the Player section).
+1. The ground can have properties too. Make the tank drive at full speed on roads, a bit slower on grass, and even slower on sand. (Hint: look up the ground tile under the middle of the tank, and multiply the speed by a factor that depends on that tile.)
+2. Draw the collision box of the tank with `screen.Box`. Does the square fit the tank in every direction? Try a few sizes, and find the size that feels best when you drive along the obstacles.
+3. Make the tank drive diagonally just as fast as straight (see the [note](#player) at the end of the Player section).
 
 <iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-11-assignment-regular/index.html" title="The tank with a yellow collision box, which drives fast on roads and slowly on sand, and equally fast in every direction" loading="lazy" allowfullscreen></iframe>
 
@@ -240,9 +240,9 @@ The result: the tank drives fast on the roads and slowly on the sand, shows its 
 
 ### Hard
 
-1.  Use all 16 frames of the tank: when it changes direction, let it turn one frame at a time, and only drive when it faces the right direction.
-2.  Let the barrel point towards the mouse (store the mouse position like in [part 10](/cpp-fast-track-10-arrays/)), but let it follow the mouse with a slight delay: one frame at a time. (Hint: `std::atan2` from `<cmath>` gives the angle from the tank to the mouse.)
-3.  Make the map larger than the screen, and scroll it: keep the tank in the middle of the screen, until it gets to an edge of the map. Make sure that tiles that are partly outside the screen are drawn correctly: `DrawTile` doesn't check that yet.
+1. Use all 16 frames of the tank: when it changes direction, let it turn one frame at a time, and only drive when it faces the right direction.
+2. Let the barrel point towards the mouse (store the mouse position like in [part 10](/cpp-fast-track-10-arrays/)), but let it follow the mouse with a slight delay: one frame at a time. (Hint: `std::atan2` from `<cmath>` gives the angle from the tank to the mouse.)
+3. Make the map larger than the screen, and scroll it: keep the tank in the middle of the screen, until it gets to an edge of the map. Make sure that tiles that are partly outside the screen are drawn correctly: `DrawTile` doesn't check that yet.
 
 <iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-11-assignment-hard/index.html" title="A larger map that scrolls with the tank; the tank turns in steps, and its barrel follows the mouse" loading="lazy" allowfullscreen></iframe>
 

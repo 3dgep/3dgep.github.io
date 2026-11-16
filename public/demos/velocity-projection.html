@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sliding Along a Wall</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--wall: #6b7385;
+		--tank: #4caf6a;
+		--velocity: #5fb8ff;
+		--normal: #e0b85a;
+		--removed: #f26d5b;
+		--result: #7ee08a;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--wall: #8a91a0;
+		--tank: #2e8b47;
+		--velocity: #1f6fc2;
+		--normal: #a86d00;
+		--removed: #d1382a;
+		--result: #1d8a35;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+	#bar {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px;
+		padding: 6px 8px; border-top: 1px solid var(--border); background: var(--panel); color: var(--muted);
+	}
+	.key { display: inline-flex; align-items: center; gap: 6px; }
+	button {
+		font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border);
+		border-radius: 5px; padding: 2px 8px; cursor: pointer;
+	}
+	.swatch { width: 18px; height: 3px; border-radius: 2px; flex: none; }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="A tank touches a wall. Its velocity is split into the part along the normal of the wall and the part along the wall. When the velocity points into the wall, the part along the normal is removed, and the tank slides along the wall."></canvas>
+	</div>
+	<div id="bar">
+		<span class="key"><span class="swatch" style="background: var(--velocity)"></span>velocity</span>
+		<span class="key"><span class="swatch" style="background: var(--normal)"></span>normal (length 1)</span>
+		<span class="key"><span class="swatch" style="background: var(--removed)"></span>part along the normal: removed</span>
+		<span class="key"><span class="swatch" style="background: var(--result)"></span>new velocity</span>
+		<button id="reset" type="button">reset</button>
+		<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+	</div>
+</div>
+<script>
+'use strict';
+// The tank touches the wall at the origin of the field; the wall's normal points away from the wall, towards the tank.
+// The normal is drawn a bit to the side of the tank. Drag the tip of the velocity, or the tip of the normal (to turn
+// the wall).
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W = 1, H = 1, DPR = 1, unit = 1, cx = 0, cy = 0;
+const Start = { angle: -Math.PI / 2, vel: { x: 1.3, y: 0.9 } };
+let angle = Start.angle;               // the direction of the normal (up)
+let vel = { ...Start.vel };             // the velocity, in units of the normal's length
+const MaxSpeed = 1.8;                  // so that the arrow always stays in view
+const NormalLength = 1, TankRadius = 0.55;
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--wall', '--tank', '--velocity', '--normal', '--removed', '--result'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	unit = Math.min(W / 6, (H - 50) / 5);
+	cx = W / 2; cy = 50 + (H - 50) / 2;
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+const normal = () => ({ x: Math.cos(angle), y: Math.sin(angle) });
+// where the normal is drawn, and where you grab the wall to turn it: on the wall, to the left of the tank
+function normalBase() { const n = normal(); return { x: n.y * 1.6, y: -n.x * 1.6 }; }
+const toScreen = (p) => ({ x: cx + p.x * unit, y: cy + p.y * unit });
+function tankCentre() { const n = normal(); return { x: n.x * TankRadius, y: n.y * TankRadius }; }
+
+function arrow(from, v, color, width = 3, dashed = false) {
+	const a = toScreen(from), b = toScreen({ x: from.x + v.x, y: from.y + v.y });
+	const len = Math.hypot(b.x - a.x, b.y - a.y);
+	if (len < 2) return;
+	const ux = (b.x - a.x) / len, uy = (b.y - a.y) / len, head = Math.min(12, len * 0.45);
+	ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width; ctx.setLineDash(dashed ? [6, 5] : []);
+	ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x - ux * head * 0.8, b.y - uy * head * 0.8); ctx.stroke();
+	ctx.setLineDash([]);
+	ctx.beginPath(); ctx.moveTo(b.x, b.y);
+	ctx.lineTo(b.x - ux * head - uy * head * 0.5, b.y - uy * head + ux * head * 0.5);
+	ctx.lineTo(b.x - ux * head + uy * head * 0.5, b.y - uy * head - ux * head * 0.5);
+	ctx.closePath(); ctx.fill();
+}
+function handle(p, color) {
+	const s = toScreen(p);
+	ctx.beginPath(); ctx.arc(s.x, s.y, 7, 0, 2 * Math.PI);
+	ctx.fillStyle = colors['--bg']; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = color; ctx.stroke();
+}
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg']; ctx.fillRect(0, 0, W, H);
+	const n = normal(), t = { x: -n.y, y: n.x }; // t: along the wall
+	const c = tankCentre();
+
+	// the wall: everything behind the line through the contact point, hatched
+	ctx.save();
+	ctx.translate(cx, cy); ctx.rotate(angle + Math.PI / 2);
+	ctx.fillStyle = colors['--wall']; ctx.globalAlpha = 0.18; const big = 2 * (W + H); ctx.fillRect(-big, 0, 2 * big, big); ctx.globalAlpha = 1;
+	ctx.strokeStyle = colors['--wall']; ctx.lineWidth = 1; ctx.globalAlpha = 0.5;
+	for (let x = -big; x < big; x += 14) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x - 14, 14); ctx.stroke(); }
+	ctx.globalAlpha = 1; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-big, 0); ctx.lineTo(big, 0); ctx.stroke();
+	ctx.restore();
+
+	// the tank
+	const sc = toScreen(c);
+	ctx.beginPath(); ctx.arc(sc.x, sc.y, TankRadius * unit, 0, 2 * Math.PI);
+	ctx.fillStyle = colors['--tank']; ctx.globalAlpha = 0.25; ctx.fill(); ctx.globalAlpha = 1;
+	ctx.strokeStyle = colors['--tank']; ctx.lineWidth = 2; ctx.stroke();
+
+	const inwards = vel.x * n.x + vel.y * n.y; // velocity.dot(normal)
+	const along = { x: n.x * inwards, y: n.y * inwards };
+	const result = inwards < 0 ? { x: vel.x - along.x, y: vel.y - along.y } : vel;
+
+	// the split: the new velocity (along the wall) plus the removed part (along the normal) is the velocity
+	if (inwards < 0) {
+		arrow(c, result, colors['--result'], 4);
+		// the removed part: from the tip of the new velocity to the tip of the velocity (new + removed = velocity)
+		arrow({ x: c.x + result.x, y: c.y + result.y }, along, colors['--removed'], 3, true);
+	}
+	arrow(c, vel, colors['--velocity'], 3);
+	const nb = normalBase();
+	arrow(nb, { x: n.x * NormalLength, y: n.y * NormalLength }, colors['--normal'], 3);
+	handle({ x: c.x + vel.x, y: c.y + vel.y }, colors['--velocity']);
+	handle(nb, colors['--normal']);
+
+	ctx.font = '13px system-ui, sans-serif'; ctx.textBaseline = 'top';
+	ctx.fillStyle = inwards < 0 ? colors['--removed'] : colors['--result'];
+	ctx.fillText(`velocity.dot(normal) = ${inwards.toFixed(2)}`, 10, 8);
+	ctx.fillStyle = colors['--muted'];
+	ctx.fillText(inwards < 0 ? 'negative: the tank drives into the wall, so that part is removed: it slides along the wall'
+		: 'not negative: the tank drives away from the wall (or along it): the velocity stays the same', 10, 26);
+	ctx.fillText('drag the blue circle to change the velocity, and the yellow circle to turn the wall', 10, H - 22);
+}
+
+// ---- dragging the tips ----
+let drag = null;
+function fieldPoint(e) {
+	const r = canvas.getBoundingClientRect();
+	return { x: (e.clientX - r.left - cx) / unit, y: (e.clientY - r.top - cy) / unit };
+}
+// the handle under the pointer: 'velocity', 'wall' or null
+function handleAt(p) {
+	const c = tankCentre(), nb = normalBase(), near = 18 / unit;
+	const dv = Math.hypot(p.x - (c.x + vel.x), p.y - (c.y + vel.y)), dw = Math.hypot(p.x - nb.x, p.y - nb.y);
+	if (dv < near && dv <= dw) return 'velocity';
+	return dw < near ? 'wall' : null;
+}
+canvas.addEventListener('pointerdown', (e) => {
+	drag = handleAt(fieldPoint(e));
+	if (drag) canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', (e) => {
+	const p = fieldPoint(e);
+	if (!drag) { canvas.style.cursor = handleAt(p) ? 'grab' : 'default'; return; }
+	if (drag === 'velocity') {
+		const c = tankCentre();
+		vel = { x: p.x - c.x, y: p.y - c.y };
+		const len = Math.hypot(vel.x, vel.y);
+		if (len > MaxSpeed) vel = { x: vel.x / len * MaxSpeed, y: vel.y / len * MaxSpeed };
+	} else if (Math.hypot(p.x, p.y) > 0.2) {
+		// turn the wall around the contact point (which never moves): the handle follows the pointer. The handle sits
+		// a quarter turn before the normal, so the normal points a quarter turn further.
+		angle = Math.atan2(p.y, p.x) + Math.PI / 2;
+	}
+	draw();
+});
+const stop = () => { drag = null; };
+canvas.addEventListener('pointerup', stop);
+canvas.addEventListener('pointercancel', stop);
+
+document.getElementById('reset').addEventListener('click', () => { angle = Start.angle; vel = { ...Start.vel }; draw(); });
+
+applyTheme();
+resize();
+</script>
+</body>
+</html>

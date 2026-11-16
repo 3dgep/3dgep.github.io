@@ -26,9 +26,9 @@ For the purpose of these tutorials, we assume you develop your games on a Window
 
 Checklist:
 
--   A PC or laptop: pretty much any CPU and GPU will do.
--   Windows 10 or Windows 11 (64-bit).
--   Visual Studio 2026 Community (Professional and Enterprise are more than welcome) with the **Desktop development with C++** workload.
+- A PC or laptop: pretty much any CPU and GPU will do.
+- Windows 10 or Windows 11 (64-bit).
+- Visual Studio 2026 Community (Professional and Enterprise are more than welcome) with the **Desktop development with C++** workload.
 
 On the download page, click *Free download* under *Visual Studio Community*:
 
@@ -108,10 +108,10 @@ You may choose any folder you want for your new project.
 
 </div>
 
-1.  Set the *Project name* to `Getting Started`.
-2.  Set the *Location* to `C:\Projects\C++ Fast Track`. You'll make a new project for each part of this series, and they all go in this folder. Visual Studio creates the folder if it doesn't exist yet.
-3.  Set the *Solution name* to `Part 1`.
-4.  Leave *Place solution and project in the same directory* unchecked.
+1. Set the *Project name* to `Getting Started`.
+2. Set the *Location* to `C:\Projects\C++ Fast Track`. You'll make a new project for each part of this series, and they all go in this folder. Visual Studio creates the folder if it doesn't exist yet.
+3. Set the *Solution name* to `Part 1`.
+4. Leave *Place solution and project in the same directory* unchecked.
 
 Below the settings, Visual Studio shows where your project ends up: `C:\Projects\C++ Fast Track\Part 1\Getting Started\`.
 
@@ -137,10 +137,10 @@ C++ is still evolving: a new version of the language appears every three years. 
 
 Right-click the *Getting Started* project in the Solution Explorer and select *Properties* (at the bottom of the menu). In the *Property Pages* dialog that appears:
 
-1.  Set *Configuration* (at the top) to *All Configurations*, so the setting applies to the Debug and the Release version of your program.
-2.  Select *Configuration Properties > General* on the left.
-3.  Click the value of *C++ Language Standard*, open the dropdown list, and select *ISO C++23 Standard (/std:c++23)*.
-4.  Click *OK*.
+1. Set *Configuration* (at the top) to *All Configurations*, so the setting applies to the Debug and the Release version of your program.
+2. Select *Configuration Properties > General* on the left.
+3. Click the value of *C++ Language Standard*, open the dropdown list, and select *ISO C++23 Standard (/std:c++23)*.
+4. Click *OK*.
 
 <img src="/images/cpp-fast-track-1/06-language-standard.png" alt="The Property Pages dialog with the C++ Language Standard set to ISO C++23" width="789" height="541" class="screenshot" />
 
@@ -195,9 +195,9 @@ Your first C++ program. Check that the toolbar says *Debug* and *x64*.
 
 So what does this program do?
 
--   `#include <print>` makes the `std::println` function available to your program. It comes with C++ (in the *standard library*), but you have to ask for it.
--   `int main()` is where every C++ program starts. The code between the curly braces `{` and `}` is executed when you run the program.
--   `std::println("Hello world!");` prints the text between the quotes, followed by a new line. Note the semicolon at the end: every *statement* in C++ ends with one.
+- `#include <print>` makes the `std::println` function available to your program. It comes with C++ (in the *standard library*), but you have to ask for it.
+- `int main()` is where every C++ program starts. The code between the curly braces `{` and `}` is executed when you run the program.
+- `std::println("Hello world!");` prints the text between the quotes, followed by a new line. Note the semicolon at the end: every *statement* in C++ ends with one.
 
 Start the program by pressing <kbd>F5</kbd>, or by clicking the green *Local Windows Debugger* button on the toolbar. Visual Studio *builds* your program first: it turns your code into an executable file. Then it starts it.
 
@@ -229,19 +229,19 @@ The solution folder.
 
 </div>
 
--   `Part 1.slnx`: your *solution file*, which points to
--   `Getting Started\Getting Started.vcxproj`: your *project file*, which points to
--   `Getting Started\main.cpp`: the *source code file*.
+- `Part 1.slnx`: your *solution file*, which points to
+- `Getting Started\Getting Started.vcxproj`: your *project file*, which points to
+- `Getting Started\main.cpp`: the *source code file*.
 
 A project can have multiple source files, and a solution can have multiple projects. The most interesting file is in the `x64\Debug` folder, and it's called `Getting Started.exe`. That's the program you just made. Double-click it, and you'll see that you created it yourself (if you are fast enough: the console window closes as soon as the program ends, because Visual Studio isn't there to keep it open).
 
 The other files:
 
--   `Getting Started\Getting Started.vcxproj.filters`: the folders (filters) that you see in the Solution Explorer;
--   `Getting Started\Getting Started.vcxproj.user`: your own settings for the project, for example for debugging;
--   `Getting Started\x64\Debug`: files that the compiler creates while it builds your program, such as `.obj` files;
--   `x64\Debug`: your program (`.exe`) and its debug information (`.pdb`);
--   `.vs`: a hidden folder with information that Visual Studio keeps for itself, such as which files you had open.
+- `Getting Started\Getting Started.vcxproj.filters`: the folders (filters) that you see in the Solution Explorer;
+- `Getting Started\Getting Started.vcxproj.user`: your own settings for the project, for example for debugging;
+- `Getting Started\x64\Debug`: files that the compiler creates while it builds your program, such as `.obj` files;
+- `x64\Debug`: your program (`.exe`) and its debug information (`.pdb`);
+- `.vs`: a hidden folder with information that Visual Studio keeps for itself, such as which files you had open.
 
 Quite confusing perhaps, but all that matters right now is the `.cpp` file in the `Getting Started` folder and the executable that was built from it.
 
@@ -263,8 +263,8 @@ Programmers want to see everything: show the file name extensions and hidden ite
 
 So, here's your task:
 
-1.  Every article in this series ends with a small practical assignment. You need to complete this assignment. Feel free to share your solution on the 3dgep.com Discord server: [https://discord.com/invite/gsxxaxc](https://discord.com/invite/gsxxaxc).
-2.  Create a program that prints your name 10 times, then waits for a key, then prints *Coding is awesome!* 10 times, then waits for a key again, then exits.
+1. Every article in this series ends with a small practical assignment. You need to complete this assignment. Feel free to share your solution on the 3dgep.com Discord server: [https://discord.com/invite/gsxxaxc](https://discord.com/invite/gsxxaxc).
+2. Create a program that prints your name 10 times, then waits for a key, then prints *Coding is awesome!* 10 times, then waits for a key again, then exits.
 
 :::tip[Hint]
 To wait for a key, add `#include <cstdio>` at the top of `main.cpp`, and call `std::getchar();` where the program has to wait. `std::getchar` waits until you press <kbd>Enter</kbd>. And yes, you may copy and paste lines for now: in part 4 you will learn a better way.

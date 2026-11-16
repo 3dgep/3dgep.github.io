@@ -74,19 +74,19 @@ This code will be the starting point for all episodes of the Fast Track tutorial
 
 Even though this is just a small program, there's a lot to say about it. Most (all, actually) of it will be explained in this tutorial series, but for now, let's limit ourselves to some observations:
 
--   The `#include` lines at the beginning of the program basically paste some source code from another file into the current file. `game.hpp` describes the `Game` (more about that later), and `<iostream>` is part of C++ itself: it gives you `std::cout`.
--   Whenever something needs to be drawn, a line starts with `screen.`: `screen` is the window that you draw on. The things we can make `screen` do are listed in `surface.hpp`, starting at line 44 (`class Surface`).
--   There are some things that happen just once. We specify those in the `Game::Init` function.
--   This particular program does nothing in the `Init` function.
--   Other things are done for each frame: these are listed in `Game::Tick`.
--   There's also a `Shutdown` function, which is executed only once: when the program ends (e.g. when you press <kbd>Esc</kbd>).
--   `rotatingGun` (the spinning gun turret) and `frame` (which of its 36 images is shown) are used in `Tick`, but you won't find them in `game.cpp`: they are part of the `Game`, so they are in `game.hpp`, together with `screen`:
+- The `#include` lines at the beginning of the program basically paste some source code from another file into the current file. `game.hpp` describes the `Game` (more about that later), and `<iostream>` is part of C++ itself: it gives you `std::cout`.
+- Whenever something needs to be drawn, a line starts with `screen.`: `screen` is the window that you draw on. The things we can make `screen` do are listed in `surface.hpp`, starting at line 44 (`class Surface`).
+- There are some things that happen just once. We specify those in the `Game::Init` function.
+- This particular program does nothing in the `Init` function.
+- Other things are done for each frame: these are listed in `Game::Tick`.
+- There's also a `Shutdown` function, which is executed only once: when the program ends (e.g. when you press <kbd>Esc</kbd>).
+- `rotatingGun` (the spinning gun turret) and `frame` (which of its 36 images is shown) are used in `Tick`, but you won't find them in `game.cpp`: they are part of the `Game`, so they are in `game.hpp`, together with `screen`:
 
     ```cpp source="tmpl8-part-02/game.hpp#L40-L45"
     ```
 
     `rotatingGun` is a *sprite*, loaded from the image `assets/aagun.tga`, which contains 36 frames (the turret in 36 directions). `frame` starts at `0`. You'll learn all about classes like `Game` in a later part; for now, remember that this is where they live.
--   Lines that start with `//` are merely comments. The program still works if you remove or alter them.
+- Lines that start with `//` are merely comments. The program still works if you remove or alter them.
 
 There's quite a bit more, and even more when you explore the other source files, such as `template.cpp`. Feel free to do so; if you mess anything up, just extract the template from the zip file you downloaded at the beginning of this tutorial again.
 
@@ -94,17 +94,17 @@ There's quite a bit more, and even more when you explore the other source files,
 
 Let's try some random things with this program:
 
-1.  Change the `0` on line 27 to some other number. Make it a big number.
-2.  Change the `0xffffff` on line 29 to `0xff0000`. Then, change it to `0x00ff00`, and finally to `0x0000ff`. What happens?
-3.  Change the `2, 2` on line 29 to `100, 20`. Now change it to `780, 20`. What happens?
-4.  Change `Clear` into `clear` (lower case) on line 27. Is there a problem now?
-5.  Append line 37 to the end of line 36 (don't remove the semicolon at the end of line 36). Line 36 should now look like this:
+1. Change the `0` on line 27 to some other number. Make it a big number.
+2. Change the `0xffffff` on line 29 to `0xff0000`. Then, change it to `0x00ff00`, and finally to `0x0000ff`. What happens?
+3. Change the `2, 2` on line 29 to `100, 20`. Now change it to `780, 20`. What happens?
+4. Change `Clear` into `clear` (lower case) on line 27. Is there a problem now?
+5. Append line 37 to the end of line 36 (don't remove the semicolon at the end of line 36). Line 36 should now look like this:
 
     ```cpp title="game.cpp" showLineNumbers startLineNumber=36
     rotatingGun.SetFrame(frame); rotatingGun.Draw(screen, 100, 100);
     ```
 
-6.  Move lines 26-38 from the `Tick` function to the `Init` function (they do the same thing for each frame anyway, right?). What is the result of doing this?
+6. Move lines 26-38 from the `Tick` function to the `Init` function (they do the same thing for each frame anyway, right?). What is the result of doing this?
 
 An important concept is the screen coordinate system. Every pixel on the screen has a position: the horizontal position is called `X`, the vertical position is called `Y`. `X` starts at `0` on the left side of the screen, and `Y` starts at `0` at the top. The screen of the template is `800` by `512` pixels, so `X` goes from `0` to `799`, and `Y` from `0` to `511`. If you print text at `X = 780`, it doesn't fit: the letters that don't fit on the screen are cut off.
 
@@ -132,9 +132,9 @@ Take a single A4 sheet of paper (turned sideways) and draw a grid of 16 columns 
 
 Then, for each straight line:
 
-1.  Determine the `X` and `Y` coordinate of the start of the line (`X1`, `Y1`).
-2.  Determine the `X` and `Y` coordinate of the end of the line (`X2`, `Y2`).
-3.  Add a line to the `Tick` function using `screen.Line( X1, Y1, X2, Y2, 0xffffff );`.
+1. Determine the `X` and `Y` coordinate of the start of the line (`X1`, `Y1`).
+2. Determine the `X` and `Y` coordinate of the end of the line (`X2`, `Y2`).
+3. Add a line to the `Tick` function using `screen.Line( X1, Y1, X2, Y2, 0xffffff );`.
 
 The lines on the edge of the grid are on the edge of the screen: use `799` instead of `800` and `511` instead of `512` for those, or they fall just outside the screen.
 
@@ -142,10 +142,10 @@ For bonus points: store the `X` and `Y` coordinates in an array and loop through
 
 And finally:
 
--   Make the **C** red;
--   Make the **O** green;
--   Make the **D** blue, and
--   Make the **E** yellow.
+- Make the **C** red;
+- Make the **O** green;
+- Make the **D** blue, and
+- Make the **E** yellow.
 
 Your result could look something like this (your letters will probably have a different shape, and that's fine):
 

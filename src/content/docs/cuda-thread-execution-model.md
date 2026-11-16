@@ -384,10 +384,10 @@ If a device supports compute capability 1.3 then it can have blocks with a maxim
 
 **Q.** What would be the ideal block granularity to compute the product of two 2-D matrices of size 1024 x 1024?
 
-1.  4×4?
-2.  8×8?
-3.  16×16?
-4.  or 32×32?
+1. 4×4?
+2. 8×8?
+3. 16×16?
+4. or 32×32?
 
 **A.** To answer this question, let’s analyze each choice and give pros and cons for each one.
 

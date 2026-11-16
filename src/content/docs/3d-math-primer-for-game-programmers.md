@@ -103,9 +103,9 @@ Camera space is the coordinate space that is associated with the observer.  Cam
 
 The camera space transformation together with the projection transformation is useful for answering such questions as:
 
-1.  Is an object completely in view of the camera, partially in view, or not in view at all,
-2.  Is one object closer to the camera than the other,
-3.  Is an object directly in front of, above, below, to the left, or to the right of the camera.
+1. Is an object completely in view of the camera, partially in view, or not in view at all,
+2. Is one object closer to the camera than the other,
+3. Is an object directly in front of, above, below, to the left, or to the right of the camera.
 
 ### Combining Coordinate Spaces
 

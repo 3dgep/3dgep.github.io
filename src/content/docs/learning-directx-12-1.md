@@ -174,10 +174,10 @@ end method
 
 In the pseudo-code listing above, there are four methods defined:
 
-1.  `IsFenceComplete`: Check to see if the fence’s completed value has been reached.
-2.  `WaitForFenceValue`: Stall the CPU thread until the fence value has been reached.
-3.  `Signal`: Insert a fence value into the command queue. The fence used to signal the command queue will have it’s completed value set when that value is reached in the command queue.
-4.  `Render`: Render a frame. Do not move on to the next frame until that frame’s previous fence value has been reached.
+1. `IsFenceComplete`: Check to see if the fence’s completed value has been reached.
+2. `WaitForFenceValue`: Stall the CPU thread until the fence value has been reached.
+3. `Signal`: Insert a fence value into the command queue. The fence used to signal the command queue will have it’s completed value set when that value is reached in the command queue.
+4. `Render`: Render a frame. Do not move on to the next frame until that frame’s previous fence value has been reached.
 
 The `Render` method is responsible for rendering the scene. It does this by first populating the command list that contain all of the draw (or compute) commands that are needed to render the scene. The resulting command list is then executed on the command queue using the `ExecuteCommandList` method. The call to to the `ExecuteCommandList` method will not block the calling thread. It does not wait for the commands in the command list to be executed on the GPU before it returns to the caller.
 
@@ -189,9 +189,9 @@ To prevent the resource from being overwritten before they are presented to the 
 
 It is important to understand that each command queue must track it’s own fence and fence value. DirectX 12 defines three different command queue types:
 
-1.  **Copy**: Can be used to issue commands to copy resource data (CPU -> GPU, GPU -> GPU, GPU -> CPU).
-2.  **Compute**: Can do everything a **Copy** queue can do and issue compute (dispatch) commands.
-3.  **Direct**: Can do everything a **Copy** and a **Compute** queue can do and issue draw commands.
+1. **Copy**: Can be used to issue commands to copy resource data (CPU -> GPU, GPU -> GPU, GPU -> CPU).
+2. **Compute**: Can do everything a **Copy** queue can do and issue compute (dispatch) commands.
+3. **Direct**: Can do everything a **Copy** and a **Compute** queue can do and issue draw commands.
 
 Although the DirectX 12 API defines these three different command queue types, it is not necessarily the case that the GPU in your computer actually has three physical work queues. It may also be the case that the GPU may have one dedicated work queue for each one of these types and it may even be the case that it has multiple work queues of each type. As far as I know, there doesn’t seem to be a reliable way of detecting how many queues the GPU has and what types. If you decide to create multiple queues in your own applications, you should allocate one fence object and track one fence value for each allocated command queue. Let’s take a look at a visual example to try to explain how to work with command queues.
 
@@ -267,17 +267,17 @@ In the following sections, we will create the DirectX 12 demo application. In th
 
 The following steps will be shown:
 
--   Register the window class
--   Create the window
--   Query the GPU adapters
--   Create a DirectX 12 device
--   Create a command queue
--   Create a swap chain
--   Create command allocator & command list
--   Handle GPU synchronization
--   Update & Render
--   Handle resizing
--   Handle full-screen toggling
+- Register the window class
+- Create the window
+- Query the GPU adapters
+- Create a DirectX 12 device
+- Create a command queue
+- Create a swap chain
+- Create command allocator & command list
+- Handle GPU synchronization
+- Update & Render
+- Handle resizing
+- Handle full-screen toggling
 
 ### Preamble
 
@@ -467,8 +467,8 @@ Enabling the debug layer after creating the [`ID3D12Device`](https://learn.micro
 The [`IID_PPV_ARGS`](https://learn.microsoft.com/windows/win32/api/combaseapi/nf-combaseapi-iid_ppv_args) macro shown here on line 118 is used to retrieve an interface pointer, supplying the IID value of the requested interface automatically based on the type of the interface pointer used.  
 A common syntax in methods that retrieve an interface pointer includes two parameters:
 
--   An \[in\] parameter, normally of type `REFIID`, to specify the IID of the interface to retrieve.
--   An \[out\] parameter, normally of type `void**`, to receive the interface pointer.
+- An \[in\] parameter, normally of type `REFIID`, to specify the IID of the interface to retrieve.
+- An \[out\] parameter, normally of type `void**`, to receive the interface pointer.
 
 This macro computes the IID based on the type of interface pointer, which prevents coding errors in which the IID and interface pointer type do not match. Windows developers should always use this macro with any method that requires separate IID and interface pointer parameters.
 :::
@@ -526,37 +526,37 @@ typedef struct tagWNDCLASSEXW {
 
 Each member has the following definition:
 
--   `UINT cbSize`: The size, in bytes, of this structure. Set this member to `sizeof(WNDCLASSEXW)`.
--   `UINT style`: The class styles. In this case, the [`CS_HREDRAW`](https://learn.microsoft.com/windows/win32/winmsg/window-class-styles) class style specifies that the entire window is redrawn if a movement or size adjustment changes the width of the client area and the [`CS_VREDRAW`](https://learn.microsoft.com/windows/win32/winmsg/window-class-styles) class style specifies that the entire window is redrawn if a movement or size adjustment changes the height of the client area.
--   `WNDPROC lpfnWndProc`: A pointer to the windows procedure that will handle window messages for any window created using this window class. In this case we specify the yet undefined `WndProc` function that was declared earlier.
--   `int cbClsExtra`: The number of extra bytes to allocate following the window-class structure. This parameter is not used here and should be set to 0.
--   `int cpWndExtra`: The number of extra bytes to allocate following the window instance. This parameter is not used here and should be set to 0.
--   `HINSTANCE hInstance`: A handle to the instance that contains the window procedure for the class. This module instance handle is passed to the `WinMain` function which will be shown later.
--   `HICON hIcon`: A handle to the class icon. This icon will be used to represent a window created with this class in the taskbar and in the top-left corner of the window’s title bar. You can load an icon from a resource file using the [`LoadIcon`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-loadicona) function. If this value is `NULL` (or `nullptr`) then the default application icon is used.
--   `HCURSOR hCursor`: A handle to the class cursor. This must be a handle to a valid cursor resource. For this demo, we will use the default arrow icon by specifying `LoadCursor( nullptr, IDC_ARROW )`.
--   `HBRUSH hbrBackground`: A handle to the class background brush. This member can be a handle to the brush to be used for painting the background, or it can be a color value. A color value must be one of the following standard system colors (the value 1 must be added to the chosen color). If a color value is given, you must convert it to one of the following `HBRUSH` types:
-    -   `COLOR_ACTIVEBORDER`
-    -   `COLOR_ACTIVECAPTION`
-    -   `COLOR_APPWORKSPACE`
-    -   `COLOR_BACKGROUND`
-    -   `COLOR_BTNFACE`
-    -   `COLOR_BTNSHADOW`
-    -   `COLOR_BTNTEXT`
-    -   `COLOR_CAPTIONTEXT`
-    -   `COLOR_GRAYTEXT`
-    -   `COLOR_HIGHLIGHT`
-    -   `COLOR_HIGHLIGHTTEXT`
-    -   `COLOR_INACTIVEBORDER`
-    -   `COLOR_INACTIVECAPTION`
-    -   `COLOR_MENU`
-    -   `COLOR_MENUTEXT`
-    -   `COLOR_SCROLLBAR`
-    -   `COLOR_WINDOW`
-    -   `COLOR_WINDOWFRAME`
-    -   `COLOR_WINDOWTEXT`
--   `LPCWSTR lpszMenuName`: Pointer to a null-terminated character string that specifies the resource name of the class menu, as the name appears in the resource file. If this member is `NULL`, windows belonging to this class have no default menu.
--   `LPCWSTR lpszClassName`: A pointer to a null-terminated const string which is used to uniquely identify this window class. This class name will be used to create the window instance.
--   `HICON hIconSm`: A handle to a small icon that is associated with the window class. If this member is `NULL` (or `nullptr`), the system searches the icon resource specified by the `hIcon` member for an icon of the appropriate size to use as the small icon.
+- `UINT cbSize`: The size, in bytes, of this structure. Set this member to `sizeof(WNDCLASSEXW)`.
+- `UINT style`: The class styles. In this case, the [`CS_HREDRAW`](https://learn.microsoft.com/windows/win32/winmsg/window-class-styles) class style specifies that the entire window is redrawn if a movement or size adjustment changes the width of the client area and the [`CS_VREDRAW`](https://learn.microsoft.com/windows/win32/winmsg/window-class-styles) class style specifies that the entire window is redrawn if a movement or size adjustment changes the height of the client area.
+- `WNDPROC lpfnWndProc`: A pointer to the windows procedure that will handle window messages for any window created using this window class. In this case we specify the yet undefined `WndProc` function that was declared earlier.
+- `int cbClsExtra`: The number of extra bytes to allocate following the window-class structure. This parameter is not used here and should be set to 0.
+- `int cpWndExtra`: The number of extra bytes to allocate following the window instance. This parameter is not used here and should be set to 0.
+- `HINSTANCE hInstance`: A handle to the instance that contains the window procedure for the class. This module instance handle is passed to the `WinMain` function which will be shown later.
+- `HICON hIcon`: A handle to the class icon. This icon will be used to represent a window created with this class in the taskbar and in the top-left corner of the window’s title bar. You can load an icon from a resource file using the [`LoadIcon`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-loadicona) function. If this value is `NULL` (or `nullptr`) then the default application icon is used.
+- `HCURSOR hCursor`: A handle to the class cursor. This must be a handle to a valid cursor resource. For this demo, we will use the default arrow icon by specifying `LoadCursor( nullptr, IDC_ARROW )`.
+- `HBRUSH hbrBackground`: A handle to the class background brush. This member can be a handle to the brush to be used for painting the background, or it can be a color value. A color value must be one of the following standard system colors (the value 1 must be added to the chosen color). If a color value is given, you must convert it to one of the following `HBRUSH` types:
+    - `COLOR_ACTIVEBORDER`
+    - `COLOR_ACTIVECAPTION`
+    - `COLOR_APPWORKSPACE`
+    - `COLOR_BACKGROUND`
+    - `COLOR_BTNFACE`
+    - `COLOR_BTNSHADOW`
+    - `COLOR_BTNTEXT`
+    - `COLOR_CAPTIONTEXT`
+    - `COLOR_GRAYTEXT`
+    - `COLOR_HIGHLIGHT`
+    - `COLOR_HIGHLIGHTTEXT`
+    - `COLOR_INACTIVEBORDER`
+    - `COLOR_INACTIVECAPTION`
+    - `COLOR_MENU`
+    - `COLOR_MENUTEXT`
+    - `COLOR_SCROLLBAR`
+    - `COLOR_WINDOW`
+    - `COLOR_WINDOWFRAME`
+    - `COLOR_WINDOWTEXT`
+- `LPCWSTR lpszMenuName`: Pointer to a null-terminated character string that specifies the resource name of the class menu, as the name appears in the resource file. If this member is `NULL`, windows belonging to this class have no default menu.
+- `LPCWSTR lpszClassName`: A pointer to a null-terminated const string which is used to uniquely identify this window class. This class name will be used to create the window instance.
+- `HICON hIconSm`: A handle to a small icon that is associated with the window class. If this member is `NULL` (or `nullptr`), the system searches the icon resource specified by the `hIcon` member for an icon of the appropriate size to use as the small icon.
 
 With the window class registered, the OS window instance can be created.
 
@@ -603,18 +603,18 @@ HWND WINAPI CreateWindowExW(
 
 And each parameter has the following definition:
 
--   `DWORD dwExStyle`: The extended window style of the window being created. For a list of possible values,see [Extended Window Styles](https://learn.microsoft.com/windows/win32/winmsg/extended-window-styles).
--   `LPCWSTR lpClassName`: A null-terminated string or a class atom created by a previous call to the [`RegisterClass`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-registerclassa) or [`RegisterClassEx`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-registerclassexa) function. The atom must be in the low-order word of `lpClassName`; the high-order word must be 0. If `lpClassName` is a string, it specifies the window class name. The class name can be any name registered with [`RegisterClass`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-registerclassa) or [`RegisterClassEx`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-registerclassexa), provided that the module that registers the class is also the module that creates the window.
--   `LPCWSTR lpWindowName`: The window name. If the window style specifies a title bar, the window title pointed to by `lpWindowName` is displayed in the title bar.
--   `DWORD dwStyle`: The style of the window being created. This parameter can be a combination of the [window style values](https://learn.microsoft.com/windows/win32/winmsg/window-styles).
--   `int X`: The initial horizontal position of the window. For an overlapped or pop-up window, the `X` parameter is the initial x-coordinate of the window’s upper-left corner, in screen coordinates. If `X` is set to `CW_USEDEFAULT`, the system selects the default position for the window’s upper-left corner and ignores the `Y` parameter.
--   `int Y`: The initial vertical position of the window. For an overlapped or pop-up window, the `Y` parameter is the initial y-coordinate of the window’s upper-left corner, in screen coordinates. If an overlapped window is created with the `WS_VISIBLE` style bit set and the `X` parameter is set to `CW_USEDEFAULT`, then the `Y` parameter determines how the window is shown. If the `Y` parameter is `CW_USEDEFAULT`, then the window manager calls [`ShowWindow`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-showwindow) with the `SW_SHOW` flag after the window has been created. If the `Y` parameter is some other value, then the window manager calls [`ShowWindow`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-showwindow) with that value as the `nCmdShow` parameter.
--   `int nWidth`: The width, in device units, of the window. For overlapped windows, `nWidth` is the window’s width, in screen coordinates, or `CW_USEDEFAULT`. If `nWidth` is `CW_USEDEFAULT`, the system selects a default width and height for the window; the default width extends from the initial x-coordinates to the right edge of the screen; the default height extends from the initial y-coordinate to the top of the icon area.
--   `int nHeight`: The height, in device units, of the window. For overlapped windows, `nHeight` is the window’s height, in screen coordinates. If the `nWidth` parameter is set to `CW_USEDEFAULT`, the system ignores `nHeight`.
--   `HWND hWndParent`: A handle to the parent or owner window of the window being created. To create a child window or an owned window, supply a valid window handle. This parameter is optional for pop-up windows.
--   `HMENU hMenu`: A handle to a menu, or specifies a child-window identifier, depending on the window style. For an overlapped or pop-up window, `hMenu` identifies the menu to be used with the window; it can be `NULL` if the class menu is to be used.
--   `HINSTANCE hInstance`: A handle to the instance of the module to be associated with the window.
--   `LPVOID lpParam`: Pointer to a value to be passed to the window through the [`CREATESTRUCT`](https://learn.microsoft.com/windows/win32/api/winuser/ns-winuser-createstructa) structure (`lpCreateParams` member) pointed to by the `lParam` param of the `WM_CREATE` message. This message is sent to the created window by this function before it returns.
+- `DWORD dwExStyle`: The extended window style of the window being created. For a list of possible values,see [Extended Window Styles](https://learn.microsoft.com/windows/win32/winmsg/extended-window-styles).
+- `LPCWSTR lpClassName`: A null-terminated string or a class atom created by a previous call to the [`RegisterClass`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-registerclassa) or [`RegisterClassEx`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-registerclassexa) function. The atom must be in the low-order word of `lpClassName`; the high-order word must be 0. If `lpClassName` is a string, it specifies the window class name. The class name can be any name registered with [`RegisterClass`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-registerclassa) or [`RegisterClassEx`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-registerclassexa), provided that the module that registers the class is also the module that creates the window.
+- `LPCWSTR lpWindowName`: The window name. If the window style specifies a title bar, the window title pointed to by `lpWindowName` is displayed in the title bar.
+- `DWORD dwStyle`: The style of the window being created. This parameter can be a combination of the [window style values](https://learn.microsoft.com/windows/win32/winmsg/window-styles).
+- `int X`: The initial horizontal position of the window. For an overlapped or pop-up window, the `X` parameter is the initial x-coordinate of the window’s upper-left corner, in screen coordinates. If `X` is set to `CW_USEDEFAULT`, the system selects the default position for the window’s upper-left corner and ignores the `Y` parameter.
+- `int Y`: The initial vertical position of the window. For an overlapped or pop-up window, the `Y` parameter is the initial y-coordinate of the window’s upper-left corner, in screen coordinates. If an overlapped window is created with the `WS_VISIBLE` style bit set and the `X` parameter is set to `CW_USEDEFAULT`, then the `Y` parameter determines how the window is shown. If the `Y` parameter is `CW_USEDEFAULT`, then the window manager calls [`ShowWindow`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-showwindow) with the `SW_SHOW` flag after the window has been created. If the `Y` parameter is some other value, then the window manager calls [`ShowWindow`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-showwindow) with that value as the `nCmdShow` parameter.
+- `int nWidth`: The width, in device units, of the window. For overlapped windows, `nWidth` is the window’s width, in screen coordinates, or `CW_USEDEFAULT`. If `nWidth` is `CW_USEDEFAULT`, the system selects a default width and height for the window; the default width extends from the initial x-coordinates to the right edge of the screen; the default height extends from the initial y-coordinate to the top of the icon area.
+- `int nHeight`: The height, in device units, of the window. For overlapped windows, `nHeight` is the window’s height, in screen coordinates. If the `nWidth` parameter is set to `CW_USEDEFAULT`, the system ignores `nHeight`.
+- `HWND hWndParent`: A handle to the parent or owner window of the window being created. To create a child window or an owned window, supply a valid window handle. This parameter is optional for pop-up windows.
+- `HMENU hMenu`: A handle to a menu, or specifies a child-window identifier, depending on the window style. For an overlapped or pop-up window, `hMenu` identifies the menu to be used with the window; it can be `NULL` if the class menu is to be used.
+- `HINSTANCE hInstance`: A handle to the instance of the module to be associated with the window.
+- `LPVOID lpParam`: Pointer to a value to be passed to the window through the [`CREATESTRUCT`](https://learn.microsoft.com/windows/win32/api/winuser/ns-winuser-createstructa) structure (`lpCreateParams` member) pointed to by the `lParam` param of the `WM_CREATE` message. This message is sent to the created window by this function before it returns.
 
 The window has been created but it has not yet been shown. The window is shown only after the DirectX 12 device and command queue have been created and initialized.
 
@@ -679,10 +679,10 @@ HRESULT WINAPI D3D12CreateDevice(
 
 And takes the following parameters:
 
--   `IUnknown *pAdapter`: A pointer to the video adapter to use when creating a device. Pass `NULL` (or `nullptr`) to use the default adapter, which is the first adapter that is enumerated by [`IDXGIFactory1::EnumAdapters`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-enumadapters).
--   [`D3D_FEATURE_LEVEL`](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_feature_level) `MinimumFeatureLevel`: The minimum [`D3D_FEATURE_LEVEL`](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_feature_level) required for successful device creation.
--   `REFIID riid`: The globally unique identifier (`GUID`) for the device interface. This parameter, and `ppDevice`, can be addressed with the single macro [`IID_PPV_ARGS`](https://learn.microsoft.com/windows/win32/api/combaseapi/nf-combaseapi-iid_ppv_args).
--   `void **ppDevice`: A pointer to a memory block that receives a pointer to the device.
+- `IUnknown *pAdapter`: A pointer to the video adapter to use when creating a device. Pass `NULL` (or `nullptr`) to use the default adapter, which is the first adapter that is enumerated by [`IDXGIFactory1::EnumAdapters`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-enumadapters).
+- [`D3D_FEATURE_LEVEL`](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_feature_level) `MinimumFeatureLevel`: The minimum [`D3D_FEATURE_LEVEL`](https://learn.microsoft.com/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_feature_level) required for successful device creation.
+- `REFIID riid`: The globally unique identifier (`GUID`) for the device interface. This parameter, and `ppDevice`, can be addressed with the single macro [`IID_PPV_ARGS`](https://learn.microsoft.com/windows/win32/api/combaseapi/nf-combaseapi-iid_ppv_args).
+- `void **ppDevice`: A pointer to a memory block that receives a pointer to the device.
 
 As was mentioned previously, the graphics programmer should try to fix any and all errors and warnings generated by the debug layer before releasing the DirectX 12 application to the general public. In order to facilitate diagnosing errors and warnings generated by the debug layer, the DirectX 12 device provides access to the [`ID3D12InfoQueue`](https://learn.microsoft.com/windows/win32/api/d3d12sdklayers/nn-d3d12sdklayers-id3d12infoqueue) interface. The [`ID3D12InfoQueue`](https://learn.microsoft.com/windows/win32/api/d3d12sdklayers/nn-d3d12sdklayers-id3d12infoqueue) interface is used to enable break points based on the severity of the message and the ability to filter certain messages from being generated.
 
@@ -704,8 +704,8 @@ Since [`D3D12_MESSAGE_SEVERITY_INFO`](https://learn.microsoft.com/windows/win32/
 
 The following warning messages are suppressed based on their [message ID](https://learn.microsoft.com/windows/win32/api/d3d12sdklayers/ne-d3d12sdklayers-d3d12_message_id):
 
--   `CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE`: This warning occurs when a render target is cleared using a clear color that is not the optimized clear color specified during resource creation. If you want to clear a render target using an arbitrary clear color, you should disable this warning.
--   `MAP_INVALID_NULLRANGE` and `UNMAP_INVALID_NULLRANGE`: These warnings occur when a frame is captured using the graphics debugger integrated in Visual Studio. Since I think this bug will never be fixed in the debugger, it’s best to just ignore this warning.
+- `CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE`: This warning occurs when a render target is cleared using a clear color that is not the optimized clear color specified during resource creation. If you want to clear a render target using an arbitrary clear color, you should disable this warning.
+- `MAP_INVALID_NULLRANGE` and `UNMAP_INVALID_NULLRANGE`: These warnings occur when a frame is captured using the graphics debugger integrated in Visual Studio. Since I think this bug will never be fixed in the debugger, it’s best to just ignore this warning.
 
 On lines 254-260 the info queue filter is defined and the filter is pushed on the info queue using the [`ID3D12InfoQueue::PushStorageFilter`](https://learn.microsoft.com/windows/win32/api/d3d12sdklayers/nf-d3d12sdklayers-id3d12infoqueue-pushstoragefilter) method.
 
@@ -733,16 +733,16 @@ typedef struct D3D12_COMMAND_QUEUE_DESC {
 
 The members of the [`D3D12_COMMAND_QUEUE_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_command_queue_desc) structure are:
 
--   [`D3D12_COMMAND_LIST_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type) `Type`: Specifies the type of command queue to create and can be one of the following types:
-    -   [`D3D12_COMMAND_LIST_TYPE_DIRECT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): The command queue can be used to execute draw, compute, and copy commands. This is the most general type of command queue and will be used in most cases.
-    -   [`D3D12_COMMAND_LIST_TYPE_COMPUTE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): The command queue can be used to execute compute and copy commands.
-    -   [`D3D12_COMMAND_LIST_TYPE_COPY`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Command queue can be used to execute copy commands.
--   `INT Priority`: The priority for the command queue. Can be one of the following values:
-    -   [`D3D12_COMMAND_QUEUE_PRIORITY_NORMAL`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_priority#constants): The command queue has normal priority.
-    -   [`D3D12_COMMAND_QUEUE_PRIORITY_HIGH`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_priority#constants): The command queue has high priority.
-    -   [`D3D12_COMMAND_QUEUE_PRIORITY_GLOBAL_REALTIME`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_priority#constants): The command queue has global realtime priority.
--   [`D3D12_COMMAND_QUEUE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_flags) `Flags`: Specifies additional flags from the [`D3D12_COMMAND_QUEUE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_flags) enumeratrion. Currently, the only additional flag is [`D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_flags#constants) which indicates that the GPU timeout should be disabled for this command queue. Be careful when using this flag. If you encounter errors with GPU timeouts, you should probably address the error instead of using this flag.
--   `UINT NodeMask`: For single GPU operation, set this to zero. If there are multiple GPU nodes, set a bit to identify the node (the device’s physical adapter) to which the command queue applies. Each bit in the mask corresponds to a single node. Only 1 bit must be set. For more information refer to [Multi-Adapter](https://learn.microsoft.com/windows/win32/direct3d12/user-mode-heap-synchronization).
+- [`D3D12_COMMAND_LIST_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type) `Type`: Specifies the type of command queue to create and can be one of the following types:
+    - [`D3D12_COMMAND_LIST_TYPE_DIRECT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): The command queue can be used to execute draw, compute, and copy commands. This is the most general type of command queue and will be used in most cases.
+    - [`D3D12_COMMAND_LIST_TYPE_COMPUTE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): The command queue can be used to execute compute and copy commands.
+    - [`D3D12_COMMAND_LIST_TYPE_COPY`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Command queue can be used to execute copy commands.
+- `INT Priority`: The priority for the command queue. Can be one of the following values:
+    - [`D3D12_COMMAND_QUEUE_PRIORITY_NORMAL`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_priority#constants): The command queue has normal priority.
+    - [`D3D12_COMMAND_QUEUE_PRIORITY_HIGH`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_priority#constants): The command queue has high priority.
+    - [`D3D12_COMMAND_QUEUE_PRIORITY_GLOBAL_REALTIME`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_priority#constants): The command queue has global realtime priority.
+- [`D3D12_COMMAND_QUEUE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_flags) `Flags`: Specifies additional flags from the [`D3D12_COMMAND_QUEUE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_flags) enumeratrion. Currently, the only additional flag is [`D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_queue_flags#constants) which indicates that the GPU timeout should be disabled for this command queue. Be careful when using this flag. If you encounter errors with GPU timeouts, you should probably address the error instead of using this flag.
+- `UINT NodeMask`: For single GPU operation, set this to zero. If there are multiple GPU nodes, set a bit to identify the node (the device’s physical adapter) to which the command queue applies. Each bit in the mask corresponds to a single node. Only 1 bit must be set. For more information refer to [Multi-Adapter](https://learn.microsoft.com/windows/win32/direct3d12/user-mode-heap-synchronization).
 
 ### Check for Tearing Support
 
@@ -777,10 +777,10 @@ HRESULT CheckFeatureSupport(
 
 And takes the following parameters:
 
--   [`DXGI_FEATURE`](https://learn.microsoft.com/windows/win32/api/dxgi1_5/ne-dxgi1_5-dxgi_feature) `Feature`: Specifies one member of [`DXGI_FEATURE`](https://learn.microsoft.com/windows/win32/api/dxgi1_5/ne-dxgi1_5-dxgi_feature) to query support for. Currently, the following features can be queried:
-    -   [`DXGI_FEATURE_PRESENT_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/api/dxgi1_5/ne-dxgi1_5-dxgi_feature#constants): The display supports tearing, a requirement of variable refresh rate displays.
--   `void *pFeatureSupportData`: Specifies a pointer to a buffer that will be filled with data that describes the feature support.
--   `UINT FeatureSupportDataSize`: The size, in bytes, of `pFeatureSupportData`.
+- [`DXGI_FEATURE`](https://learn.microsoft.com/windows/win32/api/dxgi1_5/ne-dxgi1_5-dxgi_feature) `Feature`: Specifies one member of [`DXGI_FEATURE`](https://learn.microsoft.com/windows/win32/api/dxgi1_5/ne-dxgi1_5-dxgi_feature) to query support for. Currently, the following features can be queried:
+    - [`DXGI_FEATURE_PRESENT_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/api/dxgi1_5/ne-dxgi1_5-dxgi_feature#constants): The display supports tearing, a requirement of variable refresh rate displays.
+- `void *pFeatureSupportData`: Specifies a pointer to a buffer that will be filled with data that describes the feature support.
+- `UINT FeatureSupportDataSize`: The size, in bytes, of `pFeatureSupportData`.
 
 The next step in initializing DirectX 12 is to create the swap chain.
 
@@ -802,8 +802,8 @@ The swap chain stores pointers to a number of buffers in GPU memory. After a pre
 
 The image above provides a visual example of the DXGI flip model [\[20\]](#cite-20). DirectX 12 does not support the bitblt presentation model and only supports the flip presentation model. There are two flip effects that can be used when creating the swap chain [\[21\]](#cite-21):
 
--   [`DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants): Use this flag to specify the flip presentation model and to specify that DXGI persist the contents of the back buffer after you call [`IDXGISwapChain1::Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1). This flag cannot be used with multisampling.
--   [`DXGI_SWAP_EFFECT_FLIP_DISCARD`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants): Use this flag to specify the flip presentation model and to specify that DXGI discard the contents of the back buffer after you call [`IDXGISwapChain1::Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1). This flag cannot be used with multisampling and partial presentation.
+- [`DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants): Use this flag to specify the flip presentation model and to specify that DXGI persist the contents of the back buffer after you call [`IDXGISwapChain1::Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1). This flag cannot be used with multisampling.
+- [`DXGI_SWAP_EFFECT_FLIP_DISCARD`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants): Use this flag to specify the flip presentation model and to specify that DXGI discard the contents of the back buffer after you call [`IDXGISwapChain1::Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1). This flag cannot be used with multisampling and partial presentation.
 
 To achieve maximum frame rates while rendering with **vsync-off** [\[19\]](#cite-19), the [`DXGI_SWAP_EFFECT_FLIP_DISCARD`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants) flip model should be used. The **discard** means that if the previously presented frame is still in the queue to be presented, then that frame will be discarded and the next frame will be put directly to the front of the presentation queue.
 
@@ -841,27 +841,27 @@ typedef struct _DXGI_SWAP_CHAIN_DESC1 {
 
 And each member has the following definition:
 
--   `UINT Width`: A value that describes the resolution width. If you specify a width of 0 when you call the [`IDXGIFactory2::CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd) method to create a swap chain, the runtime obtains the width from the output window and assigns this width value to the swap-chain description. You can subsequently call the [`IDXGISwapChain1::GetDesc1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-getdesc1) method to retrieve the assigned width value.
--   `UINT Height`: A value that describes the resolution height. If you specify the height as zero when you call the [`IDXGIFactory2::CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd) method to create a swap chain, the runtime obtains the height from the output window and assigns this height value to the swap-chain description. You can subsequently call the [`IDXGISwapChain1::GetDesc1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-getdesc1) method to retrieve the assigned height value.
--   [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) `Format`: A [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) structure that describes the display format.
--   `BOOL Stereo`: Specifies whether the full-screen display mode or the swap-chain back buffer is stereo. `TRUE` if stereo; otherwise, `FALSE`. If you specify stereo, you must also specify a flip-model swap chain.
--   [`DXGI_SAMPLE_DESC`](https://learn.microsoft.com/windows/win32/api/dxgicommon/ns-dxgicommon-dxgi_sample_desc) `SampleDesc`: A [`DXGI_SAMPLE_DESC`](https://learn.microsoft.com/windows/win32/api/dxgicommon/ns-dxgicommon-dxgi_sample_desc) structure that describes multi-sampling parameters. This member is valid only with bit-block transfer (**bitblt**) model swap chains. When using **flip** model swap chain, this member must be specified as `{1, 0}`.
--   [`DXGI_USAGE`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-usage) `BufferUsage`: A [`DXGI_USAGE`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-usage)\-typed value that describes the surface usage and CPU access options for the back buffer. The back buffer can be used for shader input ([`DXGI_USAGE_SHADER_INPUT`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-usage#DXGI_USAGE_SHADER_INPUT)) or render-target output ([`DXGI_USAGE_RENDER_TARGET_OUTPUT`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-usage#DXGI_USAGE_RENDER_TARGET_OUTPUT)).
--   `UINT BufferCount`: A value that describes the number of buffers in the swap chain. When you create a full-screen swap chain, you typically include the front buffer in this value. The minimum number of buffers When using the flip presentation model is two.
--   [`DXGI_SCALING`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_scaling) `Scaling`: A [`DXGI_SCALING`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_scaling)\-typed value that identifies resize behavior if the size of the back buffer is not equal to the target output. This member can be one of the following values:
-    -   [`DXGI_SCALING_STRETCH`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_scaling#constants): Directs DXGI to make the back-buffer contents scale to fit the presentation target size. This is the implicit behavior of DXGI when you call the [`IDXGIFactory::CreateSwapChain`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-createswapchain) method.
-    -   [`DXGI_SCALING_NONE`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_scaling#constants): Directs DXGI to make the back-buffer contents appear without any scaling when the presentation target size is not equal to the back-buffer size. The top edges of the back buffer and presentation target are aligned together. If the `WS_EX_LAYOUTRTL` style is associated with the [`HWND`](https://learn.microsoft.com/windows/win32/winprog/windows-data-types) handle to the target output window, the right edges of the back buffer and presentation target are aligned together; otherwise, the left edges are aligned together. All target area outside the back buffer is filled with window background color.  
+- `UINT Width`: A value that describes the resolution width. If you specify a width of 0 when you call the [`IDXGIFactory2::CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd) method to create a swap chain, the runtime obtains the width from the output window and assigns this width value to the swap-chain description. You can subsequently call the [`IDXGISwapChain1::GetDesc1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-getdesc1) method to retrieve the assigned width value.
+- `UINT Height`: A value that describes the resolution height. If you specify the height as zero when you call the [`IDXGIFactory2::CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd) method to create a swap chain, the runtime obtains the height from the output window and assigns this height value to the swap-chain description. You can subsequently call the [`IDXGISwapChain1::GetDesc1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-getdesc1) method to retrieve the assigned height value.
+- [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) `Format`: A [`DXGI_FORMAT`](https://learn.microsoft.com/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format) structure that describes the display format.
+- `BOOL Stereo`: Specifies whether the full-screen display mode or the swap-chain back buffer is stereo. `TRUE` if stereo; otherwise, `FALSE`. If you specify stereo, you must also specify a flip-model swap chain.
+- [`DXGI_SAMPLE_DESC`](https://learn.microsoft.com/windows/win32/api/dxgicommon/ns-dxgicommon-dxgi_sample_desc) `SampleDesc`: A [`DXGI_SAMPLE_DESC`](https://learn.microsoft.com/windows/win32/api/dxgicommon/ns-dxgicommon-dxgi_sample_desc) structure that describes multi-sampling parameters. This member is valid only with bit-block transfer (**bitblt**) model swap chains. When using **flip** model swap chain, this member must be specified as `{1, 0}`.
+- [`DXGI_USAGE`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-usage) `BufferUsage`: A [`DXGI_USAGE`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-usage)\-typed value that describes the surface usage and CPU access options for the back buffer. The back buffer can be used for shader input ([`DXGI_USAGE_SHADER_INPUT`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-usage#DXGI_USAGE_SHADER_INPUT)) or render-target output ([`DXGI_USAGE_RENDER_TARGET_OUTPUT`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-usage#DXGI_USAGE_RENDER_TARGET_OUTPUT)).
+- `UINT BufferCount`: A value that describes the number of buffers in the swap chain. When you create a full-screen swap chain, you typically include the front buffer in this value. The minimum number of buffers When using the flip presentation model is two.
+- [`DXGI_SCALING`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_scaling) `Scaling`: A [`DXGI_SCALING`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_scaling)\-typed value that identifies resize behavior if the size of the back buffer is not equal to the target output. This member can be one of the following values:
+    - [`DXGI_SCALING_STRETCH`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_scaling#constants): Directs DXGI to make the back-buffer contents scale to fit the presentation target size. This is the implicit behavior of DXGI when you call the [`IDXGIFactory::CreateSwapChain`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-createswapchain) method.
+    - [`DXGI_SCALING_NONE`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_scaling#constants): Directs DXGI to make the back-buffer contents appear without any scaling when the presentation target size is not equal to the back-buffer size. The top edges of the back buffer and presentation target are aligned together. If the `WS_EX_LAYOUTRTL` style is associated with the [`HWND`](https://learn.microsoft.com/windows/win32/winprog/windows-data-types) handle to the target output window, the right edges of the back buffer and presentation target are aligned together; otherwise, the left edges are aligned together. All target area outside the back buffer is filled with window background color.  
         This value specifies that all target areas outside the back buffer of a swap chain are filled with the background color that you specify in a call to [`IDXGISwapChain1::SetBackgroundColor`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-setbackgroundcolor).
-    -   [`DXGI_SCALING_ASPECT_RATIO_STRETCH`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_scaling#constants): Directs DXGI to make the back-buffer contents scale to fit the presentation target size, while preserving the aspect ratio of the back-buffer. If the scaled back-buffer does not fill the presentation area, it will be centered with black borders. This constant is supported on Windows Phone 8 and Windows 10. This constant cannot be used with [`IDXGIFactory2::CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd).
--   [`DXGI_SWAP_EFFECT`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect) `SwapEffect`: A `DXGI_SWAP_EFFECT`\-typed value that describes the presentation model that is used by the swap chain and options for handling the contents of the presentation buffer after presenting a surface. Valid values for this member are:
-    -   [`DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants): Use this flag to specify the flip presentation model and to specify that DXGI persist the contents of the back buffer after you call [`IDXGISwapChain1::Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1). This flag cannot be used with multisampling.
-    -   [`DXGI_SWAP_EFFECT_FLIP_DISCARD`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants): Use this flag to specify the flip presentation model and to specify that DXGI discard the contents of the back buffer after you call [`IDXGISwapChain1::Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1). This flag cannot be used with multisampling and partial presentation.
--   [`DXGI_ALPHA_MODE`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode) `AlphaMode`: A [`DXGI_ALPHA_MODE`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode)\-typed value that identifies the transparency behavior of the swap-chain back buffer. The following values are supported:
-    -   [`DXGI_ALPHA_MODE_UNSPECIFIED`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode#constants): Indicates that the transparency behavior is not specified.
-    -   [`DXGI_ALPHA_MODE_PREMULTIPLIED`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode#constants): Indicates that the transparency behavior is premultiplied. Each color is first scaled by the alpha value. The alpha value itself is the same in both straight and premultiplied alpha. Typically, no color channel value is greater than the alpha channel value. If a color channel value in a premultiplied format is greater than the alpha channel, the standard source-over blending math results in an additive blend.
-    -   [`DXGI_ALPHA_MODE_STRAIGHT`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode#constants): Indicates that the transparency behavior is not premultiplied. The alpha channel indicates the transparency of the color.
-    -   [`DXGI_ALPHA_MODE_IGNORE`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode#constants): Indicates to ignore the transparency behavior.
--   `UINT Flags`: A combination of [`DXGI_SWAP_CHAIN_FLAG`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_chain_flag)\-typed values that are combined by using a bitwise OR operation. The [`DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_chain_flag#constants) flag should always be specified if tearing support is available. See [Check for Tearing Support](#check-for-tearing-support) for more information on detecting tearing support.
+    - [`DXGI_SCALING_ASPECT_RATIO_STRETCH`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_scaling#constants): Directs DXGI to make the back-buffer contents scale to fit the presentation target size, while preserving the aspect ratio of the back-buffer. If the scaled back-buffer does not fill the presentation area, it will be centered with black borders. This constant is supported on Windows Phone 8 and Windows 10. This constant cannot be used with [`IDXGIFactory2::CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd).
+- [`DXGI_SWAP_EFFECT`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect) `SwapEffect`: A `DXGI_SWAP_EFFECT`\-typed value that describes the presentation model that is used by the swap chain and options for handling the contents of the presentation buffer after presenting a surface. Valid values for this member are:
+    - [`DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants): Use this flag to specify the flip presentation model and to specify that DXGI persist the contents of the back buffer after you call [`IDXGISwapChain1::Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1). This flag cannot be used with multisampling.
+    - [`DXGI_SWAP_EFFECT_FLIP_DISCARD`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_effect#constants): Use this flag to specify the flip presentation model and to specify that DXGI discard the contents of the back buffer after you call [`IDXGISwapChain1::Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1). This flag cannot be used with multisampling and partial presentation.
+- [`DXGI_ALPHA_MODE`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode) `AlphaMode`: A [`DXGI_ALPHA_MODE`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode)\-typed value that identifies the transparency behavior of the swap-chain back buffer. The following values are supported:
+    - [`DXGI_ALPHA_MODE_UNSPECIFIED`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode#constants): Indicates that the transparency behavior is not specified.
+    - [`DXGI_ALPHA_MODE_PREMULTIPLIED`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode#constants): Indicates that the transparency behavior is premultiplied. Each color is first scaled by the alpha value. The alpha value itself is the same in both straight and premultiplied alpha. Typically, no color channel value is greater than the alpha channel value. If a color channel value in a premultiplied format is greater than the alpha channel, the standard source-over blending math results in an additive blend.
+    - [`DXGI_ALPHA_MODE_STRAIGHT`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode#constants): Indicates that the transparency behavior is not premultiplied. The alpha channel indicates the transparency of the color.
+    - [`DXGI_ALPHA_MODE_IGNORE`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_alpha_mode#constants): Indicates to ignore the transparency behavior.
+- `UINT Flags`: A combination of [`DXGI_SWAP_CHAIN_FLAG`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_chain_flag)\-typed values that are combined by using a bitwise OR operation. The [`DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_chain_flag#constants) flag should always be specified if tearing support is available. See [Check for Tearing Support](#check-for-tearing-support) for more information on detecting tearing support.
 
 With the swap chain description specified, the swap chain can be created.
 
@@ -883,13 +883,13 @@ HRESULT CreateSwapChainForHwnd(
 
 And takes the following arguments:
 
--   `IUnknown *pDevice`: For Direct3D 12 this is a pointer to a direct command queue (refer to [`ID3D12CommandQueue`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandqueue)). This parameter cannot be `NULL`.
--   [`HWND`](https://learn.microsoft.com/windows/win32/winprog/windows-data-types) `hWnd`: The [`HWND`](https://learn.microsoft.com/windows/win32/winprog/windows-data-types) handle that is associated with the swap chain that [`CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd) creates. This parameter cannot be `NULL`.
--   [`DXGI_SWAP_CHAIN_DESC1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1) `*pDesc`: A pointer to a [`DXGI_SWAP_CHAIN_DESC1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1) structure for the swap-chain description. This parameter cannot be `NULL`.
--   [`DXGI_SWAP_CHAIN_FULLSCREEN_DESC`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_fullscreen_desc) `*pFullscreenDesc`: A pointer to a [`DXGI_SWAP_CHAIN_FULLSCREEN_DESC`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_fullscreen_desc) structure for the description of a full-screen swap chain. You can optionally set this parameter to create a full-screen swap chain. Set it to `NULL` to create a windowed swap chain.
--   [`IDXGIOutput`](https://learn.microsoft.com/windows/win32/api/dxgi/nn-dxgi-idxgioutput) `*pRestrictToOutput`: A pointer to the [`IDXGIOutput`](https://learn.microsoft.com/windows/win32/api/dxgi/nn-dxgi-idxgioutput) interface for the output to restrict content to. You must also pass the [`DXGI_PRESENT_RESTRICT_TO_OUTPUT`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present) flag in a [`IDXGISwapChain1::Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1) call to force the content to appear blacked out on any other output. If you want to restrict the content to a different output, you must create a new swap chain. However, you can conditionally restrict content based on the [`DXGI_PRESENT_RESTRICT_TO_OUTPUT`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present) flag.  
+- `IUnknown *pDevice`: For Direct3D 12 this is a pointer to a direct command queue (refer to [`ID3D12CommandQueue`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandqueue)). This parameter cannot be `NULL`.
+- [`HWND`](https://learn.microsoft.com/windows/win32/winprog/windows-data-types) `hWnd`: The [`HWND`](https://learn.microsoft.com/windows/win32/winprog/windows-data-types) handle that is associated with the swap chain that [`CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd) creates. This parameter cannot be `NULL`.
+- [`DXGI_SWAP_CHAIN_DESC1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1) `*pDesc`: A pointer to a [`DXGI_SWAP_CHAIN_DESC1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1) structure for the swap-chain description. This parameter cannot be `NULL`.
+- [`DXGI_SWAP_CHAIN_FULLSCREEN_DESC`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_fullscreen_desc) `*pFullscreenDesc`: A pointer to a [`DXGI_SWAP_CHAIN_FULLSCREEN_DESC`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_fullscreen_desc) structure for the description of a full-screen swap chain. You can optionally set this parameter to create a full-screen swap chain. Set it to `NULL` to create a windowed swap chain.
+- [`IDXGIOutput`](https://learn.microsoft.com/windows/win32/api/dxgi/nn-dxgi-idxgioutput) `*pRestrictToOutput`: A pointer to the [`IDXGIOutput`](https://learn.microsoft.com/windows/win32/api/dxgi/nn-dxgi-idxgioutput) interface for the output to restrict content to. You must also pass the [`DXGI_PRESENT_RESTRICT_TO_OUTPUT`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present) flag in a [`IDXGISwapChain1::Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1) call to force the content to appear blacked out on any other output. If you want to restrict the content to a different output, you must create a new swap chain. However, you can conditionally restrict content based on the [`DXGI_PRESENT_RESTRICT_TO_OUTPUT`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present) flag.  
     Set this parameter to `NULL` if you don’t want to restrict content to an output target.
--   [`IDXGISwapChain1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nn-dxgi1_2-idxgiswapchain1) `**ppSwapChain`: A pointer to a variable that receives a pointer to the [`IDXGISwapChain1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nn-dxgi1_2-idxgiswapchain1) interface for the swap chain that [`CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd) creates.
+- [`IDXGISwapChain1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nn-dxgi1_2-idxgiswapchain1) `**ppSwapChain`: A pointer to a variable that receives a pointer to the [`IDXGISwapChain1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nn-dxgi1_2-idxgiswapchain1) interface for the swap chain that [`CreateSwapChainForHwnd`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd) creates.
 
 Switching to a full screen state will be handled manually using a full-screen borderless window. In order to prevent DXGI from switching to a full screen state automatically when pressing the <kbd>Alt</kbd>+<kbd>Enter</kbd> key combination on the keyboard, the [`IDXGIFactory::MakeWindowAssociation`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-makewindowassociation) method is used specifying the `DXGI_MWA_NO_ALT_ENTER` flag. This effectively prevents DXGI from responding to the <kbd>Alt</kbd>+<kbd>Enter</kbd> keyboard sequence.
 
@@ -917,17 +917,17 @@ typedef struct D3D12_DESCRIPTOR_HEAP_DESC {
 
 The members of the [`D3D12_DESCRIPTOR_HEAP_DESC`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_descriptor_heap_desc) structure are:
 
--   [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type) `Type`: A [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type)\-typed value that specifies the types of descriptors in the heap. The Type member can have one of the following values:
-    -   [`D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type#constants): The descriptor heap for the combination of constant-buffer, shader-resource, and unordered-access views.
-    -   [`D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type#constants): The descriptor heap for the sampler.
-    -   [`D3D12_DESCRIPTOR_HEAP_TYPE_RTV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type#constants): The descriptor heap for the render-target view.
-    -   [`D3D12_DESCRIPTOR_HEAP_TYPE_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type#constants): The descriptor heap for the depth-stencil view.
--   `UINT NumDescriptors`: The number of descriptors in the heap.
--   [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags) `Flags`: A combination of [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags)\-typed values that are combined by using a bitwise OR operation. The resulting value specifies options for the heap. Valid flags for the descriptor heap creation are:
-    -   [`D3D12_DESCRIPTOR_HEAP_FLAG_NONE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants): Indicates default usage of a heap.
-    -   [`D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants): The flag [`D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants) can optionally be set on a descriptor heap to indicate that it can be bound on a command list for reference by shaders. Descriptor heaps created without this flag allow applications the option to stage descriptors in CPU memory before copying them to a shader visible descriptor heap, as a convenience. But it is also fine for applications to directly create descriptors into shader visible descriptor heaps with no requirement to stage anything on the CPU.  
+- [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type) `Type`: A [`D3D12_DESCRIPTOR_HEAP_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type)\-typed value that specifies the types of descriptors in the heap. The Type member can have one of the following values:
+    - [`D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type#constants): The descriptor heap for the combination of constant-buffer, shader-resource, and unordered-access views.
+    - [`D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type#constants): The descriptor heap for the sampler.
+    - [`D3D12_DESCRIPTOR_HEAP_TYPE_RTV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type#constants): The descriptor heap for the render-target view.
+    - [`D3D12_DESCRIPTOR_HEAP_TYPE_DSV`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_type#constants): The descriptor heap for the depth-stencil view.
+- `UINT NumDescriptors`: The number of descriptors in the heap.
+- [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags) `Flags`: A combination of [`D3D12_DESCRIPTOR_HEAP_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags)\-typed values that are combined by using a bitwise OR operation. The resulting value specifies options for the heap. Valid flags for the descriptor heap creation are:
+    - [`D3D12_DESCRIPTOR_HEAP_FLAG_NONE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants): Indicates default usage of a heap.
+    - [`D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants): The flag [`D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_descriptor_heap_flags#constants) can optionally be set on a descriptor heap to indicate that it can be bound on a command list for reference by shaders. Descriptor heaps created without this flag allow applications the option to stage descriptors in CPU memory before copying them to a shader visible descriptor heap, as a convenience. But it is also fine for applications to directly create descriptors into shader visible descriptor heaps with no requirement to stage anything on the CPU.  
         This flag only applies to CBV, SRV, UAV and samplers. It does not apply to other descriptor heap types since shaders do not directly reference the other types.
--   `UINT NodeMask`: For single-adapter operation, set this to zero. If there are multiple adapter nodes, set a bit to identify the node (one of the device’s physical adapters) to which the descriptor heap applies. Each bit in the mask corresponds to a single node. Only one bit must be set.
+- `UINT NodeMask`: For single-adapter operation, set this to zero. If there are multiple adapter nodes, set a bit to identify the node (one of the device’s physical adapters) to which the descriptor heap applies. Each bit in the mask corresponds to a single node. Only one bit must be set.
 
 The descriptor heap is created on line 364 using the [`ID3D12Device::CreateDescriptorHeap`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12device-createdescriptorheap) method.
 
@@ -981,13 +981,13 @@ HRESULT CreateCommandAllocator(
 
 Where:
 
--   [`D3D12_COMMAND_LIST_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type) `type`: A [`D3D12_COMMAND_LIST_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type)\-typed value that specifies the type of command allocator to create. The type of command allocator can be the type that records either direct command lists or bundles. The command allocator can be one of the following types:
-    -   [`D3D12_COMMAND_LIST_TYPE_DIRECT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer that the GPU can execute. A direct command list doesn’t inherit any GPU state.
-    -   [`D3D12_COMMAND_LIST_TYPE_BUNDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer that can be executed only directly via a direct command list. A bundle command list inherits all GPU state (except for the currently set pipeline state object and primitive topology).
-    -   [`D3D12_COMMAND_LIST_TYPE_COMPUTE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer for computing.
-    -   [`D3D12_COMMAND_LIST_TYPE_COPY`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer for copying.
--   `REFIID riid`: The globally unique identifier (**GUID**) for the command allocator interface ([`ID3D12CommandAllocator`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandallocator)). The **REFIID**, or **GUID**, of the interface to the command allocator can be obtained by using the [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170) macro. For example, [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170)`(`[`ID3D12CommandAllocator`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandallocator)`)` will get the **GUID** of the interface to a command allocator.
--   `void **ppCommandAllocator`: A pointer to a memory block that receives a pointer to the [`ID3D12CommandAllocator`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandallocator) interface for the command allocator.
+- [`D3D12_COMMAND_LIST_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type) `type`: A [`D3D12_COMMAND_LIST_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type)\-typed value that specifies the type of command allocator to create. The type of command allocator can be the type that records either direct command lists or bundles. The command allocator can be one of the following types:
+    - [`D3D12_COMMAND_LIST_TYPE_DIRECT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer that the GPU can execute. A direct command list doesn’t inherit any GPU state.
+    - [`D3D12_COMMAND_LIST_TYPE_BUNDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer that can be executed only directly via a direct command list. A bundle command list inherits all GPU state (except for the currently set pipeline state object and primitive topology).
+    - [`D3D12_COMMAND_LIST_TYPE_COMPUTE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer for computing.
+    - [`D3D12_COMMAND_LIST_TYPE_COPY`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer for copying.
+- `REFIID riid`: The globally unique identifier (**GUID**) for the command allocator interface ([`ID3D12CommandAllocator`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandallocator)). The **REFIID**, or **GUID**, of the interface to the command allocator can be obtained by using the [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170) macro. For example, [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170)`(`[`ID3D12CommandAllocator`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandallocator)`)` will get the **GUID** of the interface to a command allocator.
+- `void **ppCommandAllocator`: A pointer to a memory block that receives a pointer to the [`ID3D12CommandAllocator`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandallocator) interface for the command allocator.
 
 The command list is created next.
 
@@ -1017,16 +1017,16 @@ HRESULT CreateCommandList(
 
 Where each parameter has the following definition:
 
--   `UINT nodeMask`: For single GPU operation, set this to zero. If there are multiple GPU nodes, set a bit to identify the node (the device’s physical adapter) for which to create the command list. Each bit in the mask corresponds to a single node. Only 1 bit must be set.
--   [`D3D12_COMMAND_LIST_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type) `type`: A [`D3D12_COMMAND_LIST_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type)\-typed value that specifies the type of command list to create. The command list can be one of the following types:
-    -   [`D3D12_COMMAND_LIST_TYPE_DIRECT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer that the GPU can execute. A direct command list doesn’t inherit any GPU state.
-    -   [`D3D12_COMMAND_LIST_TYPE_BUNDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer that can be executed only directly via a direct command list. A bundle command list inherits all GPU state (except for the currently set pipeline state object and primitive topology).
-    -   [`D3D12_COMMAND_LIST_TYPE_COMPUTE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer for computing.
-    -   [`D3D12_COMMAND_LIST_TYPE_COPY`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer for copying.
--   [`ID3D12CommandAllocator`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandallocator) `*pCommandAllocator`: A pointer to the [`ID3D12CommandAllocator`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandallocator) object that the device creates command lists from.
--   [`ID3D12PipelineState`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12pipelinestate) `*pInitialState`: A pointer to the [`ID3D12PipelineState`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12pipelinestate) object that contains the initial pipeline state for the command list. This is optional and can be `NULL`. If `NULL`, the runtime sets a dummy initial pipeline state so that drivers don’t have to deal with undefined state. The overhead for this is low, particularly for a command list, for which the overall cost of recording the command list likely dwarfs the cost of one initial state setting. So there is little cost in not setting the initial pipeline state parameter if it isn’t convenient. Since pipeline state objects are not used in this lesson, the parameter can be `NULL`. Pipeline state objects will be introduced in the next lessons.
--   `REFIID riid`: The globally unique identifier (**GUID**) for the command list interface. The **REFIID**, or **GUID**, of the interface to the command list can be obtained by using the [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170) macro. For example, [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170)`(`[`ID3D12CommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandlist)`)` will get the **GUID** of the interface to a command list.
--   `void **ppCommandList`: A pointer to a memory block that receives a pointer to the [`ID3D12CommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandlist) or [`ID3D12GraphicsCommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12graphicscommandlist) interface for the command list.
+- `UINT nodeMask`: For single GPU operation, set this to zero. If there are multiple GPU nodes, set a bit to identify the node (the device’s physical adapter) for which to create the command list. Each bit in the mask corresponds to a single node. Only 1 bit must be set.
+- [`D3D12_COMMAND_LIST_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type) `type`: A [`D3D12_COMMAND_LIST_TYPE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type)\-typed value that specifies the type of command list to create. The command list can be one of the following types:
+    - [`D3D12_COMMAND_LIST_TYPE_DIRECT`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer that the GPU can execute. A direct command list doesn’t inherit any GPU state.
+    - [`D3D12_COMMAND_LIST_TYPE_BUNDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer that can be executed only directly via a direct command list. A bundle command list inherits all GPU state (except for the currently set pipeline state object and primitive topology).
+    - [`D3D12_COMMAND_LIST_TYPE_COMPUTE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer for computing.
+    - [`D3D12_COMMAND_LIST_TYPE_COPY`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_command_list_type#constants): Specifies a command buffer for copying.
+- [`ID3D12CommandAllocator`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandallocator) `*pCommandAllocator`: A pointer to the [`ID3D12CommandAllocator`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandallocator) object that the device creates command lists from.
+- [`ID3D12PipelineState`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12pipelinestate) `*pInitialState`: A pointer to the [`ID3D12PipelineState`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12pipelinestate) object that contains the initial pipeline state for the command list. This is optional and can be `NULL`. If `NULL`, the runtime sets a dummy initial pipeline state so that drivers don’t have to deal with undefined state. The overhead for this is low, particularly for a command list, for which the overall cost of recording the command list likely dwarfs the cost of one initial state setting. So there is little cost in not setting the initial pipeline state parameter if it isn’t convenient. Since pipeline state objects are not used in this lesson, the parameter can be `NULL`. Pipeline state objects will be introduced in the next lessons.
+- `REFIID riid`: The globally unique identifier (**GUID**) for the command list interface. The **REFIID**, or **GUID**, of the interface to the command list can be obtained by using the [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170) macro. For example, [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170)`(`[`ID3D12CommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandlist)`)` will get the **GUID** of the interface to a command list.
+- `void **ppCommandList`: A pointer to a memory block that receives a pointer to the [`ID3D12CommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12commandlist) or [`ID3D12GraphicsCommandList`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12graphicscommandlist) interface for the command list.
 
 Command lists are created in the recording state. For consistency, the first operation that is performed on the command list in the render loop (which will be shown later) is a [`ID3D12GraphicsCommandList::Reset`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-reset). Before the command list can be reset, it must first be closed. The command list is closed on line 404 so that it can be reset before recording commands in the render loop.
 
@@ -1071,14 +1071,14 @@ HRESULT CreateFence(
 
 And takes the following arguments:
 
--   `UINT64 InitialValue`: The initial value for the fence. In most normal use-cases, the initial value of the fence should be 0.
--   [`D3D12_FENCE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags) `Flags`: A combination of [`D3D12_FENCE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags)\-typed values that are combined by using a bitwise OR operation. The resulting value specifies options for the fence. Valid fence flags are:
-    -   [`D3D12_FENCE_FLAG_NONE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags#constants): No options are specified.
-    -   [`D3D12_FENCE_FLAG_SHARED`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags#constants): The fence is shared.
-    -   [`D3D12_FENCE_FLAG_SHARED_CROSS_ADAPTER`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags#constants): The fence is shared with another GPU adapter.
-    -   [`D3D12_FENCE_FLAG_NON_MONITORED`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags#constants): The fence is of the non-monitored type. Non-monitored fences should only be used when the adapter doesn’t support monitored fences, or when a fence is shared with an adapter that doesn’t support monitored fences.
--   `REFIID riid`: The globally unique identifier (**GUID**) for the fence interface ([`ID3D12Fence`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12fence)). The **REFIID**, or **GUID**, of the interface to the fence can be obtained by using the [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170) macro. For example, [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170)`(`[`ID3D12Fence`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12fence)`)` will get the **GUID** of the interface to a fence.
--   `void **ppFence`: A pointer to a memory block that receives a pointer to the [`ID3D12Fence`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12fence) interface that is used to access the fence.
+- `UINT64 InitialValue`: The initial value for the fence. In most normal use-cases, the initial value of the fence should be 0.
+- [`D3D12_FENCE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags) `Flags`: A combination of [`D3D12_FENCE_FLAGS`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags)\-typed values that are combined by using a bitwise OR operation. The resulting value specifies options for the fence. Valid fence flags are:
+    - [`D3D12_FENCE_FLAG_NONE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags#constants): No options are specified.
+    - [`D3D12_FENCE_FLAG_SHARED`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags#constants): The fence is shared.
+    - [`D3D12_FENCE_FLAG_SHARED_CROSS_ADAPTER`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags#constants): The fence is shared with another GPU adapter.
+    - [`D3D12_FENCE_FLAG_NON_MONITORED`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_fence_flags#constants): The fence is of the non-monitored type. Non-monitored fences should only be used when the adapter doesn’t support monitored fences, or when a fence is shared with an adapter that doesn’t support monitored fences.
+- `REFIID riid`: The globally unique identifier (**GUID**) for the fence interface ([`ID3D12Fence`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12fence)). The **REFIID**, or **GUID**, of the interface to the fence can be obtained by using the [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170) macro. For example, [`__uuidof`](https://learn.microsoft.com/cpp/cpp/uuidof-operator?view=msvc-170)`(`[`ID3D12Fence`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12fence)`)` will get the **GUID** of the interface to a fence.
+- `void **ppFence`: A pointer to a memory block that receives a pointer to the [`ID3D12Fence`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12fence) interface that is used to access the fence.
 
 An OS event handle is used to allow the CPU thread to wait until the fence has been signaled with a particular value. In the next section, the OS event handle is created.
 
@@ -1102,10 +1102,10 @@ HANDLE WINAPI CreateEvent(
 
 And takes the following arguments:
 
--   [`LPSECURITY_ATTRIBUTES`](https://learn.microsoft.com/previous-versions/windows/desktop/legacy/aa379560(v=vs.85)) `lpEventAttributes`: A pointer to a [`SECURITY_ATTRIBUTES`](https://learn.microsoft.com/previous-versions/windows/desktop/legacy/aa379560(v=vs.85)) structure. If this parameter is `NULL`, the handle cannot be inherited by child processes.
--   `BOOL bManualReset`: If this parameter is `TRUE`, the function creates a manual-reset event object, which requires the use of the [`ResetEvent`](https://learn.microsoft.com/windows/win32/api/synchapi/nf-synchapi-resetevent) function to set the event state to nonsignaled. If this parameter is `FALSE`, the function creates an auto-reset event object, and system automatically resets the event state to nonsignaled after a single waiting thread has been released.
--   `BOOL bInitialState`: If this parameter is `TRUE`, the initial state of the event object is signaled; otherwise, it is non-signaled.
--   `LPCTSTR lpName`: The name of the event object. If `lpName` is `NULL`, the event object is created without a name.
+- [`LPSECURITY_ATTRIBUTES`](https://learn.microsoft.com/previous-versions/windows/desktop/legacy/aa379560(v=vs.85)) `lpEventAttributes`: A pointer to a [`SECURITY_ATTRIBUTES`](https://learn.microsoft.com/previous-versions/windows/desktop/legacy/aa379560(v=vs.85)) structure. If this parameter is `NULL`, the handle cannot be inherited by child processes.
+- `BOOL bManualReset`: If this parameter is `TRUE`, the function creates a manual-reset event object, which requires the use of the [`ResetEvent`](https://learn.microsoft.com/windows/win32/api/synchapi/nf-synchapi-resetevent) function to set the event state to nonsignaled. If this parameter is `FALSE`, the function creates an auto-reset event object, and system automatically resets the event state to nonsignaled after a single waiting thread has been released.
+- `BOOL bInitialState`: If this parameter is `TRUE`, the initial state of the event object is signaled; otherwise, it is non-signaled.
+- `LPCTSTR lpName`: The name of the event object. If `lpName` is `NULL`, the event object is created without a name.
 
 The OS event is used to cause the CPU thread to stall using the [`WaitForSingleObject`](https://learn.microsoft.com/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject) function which will be shown later.
 
@@ -1129,8 +1129,8 @@ HRESULT Signal(
 
 And takes the following arguments:
 
--   [`ID3D12Fence`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12fence) `*pFence`: A pointer to the [`ID3D12Fence`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12fence) object.
--   `UINT64 Value`: The value to signal the fence with when the GPU queue has finished processing any commands that have been queued prior to the signal.
+- [`ID3D12Fence`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12fence) `*pFence`: A pointer to the [`ID3D12Fence`](https://learn.microsoft.com/windows/win32/api/d3d12/nn-d3d12-id3d12fence) object.
+- `UINT64 Value`: The value to signal the fence with when the GPU queue has finished processing any commands that have been queued prior to the signal.
 
 In the next section, a function to wait until the fence is signaled with a particular value is described.
 
@@ -1196,8 +1196,8 @@ In the next section, the `Render` function is described.
 
 For this simple application, the `Render` function consists of two main parts:
 
-1.  Clear the back buffer
-2.  Present the rendered frame
+1. Clear the back buffer
+2. Present the rendered frame
 
 In later lessons, the render loop will become more complicated.
 
@@ -1205,13 +1205,13 @@ In DirectX 12, it is the responsibility of the graphics programmer to ensure tha
 
 There are several types of resource barriers:
 
--   **Transition**: Transitions a (sub)resource to a particular state before using it. For example, before a texture can be used in a pixel shader, it must be transitioned to the [`PIXEL_SHADER_RESOURCE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states#constants) state.
--   **Aliasing**: Specifies that a resource is used in a placed or reserved heap when that resource is aliased with another resource in the same heap.
--   **UAV**: Indicates that all UAV accesses to a particular resource have completed before any future UAV access can begin. This is necessary when the UAV is transitioned for:
-    -   **Read > Write**: Guarantees that all previous read operations on the UAV have completed before being written to in another shader.
-    -   **Write > Read**: Guarantees that all previous write operations on the UAV have completed before being read from in another shader.
-    -   **Write > Write**: Avoids race conditions that could be caused by different shaders in a different draw or dispatch trying to write to the same resource (does not avoid race conditions that could be caused in the same draw or dispatch call).
-    -   A UAV barrier is not needed if the resource is being used as a read-only (Read > Read) resource between draw or dispatches.
+- **Transition**: Transitions a (sub)resource to a particular state before using it. For example, before a texture can be used in a pixel shader, it must be transitioned to the [`PIXEL_SHADER_RESOURCE`](https://learn.microsoft.com/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_states#constants) state.
+- **Aliasing**: Specifies that a resource is used in a placed or reserved heap when that resource is aliased with another resource in the same heap.
+- **UAV**: Indicates that all UAV accesses to a particular resource have completed before any future UAV access can begin. This is necessary when the UAV is transitioned for:
+    - **Read > Write**: Guarantees that all previous read operations on the UAV have completed before being written to in another shader.
+    - **Write > Read**: Guarantees that all previous write operations on the UAV have completed before being read from in another shader.
+    - **Write > Write**: Avoids race conditions that could be caused by different shaders in a different draw or dispatch trying to write to the same resource (does not avoid race conditions that could be caused in the same draw or dispatch call).
+    - A UAV barrier is not needed if the resource is being used as a read-only (Read > Read) resource between draw or dispatches.
 
 For this lesson, only **transition** resource barriers are used. In a later lesson more complex usages of resource barriers will be shown.
 
@@ -1259,10 +1259,10 @@ void ClearRenderTargetView(
 
 And each parameter:
 
--   [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `RenderTargetView`: Specifies a [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) structure that describes the CPU descriptor handle that represents the render target to be cleared.
--   `FLOAT ColorRGBA[4]`: A 4-component array that represents the color to fill the render target with.
--   `UINT NumRects`: The number of rectangles in the array that the pRects parameter specifies.
--   [`D3D12_RECT`](https://learn.microsoft.com/windows/win32/direct3d12/d3d12-rect) `*pRects`: An array of [`D3D12_RECT`](https://learn.microsoft.com/windows/win32/direct3d12/d3d12-rect) structures for the rectangles in the resource view to clear. If `NULL`, [`ClearRenderTargetView`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-clearrendertargetview) clears the entire resource view.
+- [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) `RenderTargetView`: Specifies a [`D3D12_CPU_DESCRIPTOR_HANDLE`](https://learn.microsoft.com/windows/win32/api/d3d12/ns-d3d12-d3d12_cpu_descriptor_handle) structure that describes the CPU descriptor handle that represents the render target to be cleared.
+- `FLOAT ColorRGBA[4]`: A 4-component array that represents the color to fill the render target with.
+- `UINT NumRects`: The number of rectangles in the array that the pRects parameter specifies.
+- [`D3D12_RECT`](https://learn.microsoft.com/windows/win32/direct3d12/d3d12-rect) `*pRects`: An array of [`D3D12_RECT`](https://learn.microsoft.com/windows/win32/direct3d12/d3d12-rect) structures for the rectangles in the resource view to clear. If `NULL`, [`ClearRenderTargetView`](https://learn.microsoft.com/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-clearrendertargetview) clears the entire resource view.
 
 After rendering the scene, the current back buffer is presented to the screen.
 
@@ -1301,16 +1301,16 @@ HRESULT Present(
 
 Where
 
--   `UINT SyncInterval`: An integer that specifies how to synchronize presentation of a frame with the vertical blank. Valid values are:
-    -   `0`: Cancel the remaining time on the previously presented frame and discard this frame if a newer frame is queued.
-    -   `1` through `4`: Synchronize presentation for at least $n$ vertical blanks.
--   `UINT Flags`: An integer value that contains swap-chain presentation options. These options are defined by the [`DXGI_PRESENT`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present) constants.
+- `UINT SyncInterval`: An integer that specifies how to synchronize presentation of a frame with the vertical blank. Valid values are:
+    - `0`: Cancel the remaining time on the previously presented frame and discard this frame if a newer frame is queued.
+    - `1` through `4`: Synchronize presentation for at least $n$ vertical blanks.
+- `UINT Flags`: An integer value that contains swap-chain presentation options. These options are defined by the [`DXGI_PRESENT`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present) constants.
 
 If tearing is supported, it is recommended to always use the [`DXGI_PRESENT_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present#DXGI_PRESENT_ALLOW_TEARING) flag when presenting with a sync interval of 0. The requirements for using the [`DXGI_PRESENT_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present#DXGI_PRESENT_ALLOW_TEARING) flag when presenting are:
 
--   The swap chain must be created with the [`DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_chain_flag) flag.
--   The sync interval passed into [`Present`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present) (or [`Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1)) must be 0.
--   The [`DXGI_PRESENT_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present#DXGI_PRESENT_ALLOW_TEARING) flag cannot be used in an application that is currently in full screen exclusive mode (set by calling [`SetFullscreenState`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-setfullscreenstate)`(TRUE)`). It can only be used in windowed mode. To use this flag in full screen Win32 apps, the application should present to a fullscreen borderless window and disable automatic <kbd>Alt</kbd>+<kbd>Enter</kbd> fullscreen switching using [`IDXGIFactory::MakeWindowAssociation`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-makewindowassociation).
+- The swap chain must be created with the [`DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/api/dxgi/ne-dxgi-dxgi_swap_chain_flag) flag.
+- The sync interval passed into [`Present`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present) (or [`Present1`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1)) must be 0.
+- The [`DXGI_PRESENT_ALLOW_TEARING`](https://learn.microsoft.com/windows/win32/direct3ddxgi/dxgi-present#DXGI_PRESENT_ALLOW_TEARING) flag cannot be used in an application that is currently in full screen exclusive mode (set by calling [`SetFullscreenState`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-setfullscreenstate)`(TRUE)`). It can only be used in windowed mode. To use this flag in full screen Win32 apps, the application should present to a fullscreen borderless window and disable automatic <kbd>Alt</kbd>+<kbd>Enter</kbd> fullscreen switching using [`IDXGIFactory::MakeWindowAssociation`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgifactory-makewindowassociation).
 
 Immediately after presenting the rendered frame to the screen, a signal is inserted into the queue using the [`Signal`](#signal-the-fence) function described earlier. The fence value returned from the `Signal` function is used to stall the CPU thread until any (writeable – such as render targets) resources are finished being used.
 
@@ -1354,11 +1354,11 @@ In the next section, toggling between fullscreen and windowed state is described
 
 Since the swap chain’s swap effect is using a flip effect, it is not necessary for the window to obtain exclusive ownership of the screen in order to achieve maximum frame rates. Switching the back buffer to a full screen exclusive mode using the [`IDXGISwapChain::SetFullscreenState`](https://learn.microsoft.com/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-setfullscreenstate) method can be cumbersome and has the following drawbacks:
 
--   A [`DXGI_SWAP_CHAIN_FULLSCREEN_DESC`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_fullscreen_desc) structure is required when creating the swap chain to switch to a full screen state.
--   The resolution and refresh rate must match one of the supported modes of the monitor. Providing incorrect resolution or refresh rate settings may cause the screen to go black for the end user.
--   Switching to full screen exclusive mode might cause any other monitors in a multi-monitor setup to turn black.
--   The mouse cursor is locked to the full screen display.
--   Switching to a full screen state will fail if the GPU that is rendering is is not directly connected to the display device. This is common in multi-GPU configurations (for example laptops with an integrated Intel graphics chip and a dedicated GPU).
+- A [`DXGI_SWAP_CHAIN_FULLSCREEN_DESC`](https://learn.microsoft.com/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_fullscreen_desc) structure is required when creating the swap chain to switch to a full screen state.
+- The resolution and refresh rate must match one of the supported modes of the monitor. Providing incorrect resolution or refresh rate settings may cause the screen to go black for the end user.
+- Switching to full screen exclusive mode might cause any other monitors in a multi-monitor setup to turn black.
+- The mouse cursor is locked to the full screen display.
+- Switching to a full screen state will fail if the GPU that is rendering is is not directly connected to the display device. This is common in multi-GPU configurations (for example laptops with an integrated Intel graphics chip and a dedicated GPU).
 
 To solve these issues with full screen exclusive mode, the window will be maximized using a **full screen borderless window** (**FSBW**) [\[33\]](#cite-33).
 
@@ -1419,19 +1419,19 @@ BOOL WINAPI SetWindowPos(
 
 Where
 
--   `HWND hWnd`: A handle to the window.
--   `HWND hWndInsertAfter`: A handle to the window to precede the positioned window in the Z order. This parameter must be a window handle or one of the following values:
-    -   [`HWND_BOTTOM`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#HWND_BOTTOM): Places the window at the bottom of the Z order. If the hWnd parameter identifies a topmost window, the window loses its topmost status and is placed at the bottom of all other windows.
-    -   [`HWND_NOTOPMOST`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#HWND_NOTOPMOST): Places the window above all non-topmost windows (that is, behind all topmost windows). This flag has no effect if the window is already a non-topmost window.
-    -   [`HWND_TOP`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#HWND_TOP): Places the window at the top of the Z order.
-    -   [`HWND_TOPMOST`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#HWND_TOPMOST): Places the window above all non-topmost windows. The window maintains its topmost position even when it is deactivated.
--   `int X`: The new position of the left side of the window, in client coordinates.
--   `int Y`: The new position of the top of the window, in client coordinates.
--   `int cx`: The new width of the window, in pixels.
--   `int cy`: The new height of the window, in pixels.
--   `UINT uFlags`: The window sizing and positioning flags. In this case, the following values are specified.
-    -   [`SWP_FRAMECHANGED`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#SWP_FRAMECHANGED): Applies new frame styles set using the [`SetWindowLong`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowlonga) function. Sends a [`WM_NCCALCSIZE`](https://learn.microsoft.com/windows/win32/winmsg/wm-nccalcsize) message to the window, even if the window’s size is not being changed. If this flag is not specified, [`WM_NCCALCSIZE`](https://learn.microsoft.com/windows/win32/winmsg/wm-nccalcsize) is sent only when the window’s size is being changed.
-    -   [`SWP_NOACTIVATE`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#SWP_NOACTIVATE): Does not activate the window. If this flag is not set, the window is activated and moved to the top of either the topmost or non-topmost group (depending on the setting of the `hWndInsertAfter` parameter).
+- `HWND hWnd`: A handle to the window.
+- `HWND hWndInsertAfter`: A handle to the window to precede the positioned window in the Z order. This parameter must be a window handle or one of the following values:
+    - [`HWND_BOTTOM`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#HWND_BOTTOM): Places the window at the bottom of the Z order. If the hWnd parameter identifies a topmost window, the window loses its topmost status and is placed at the bottom of all other windows.
+    - [`HWND_NOTOPMOST`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#HWND_NOTOPMOST): Places the window above all non-topmost windows (that is, behind all topmost windows). This flag has no effect if the window is already a non-topmost window.
+    - [`HWND_TOP`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#HWND_TOP): Places the window at the top of the Z order.
+    - [`HWND_TOPMOST`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#HWND_TOPMOST): Places the window above all non-topmost windows. The window maintains its topmost position even when it is deactivated.
+- `int X`: The new position of the left side of the window, in client coordinates.
+- `int Y`: The new position of the top of the window, in client coordinates.
+- `int cx`: The new width of the window, in pixels.
+- `int cy`: The new height of the window, in pixels.
+- `UINT uFlags`: The window sizing and positioning flags. In this case, the following values are specified.
+    - [`SWP_FRAMECHANGED`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#SWP_FRAMECHANGED): Applies new frame styles set using the [`SetWindowLong`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowlonga) function. Sends a [`WM_NCCALCSIZE`](https://learn.microsoft.com/windows/win32/winmsg/wm-nccalcsize) message to the window, even if the window’s size is not being changed. If this flag is not specified, [`WM_NCCALCSIZE`](https://learn.microsoft.com/windows/win32/winmsg/wm-nccalcsize) is sent only when the window’s size is being changed.
+    - [`SWP_NOACTIVATE`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowpos#SWP_NOACTIVATE): Does not activate the window. If this flag is not set, the window is activated and moved to the top of either the topmost or non-topmost group (depending on the setting of the `hWndInsertAfter` parameter).
 
 The [`ShowWindow`](https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-showwindow) function is used on line 592 to show the window in a maximized state.
 
@@ -1446,9 +1446,9 @@ The only thing left to do is to define how the window reacts to window messages 
 
 The window message procedure is the `WndProc` function described next. The window procedure handles any window messages sent to the application. For this simple demo, the following messages are handled:
 
--   [`WM_PAINT`](https://learn.microsoft.com/windows/win32/gdi/wm-paint): Repaint a portion of the application’s window contents.
--   [`WM_SYSKEYDOWN`](https://learn.microsoft.com/windows/win32/inputdev/wm-syskeydown), [`WM_KEYDOWN`](https://learn.microsoft.com/windows/win32/inputdev/wm-keydown), and [`WM_SYSCHAR`](https://learn.microsoft.com/windows/win32/menurc/wm-syschar): Sent to the window with keybaord focus when a key is pressed on the keyboard.
--   [`WM_SIZE`](https://learn.microsoft.com/windows/win32/winmsg/wm-size): Sent to the window after its size has changed.
+- [`WM_PAINT`](https://learn.microsoft.com/windows/win32/gdi/wm-paint): Repaint a portion of the application’s window contents.
+- [`WM_SYSKEYDOWN`](https://learn.microsoft.com/windows/win32/inputdev/wm-syskeydown), [`WM_KEYDOWN`](https://learn.microsoft.com/windows/win32/inputdev/wm-keydown), and [`WM_SYSCHAR`](https://learn.microsoft.com/windows/win32/menurc/wm-syschar): Sent to the window with keybaord focus when a key is pressed on the keyboard.
+- [`WM_SIZE`](https://learn.microsoft.com/windows/win32/winmsg/wm-size): Sent to the window after its size has changed.
 
 The [`WM_PAINT`](https://learn.microsoft.com/windows/win32/gdi/wm-paint) message handler is shown first.
 

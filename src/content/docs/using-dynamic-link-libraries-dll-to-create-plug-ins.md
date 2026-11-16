@@ -164,8 +164,8 @@ Add a new class to the **CommonDLL** project called “**PluginManager**” and 
 
 The **PluginManager** needs to provide at least two methods:
 
-1.  **LoadPlugin**: This method will load a plugin from a DLL and return a pointer to the plugin object.
-2.  **UnloadPlugin**: This method will unload a particular plugin from the plugin manager. The DLL associated with the Plugin will also be unloaded.
+1. **LoadPlugin**: This method will load a plugin from a DLL and return a pointer to the plugin object.
+2. **UnloadPlugin**: This method will unload a particular plugin from the plugin manager. The DLL associated with the Plugin will also be unloaded.
 
 Let’s see what the interface for the Plugin manager might look like.
 

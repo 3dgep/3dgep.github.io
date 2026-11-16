@@ -50,12 +50,12 @@ The snake: steer with the arrow keys, or with <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S
 
 That's pretty short, isn't it? It does need some explanation though.
 
--   A cell of the board has two numbers: a column `x` and a row `y`. Instead of two arrays (one for the `x`'s and one for the `y`'s), we keep them together in a `struct`. A `struct` is a class whose members are public by default: a handy way to group a few variables that belong together. `snake` is an array of 8 cells: element 0 is the tail, and element 7 is the head.
--   `heading` is the direction of the snake: 0 is up, 1 is right, 2 is down and 3 is left (clockwise, like the tank frames in [part 11](/cpp-fast-track-11-tiles/)). `directions` holds the step in `x` and `y` for each heading: `directions[1]` is `{ 1, 0 }`, one cell to the right.
--   The keys choose a direction, but a snake can't turn around: when it moves to the right, left does nothing (and right does nothing either: it already goes that way). Only a turn to the side is allowed. Up and down (0 and 2) are even numbers, and left and right (1 and 3) are odd, so `wanted % 2 != lastStep % 2` means "a turn to the side". Why `lastStep`, and not `heading`? Press up and then left quickly, before the snake takes its next step: compared with `heading`, both turns are allowed, and the snake would turn around into itself. `lastStep` is the direction in which the snake really moved.
--   The snake moves one cell every 100 milliseconds: `timer` adds up the time of the frames, and every time it reaches 100, the snake takes a step. This way, the game keeps drawing at full speed, and the snake moves at the same speed on every computer. And because a step is a whole cell, you have time to press a key before the next step.
--   To take a step, every cell of the snake moves to the next one: the tail takes the place of the cell before it, and so on, until the head, which moves one cell in the direction of `heading`. When the head leaves the board, the `%` brings it back on the other side. The `+ BoardWidth` keeps the number from being negative: in C++, `-1 % 25` is `-1`, not 24 (remember [part 10](/cpp-fast-track-10-arrays/)?). We will replace that with walls later.
--   `DrawCell` draws one tile of `snake.png` (a sprite with 8 columns and 2 rows of frames, like the objects in part 11) in a cell of the board.
+- A cell of the board has two numbers: a column `x` and a row `y`. Instead of two arrays (one for the `x`'s and one for the `y`'s), we keep them together in a `struct`. A `struct` is a class whose members are public by default: a handy way to group a few variables that belong together. `snake` is an array of 8 cells: element 0 is the tail, and element 7 is the head.
+- `heading` is the direction of the snake: 0 is up, 1 is right, 2 is down and 3 is left (clockwise, like the tank frames in [part 11](/cpp-fast-track-11-tiles/)). `directions` holds the step in `x` and `y` for each heading: `directions[1]` is `{ 1, 0 }`, one cell to the right.
+- The keys choose a direction, but a snake can't turn around: when it moves to the right, left does nothing (and right does nothing either: it already goes that way). Only a turn to the side is allowed. Up and down (0 and 2) are even numbers, and left and right (1 and 3) are odd, so `wanted % 2 != lastStep % 2` means "a turn to the side". Why `lastStep`, and not `heading`? Press up and then left quickly, before the snake takes its next step: compared with `heading`, both turns are allowed, and the snake would turn around into itself. `lastStep` is the direction in which the snake really moved.
+- The snake moves one cell every 100 milliseconds: `timer` adds up the time of the frames, and every time it reaches 100, the snake takes a step. This way, the game keeps drawing at full speed, and the snake moves at the same speed on every computer. And because a step is a whole cell, you have time to press a key before the next step.
+- To take a step, every cell of the snake moves to the next one: the tail takes the place of the cell before it, and so on, until the head, which moves one cell in the direction of `heading`. When the head leaves the board, the `%` brings it back on the other side. The `+ BoardWidth` keeps the number from being negative: in C++, `-1 % 25` is `-1`, not 24 (remember [part 10](/cpp-fast-track-10-arrays/)?). We will replace that with walls later.
+- `DrawCell` draws one tile of `snake.png` (a sprite with 8 columns and 2 rows of frames, like the objects in part 11) in a cell of the board.
 
 ## The Problem with Arrays
 
@@ -129,7 +129,7 @@ Now a step is easy: put the new head after the last cell, and move the front one
 <text class="dim" x="417.0" y="388" text-anchor="middle">↑ front</text>
 <text class="dim" x="120" y="408">One more step: after place 7, the head goes on in place 0.</text>
 <path class="arrow" d="M 615 316 Q 384 278 157 315" marker-end="url(#ring-arrow)"/>
-<g class="made-by" transform="translate(679 421) scale(0.7)" opacity="0.35"><title>Made with Claude</title><path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z" fill="#D97757"/></g>
+<image class="made-by" href="/images/claude-logo.svg" x="679" y="421" width="16.8" height="16.8" opacity="0.35"><title>Made with Claude</title></image>
 </svg>
 
 <div class="caption">
@@ -149,12 +149,12 @@ This may feel backwards: the *front* of the queue is the *tail* of the snake, an
 
 A few things are new here:
 
--   `private:` In [part 12](/cpp-fast-track-12-classes/), all the members of the `Tank` were `public`: the rest of the program could use them. The members after `private:` can only be used by the methods of the class itself. Nobody else can change `front` or `count`, and break the ring. To use the queue, you *have to* use its methods, and they always keep the ring correct. This is called *encapsulation*.
--   `int front = 0;` gives a member variable its first value right where it's declared. Every queue starts empty, without the need for a constructor.
--   `static constexpr int Capacity` is a constant that belongs to the class: the same for every queue. The queue can never hold more cells than the board has, so `BoardWidth * BoardHeight` is enough.
--   `const` after a method (like `At`, `Back` and `Size`) promises that the method doesn't change the object: it only looks. The compiler checks that promise, and it lets you call these methods on a queue that may not be changed (a `const` queue, for example a `const CellQueue&` parameter). Give every method that only looks a `const`.
--   `At(i)` hides the ring: `At(0)` is always the front (the tail of the snake), and `At(Size() - 1)` is always the back (the head), wherever they are in the array.
--   The methods guard the ring. `PushBack` on a full queue would overwrite the front, so it adds nothing, and returns `false` to tell you so. `PopFront` on an empty queue would make `count` negative, so it does nothing. And `At` only gives you cells that are in the queue: asking for another cell is a bug in the code that calls it, and the `assert` (remember [part 7](/cpp-fast-track-7-debugging/)?) stops the program right there, in a Debug build. (Add `#include <cassert>` at the top of `game.cpp`.) `Back()` uses `At`, so it's checked too: an empty queue has no back.
+- `private:` In [part 12](/cpp-fast-track-12-classes/), all the members of the `Tank` were `public`: the rest of the program could use them. The members after `private:` can only be used by the methods of the class itself. Nobody else can change `front` or `count`, and break the ring. To use the queue, you *have to* use its methods, and they always keep the ring correct. This is called *encapsulation*.
+- `int front = 0;` gives a member variable its first value right where it's declared. Every queue starts empty, without the need for a constructor.
+- `static constexpr int Capacity` is a constant that belongs to the class: the same for every queue. The queue can never hold more cells than the board has, so `BoardWidth * BoardHeight` is enough.
+- `const` after a method (like `At`, `Back` and `Size`) promises that the method doesn't change the object: it only looks. The compiler checks that promise, and it lets you call these methods on a queue that may not be changed (a `const` queue, for example a `const CellQueue&` parameter). Give every method that only looks a `const`.
+- `At(i)` hides the ring: `At(0)` is always the front (the tail of the snake), and `At(Size() - 1)` is always the back (the head), wherever they are in the array.
+- The methods guard the ring. `PushBack` on a full queue would overwrite the front, so it adds nothing, and returns `false` to tell you so. `PopFront` on an empty queue would make `count` negative, so it does nothing. And `At` only gives you cells that are in the queue: asking for another cell is a bug in the code that calls it, and the `assert` (remember [part 7](/cpp-fast-track-7-debugging/)?) stops the program right there, in a Debug build. (Add `#include <cassert>` at the top of `game.cpp`.) `Back()` uses `At`, so it's checked too: an empty queue has no back.
 
 ## A Growing Snake
 
@@ -223,9 +223,9 @@ The same game: you can't see the difference, but the computer does much less wor
 
 This was a small example, but it shows what data structures are about:
 
--   A data structure stores data in a way that fits *what you do with it*. A snake adds cells at one end and removes them at the other: a queue. You ask "is this cell taken?": a grid.
--   A class can hide the tricky details (the ring, the wrap-around), so that the rest of the game reads like what it does: `snake.PushBack(next)`.
--   The right data structure often makes the code both faster *and* simpler.
+- A data structure stores data in a way that fits *what you do with it*. A snake adds cells at one end and removes them at the other: a queue. You ask "is this cell taken?": a grid.
+- A class can hide the tricky details (the ring, the wrap-around), so that the rest of the game reads like what it does: `snake.PushBack(next)`.
+- The right data structure often makes the code both faster *and* simpler.
 
 There are data structures for many different things: for huge arrays that have just a few useful values, for searching through endless piles of values, for stacking values so that you can retrieve them in the opposite order, and so on. The C++ standard library already has many of them, ready to use: `std::queue` and `std::deque` can do what our `CellQueue` does, for example. You will meet them later; it helps to have built one yourself first, so that you know what happens inside.
 
@@ -233,8 +233,8 @@ There are data structures for many different things: for huge arrays that have j
 
 ### Basic
 
-1.  Show the score (the number of apples eaten) in the top-left corner of the screen. (Hint: the snake starts with 8 cells.)
-2.  Make the snake a little faster after every apple. (Hint: `StepTime` can't stay a constant.)
+1. Show the score (the number of apples eaten) in the top-left corner of the screen. (Hint: the snake starts with 8 cells.)
+2. Make the snake a little faster after every apple. (Hint: `StepTime` can't stay a constant.)
 
 <iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-13-assignment-basic/index.html" title="The snake game with a score, in which the snake gets faster after every apple" loading="lazy" allowfullscreen></iframe>
 
@@ -246,8 +246,8 @@ The result: a score, and a snake that gets a bit faster with every apple. (Click
 
 ### Intermediate
 
-1.  Press up and then left, quickly (while the snake moves to the right), and the snake only goes up: the second key press comes before the next step, and it's not a turn to the side yet, so it's lost. Store the key presses in a second queue (a queue of directions), and use one every step. Keep at most a few.
-2.  Add walls inside the board. (Hint: describe the board as a grid of numbers, like the tile map in [part 11](/cpp-fast-track-11-tiles/), and use it for the drawing and for the `occupied` grid.)
+1. Press up and then left, quickly (while the snake moves to the right), and the snake only goes up: the second key press comes before the next step, and it's not a turn to the side yet, so it's lost. Store the key presses in a second queue (a queue of directions), and use one every step. Keep at most a few.
+2. Add walls inside the board. (Hint: describe the board as a grid of numbers, like the tile map in [part 11](/cpp-fast-track-11-tiles/), and use it for the drawing and for the `occupied` grid.)
 
 <iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-13-assignment-intermediate/index.html" title="The snake game with walls inside the board; quick key presses are not lost" loading="lazy" allowfullscreen></iframe>
 
@@ -259,8 +259,8 @@ The result: walls inside the board, and quick key presses aren't lost. (Click th
 
 ### Hard
 
-1.  The queue of cells and the queue of directions are the same code, for a different type. Make one class *template*, `Queue<T, Capacity>`, and use it for both: `Queue<Cell, 400>` and `Queue<int, 4>`. (Look up *class templates*: it's a small step from the class you have.)
-2.  Make a game for two players: player 1 steers with the arrow keys, player 2 with <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd> and <kbd>D</kbd>. (Hint: make a `Snake` class, and two instances. If both snakes use the same `occupied` grid, they run into each other without any extra code.)
+1. The queue of cells and the queue of directions are the same code, for a different type. Make one class *template*, `Queue<T, Capacity>`, and use it for both: `Queue<Cell, 400>` and `Queue<int, 4>`. (Look up *class templates*: it's a small step from the class you have.)
+2. Make a game for two players: player 1 steers with the arrow keys, player 2 with <kbd>W</kbd>, <kbd>A</kbd>, <kbd>S</kbd> and <kbd>D</kbd>. (Hint: make a `Snake` class, and two instances. If both snakes use the same `occupied` grid, they run into each other without any extra code.)
 
 <iframe class="embed embed-tmpl8" src="/demos/cpp-fast-track-13-assignment-hard/index.html" title="A snake game for two players, one with the arrow keys and one with W, A, S and D" loading="lazy" allowfullscreen></iframe>
 

@@ -420,3 +420,18 @@ dialog.lightbox img {
 .pixel-diagram .cell { stroke: var(--sl-color-gray-4); stroke-width: 1; }
 .pixel-diagram text.pct.dark { fill: #000; }
 .pixel-diagram text.pct.light { fill: #fff; }
+
+/* A display formula that is wider than the column (on a phone) scrolls on its own, instead of making the whole page
+   scroll sideways. The vertical padding keeps tall parts (fractions, square roots, sub- and superscripts) from being
+   cut off by the overflow. */
+.sl-markdown-content .katex-display {
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding: 0.5em 0;
+}
+
+/* A long link without spaces (like a URL as link text) may break anywhere, when it doesn't fit on the line: otherwise
+   it sticks out of the column, and the whole page scrolls sideways on a phone. */
+.sl-markdown-content a {
+	overflow-wrap: anywhere;
+}

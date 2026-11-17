@@ -154,7 +154,7 @@ namespace Tmpl8
         const float length2 = line.sqrLength();
         // how far along the line the closest point is: 0 at a, 1 at b
         const float t = length2 > 0 ? std::clamp((circle.center - a).dot(line) / length2, 0.0f, 1.0f) : 0;
-        const vec2 closest = a + line * t;
+        const vec2 closest = a + t * line;
         return (circle.center - closest).length() < circle.radius;
     }
 

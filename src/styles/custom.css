@@ -133,6 +133,10 @@
 .sl-markdown-content iframe.embed-euler-orbit { aspect-ratio: auto; height: 460px; min-height: 0; }
 .sl-markdown-content iframe.embed-collision-tests { aspect-ratio: auto; height: 440px; min-height: 0; }
 .sl-markdown-content iframe.embed-velocity-projection { aspect-ratio: auto; height: 460px; min-height: 0; }
+/* Part 16: the line - circle and line - box tests. */
+.sl-markdown-content iframe.embed-line-tests { aspect-ratio: auto; height: 460px; min-height: 0; }
+.sl-markdown-content iframe.embed-sight-test { aspect-ratio: auto; height: 580px; min-height: 0; }
+.sl-markdown-content iframe.embed-turn-towards { aspect-ratio: auto; height: 500px; min-height: 0; }
 
 
 /* Theme-specific images: <img class="light-only"> / <img class="dark-only"> (e.g. the GitHub mark). */
@@ -363,6 +367,8 @@ dialog.lightbox img {
 .memory-diagram .byte { stroke: var(--sl-color-gray-4); stroke-dasharray: 3 3; }
 .memory-diagram .arrow { fill: none; stroke: var(--sl-color-accent-high); stroke-width: 2; }
 .memory-diagram .arrow-head { fill: var(--sl-color-accent-high); }
+/* The state machine: semi-transparent lines, so you can see where they cross (the arrow heads stay solid). */
+.memory-diagram.state-diagram .arrow { stroke-opacity: 0.7; }
 /* Part 15: the walls around the map. */
 .walls-diagram .wall { fill: #ffd84a; fill-opacity: 0.3; stroke: #ffd84a; stroke-width: 3; }
 /* Part 16: where a shell starts. */

@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Line of Sight</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--shape: #5fb8ff;
+		--fixed: #a9b1c2;
+		--hit: #f26d5b;
+		--see: #5fd38a;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--shape: #1f6fc2;
+		--fixed: #6b7385;
+		--hit: #d1382a;
+		--see: #1d8a4a;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: default; }
+	canvas.can-drag { cursor: grab; }
+	canvas.dragging { cursor: grabbing; }
+	#bar {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+		padding: 6px 8px; border-top: 1px solid var(--border); background: var(--panel);
+	}
+	.slider { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+	.slider input { width: 110px; accent-color: var(--accent); }
+	.slider output { color: var(--text); font-variant-numeric: tabular-nums; min-width: 3ch; }
+	.sliders { flex-basis: 100%; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 10px; }
+	/* three columns: the names, the sliders (as wide as possible, both the same), and the values */
+	.sliders .slider { display: contents; }
+	.sliders .slider input { width: 100%; min-width: 0; margin: 0; }
+	.sliders .slider output { min-width: 25ch; } /* room for the longest value, so the sliders do not jump while dragging */
+	.hint { flex-basis: 100%; display: flex; align-items: center; gap: 12px; }
+	.hint b { color: var(--accent); font-weight: 600; }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="A tank with its view cone, a player, and obstacles. The line from the tank to the player is green when the tank can see the player: close enough, inside the field of view, and with no obstacle in between. Otherwise it is red."></canvas>
+	</div>
+	<div id="bar">
+		<div class="sliders">
+			<label class="slider">SightRange <input id="range" type="range" min="50" max="800" step="10" value="350" /> <output id="range-out">350</output></label>
+			<label class="slider">field of view <input id="fov" type="range" min="5" max="180" step="5" value="60" /> <output id="fov-out"></output></label>
+		</div>
+		<div class="hint"><span>drag the <b>tank</b>, the end of its <b>barrel</b> to aim, the <b>player</b>, or the obstacles</span>
+			<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" /></div>
+	</div>
+</div>
+<script>
+'use strict';
+// World units are the pixels of the game's screen (800 x 512), scaled to fit the canvas.
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W = 1, H = 1, DPR = 1, scale = 1, ox = 0, oy = 0;
+const FieldW = 800, FieldH = 512, TopRoom = 66;
+let SightRange = 350, FieldOfView = 0.5; // the same as in the C++ code (until you move the sliders)
+const TankRadius = 20, BarrelLength = 56;
+const tank = { x: 150, y: 220, aim: { x: 0.95, y: 0.31 } };
+const player = { x: 430, y: 260 };
+const circles = [{ x: 330, y: 180, r: 34 }, { x: 600, y: 120, r: 30 }, { x: 250, y: 420, r: 30 }];
+const boxes = [{ x: 400, y: 330, w: 60, h: 120 }, { x: 430, y: 150, w: 110, h: 50 }, { x: 680, y: 260, w: 70, h: 70 }];
+
+// ---- the tests (the same as in the C++ code) ----
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+function crossesCircle(a, b, c) {
+	const lx = b.x - a.x, ly = b.y - a.y, length2 = lx * lx + ly * ly;
+	const t = length2 > 0 ? clamp(((c.x - a.x) * lx + (c.y - a.y) * ly) / length2, 0, 1) : 0;
+	return Math.hypot(c.x - (a.x + t * lx), c.y - (a.y + t * ly)) < c.r;
+}
+function crossesBox(a, b, box) {
+	let first = 0, last = 1;
+	const start = [a.x, a.y], step = [b.x - a.x, b.y - a.y];
+	const low = [box.x, box.y], high = [box.x + box.w, box.y + box.h];
+	for (let axis = 0; axis < 2; axis++) {
+		if (step[axis] === 0) {
+			if (start[axis] < low[axis] || start[axis] >= high[axis]) return false;
+			continue;
+		}
+		let t1 = (low[axis] - start[axis]) / step[axis], t2 = (high[axis] - start[axis]) / step[axis];
+		if (t1 > t2) [t1, t2] = [t2, t1];
+		first = Math.max(first, t1);
+		last = Math.min(last, t2);
+		if (first > last) return false;
+	}
+	return true;
+}
+// All three questions, also the ones after the first "no" (CanSee stops there), so that the text can show them all.
+function canSee() {
+	const dx = player.x - tank.x, dy = player.y - tank.y, distance = Math.hypot(dx, dy);
+	const close = distance <= SightRange;
+	const dot = distance > 0 ? tank.aim.x * dx / distance + tank.aim.y * dy / distance : 1;
+	const inView = !(distance > 0 && dot < FieldOfView);
+	const blockers = new Set();
+	for (const c of circles) if (crossesCircle(tank, player, c)) blockers.add(c);
+	for (const b of boxes) if (crossesBox(tank, player, b)) blockers.add(b);
+	const sees = close && inView && blockers.size === 0;
+	const mark = (ok) => (ok ? '✓' : '✗');
+	return {
+		sees, close, inView, blockers,
+		lines: [
+			[`distance ${distance.toFixed(0)} ${close ? '≤' : '>'} SightRange ${SightRange}`, close],
+			[`aim · direction = ${dot.toFixed(2)} ${inView ? '≥' : '<'} FieldOfView ${FieldOfView.toFixed(2)}`, inView],
+			[blockers.size === 0 ? 'no obstacle in between' : `${blockers.size} obstacle${blockers.size > 1 ? 's' : ''} in between`, blockers.size === 0],
+		].map(([t, ok]) => [`${mark(ok)} ${t}`, ok]),
+	};
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--shape', '--fixed', '--hit', '--see'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	scale = Math.min((W - 20) / FieldW, (H - TopRoom - 10) / FieldH);
+	ox = (W - FieldW * scale) / 2; oy = TopRoom + (H - TopRoom - 10 - FieldH * scale) / 2;
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+const X = (x) => ox + x * scale, Y = (y) => oy + y * scale;
+function seg(x1, y1, x2, y2, color, width, dash) {
+	ctx.setLineDash(dash || []); ctx.strokeStyle = color; ctx.lineWidth = width;
+	ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.setLineDash([]);
+}
+function dot(x, y, color, r) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r || 4, 0, 2 * Math.PI); ctx.fill(); }
+function label(text, x, y, color, align) {
+	ctx.fillStyle = color; ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = align || 'left'; ctx.textBaseline = 'middle';
+	ctx.fillText(text, x, y); ctx.textAlign = 'left';
+}
+function fillStroke(color, alpha) {
+	ctx.globalAlpha = alpha; ctx.fillStyle = color; ctx.fill(); ctx.globalAlpha = 1;
+	ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+}
+const barrelEnd = () => ({ x: tank.x + tank.aim.x * BarrelLength, y: tank.y + tank.aim.y * BarrelLength });
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg']; ctx.fillRect(0, 0, W, H);
+	const r = canSee();
+
+	ctx.save();
+	ctx.beginPath(); ctx.rect(X(0), Y(0), FieldW * scale, FieldH * scale); ctx.clip();
+	ctx.strokeStyle = colors['--muted']; ctx.lineWidth = 1; ctx.globalAlpha = 0.5;
+	ctx.strokeRect(X(0), Y(0), FieldW * scale, FieldH * scale); ctx.globalAlpha = 1;
+
+	// the sight range, and the view cone: 60 degrees to both sides of aim, as far as the tank can see
+	const angle = Math.atan2(tank.aim.y, tank.aim.x), half = Math.acos(FieldOfView);
+	ctx.beginPath(); ctx.arc(X(tank.x), Y(tank.y), SightRange * scale, 0, 2 * Math.PI);
+	ctx.setLineDash([5, 5]); ctx.strokeStyle = r.close ? colors['--muted'] : colors['--hit']; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+	ctx.beginPath(); ctx.moveTo(X(tank.x), Y(tank.y));
+	ctx.arc(X(tank.x), Y(tank.y), SightRange * scale, angle - half, angle + half); ctx.closePath();
+	ctx.globalAlpha = 0.1; ctx.fillStyle = colors['--shape']; ctx.fill(); ctx.globalAlpha = 1;
+	for (const s of [-1, 1]) {
+		const e = { x: tank.x + Math.cos(angle + s * half) * SightRange, y: tank.y + Math.sin(angle + s * half) * SightRange };
+		seg(X(tank.x), Y(tank.y), X(e.x), Y(e.y), r.inView ? colors['--shape'] : colors['--hit'], 1.5, [6, 4]);
+	}
+
+	// the obstacles: red when they block the line
+	for (const c of circles) {
+		ctx.beginPath(); ctx.arc(X(c.x), Y(c.y), c.r * scale, 0, 2 * Math.PI);
+		fillStroke(r.blockers.has(c) ? colors['--hit'] : colors['--fixed'], 0.2);
+	}
+	for (const b of boxes) {
+		ctx.beginPath(); ctx.rect(X(b.x), Y(b.y), b.w * scale, b.h * scale);
+		fillStroke(r.blockers.has(b) ? colors['--hit'] : colors['--fixed'], 0.2);
+	}
+
+	// the line of sight
+	seg(X(tank.x), Y(tank.y), X(player.x), Y(player.y), r.sees ? colors['--see'] : colors['--hit'], 2.5);
+
+	// the tank: its circle, and the barrel (aim)
+	ctx.beginPath(); ctx.arc(X(tank.x), Y(tank.y), TankRadius * scale, 0, 2 * Math.PI);
+	fillStroke(colors['--shape'], 0.3);
+	const end = barrelEnd();
+	seg(X(tank.x), Y(tank.y), X(end.x), Y(end.y), colors['--shape'], 6);
+	dot(X(end.x), Y(end.y), colors['--shape'], 6);
+	label('tank', X(tank.x), Y(tank.y) + (TankRadius + 12) * scale + 4, colors['--text'], 'center');
+
+	// the player
+	dot(X(player.x), Y(player.y), r.sees ? colors['--see'] : colors['--hit'], 8);
+	label('player', X(player.x), Y(player.y) + 20, colors['--text'], 'center');
+	ctx.restore();
+
+	// the three questions
+	ctx.textBaseline = 'top';
+	ctx.font = '13px system-ui, sans-serif';
+	if (Math.max(...r.lines.map(([t]) => ctx.measureText(t).width)) > W - 20) ctx.font = '11px system-ui, sans-serif';
+	r.lines.forEach(([t, ok], i) => { ctx.fillStyle = ok ? colors['--see'] : colors['--hit']; ctx.fillText(t, 10, 6 + i * 17); });
+	ctx.font = 'bold 13px system-ui, sans-serif'; ctx.textAlign = 'right';
+	ctx.fillStyle = r.sees ? colors['--see'] : colors['--hit'];
+	ctx.fillText(r.sees ? 'CanSee: true' : 'CanSee: false', W - 10, 6); ctx.textAlign = 'left';
+}
+
+// ---- dragging ----
+let drag = null;
+function world(e) {
+	const rc = canvas.getBoundingClientRect();
+	return { x: (e.clientX - rc.left - ox) / scale, y: (e.clientY - rc.top - oy) / scale };
+}
+function pick(p) {
+	const near = 14 / scale, end = barrelEnd();
+	if (Math.hypot(p.x - end.x, p.y - end.y) < near) return { kind: 'aim' };
+	if (Math.hypot(p.x - player.x, p.y - player.y) < near) return { kind: 'move', item: player };
+	if (Math.hypot(p.x - tank.x, p.y - tank.y) < TankRadius + 2 / scale) return { kind: 'move', item: tank };
+	for (const c of circles) if (Math.hypot(p.x - c.x, p.y - c.y) < c.r) return { kind: 'move', item: c };
+	for (const b of boxes) if (p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h) return { kind: 'move', item: b };
+	return null;
+}
+canvas.addEventListener('pointerdown', (e) => {
+	const p = world(e), hit = pick(p);
+	if (!hit) return;
+	drag = { ...hit, last: p };
+	canvas.setPointerCapture(e.pointerId); canvas.classList.add('dragging');
+});
+canvas.addEventListener('pointermove', (e) => {
+	const p = world(e);
+	if (!drag) { canvas.classList.toggle('can-drag', pick(p) !== null); return; }
+	if (drag.kind === 'aim') {
+		const dx = p.x - tank.x, dy = p.y - tank.y, d = Math.hypot(dx, dy);
+		if (d > 0) tank.aim = { x: dx / d, y: dy / d }; // like Tank::Aim: towards the mouse, with length 1
+	} else {
+		const it = drag.item, dx = p.x - drag.last.x, dy = p.y - drag.last.y;
+		const cx = it.w !== undefined ? it.x + it.w / 2 : it.x, cy = it.h !== undefined ? it.y + it.h / 2 : it.y;
+		it.x += clamp(cx + dx, 0, FieldW) - cx;
+		it.y += clamp(cy + dy, 0, FieldH) - cy;
+	}
+	drag.last = p;
+	draw();
+});
+const stop = () => { drag = null; canvas.classList.remove('dragging'); };
+canvas.addEventListener('pointerup', stop);
+canvas.addEventListener('pointercancel', stop);
+
+// the sliders: the sight range in pixels, and half the field of view in degrees (FieldOfView is its cosine)
+const rangeInput = document.getElementById('range'), fovInput = document.getElementById('fov');
+function readSliders() {
+	SightRange = Number(rangeInput.value);
+	const degrees = Number(fovInput.value);
+	FieldOfView = Math.cos(degrees * Math.PI / 180);
+	document.getElementById('range-out').textContent = SightRange;
+	document.getElementById('fov-out').textContent = `${degrees}° to each side: cos = ${FieldOfView.toFixed(2)}`;
+	draw();
+}
+rangeInput.addEventListener('input', readSliders);
+fovInput.addEventListener('input', readSliders);
+readSliders();
+
+applyTheme();
+resize();
+</script>
+</body>
+</html>

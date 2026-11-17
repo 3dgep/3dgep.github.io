@@ -155,7 +155,7 @@ namespace Tmpl8
         const float length2 = line.sqrLength();
         // how far along the line the closest point is: 0 at a, 1 at b
         const float t = length2 > 0 ? std::clamp((circle.center - a).dot(line) / length2, 0.0f, 1.0f) : 0;
-        const vec2 closest = a + line * t;
+        const vec2 closest = a + t * line;
         return (circle.center - closest).length() < circle.radius;
     }
 
@@ -413,7 +413,7 @@ namespace Tmpl8
                 timer = 0;
             }
             if (seen)
-                state = distance < AttackRange ? State::Attack : State::Chase;
+                state = State::Chase; // (Chase switches to Attack when the target is close)
             break;
         case State::Chase:
             direction = toTarget / distance;
@@ -435,6 +435,8 @@ namespace Tmpl8
             }
             else if (distance > AttackRange * 1.2f)
                 state = State::Chase; // (a bit further than AttackRange, so that it doesn't switch back and forth)
+            else if (aim.dot(look) > 0.98f)
+                Fire(Spread); // aimed well enough at the target: fire!
             break;
         case State::Search:
             if (goalDistance > 40)
@@ -442,7 +444,7 @@ namespace Tmpl8
             look = Rotate(aim, 0.002f * deltaTime);              // ...and look around, by turning the turret
             timer += deltaTime;
             if (seen)
-                state = distance < AttackRange ? State::Attack : State::Chase;
+                state = State::Chase;
             else if (timer > SearchTime)
             {
                 state = State::Patrol;
@@ -456,8 +458,6 @@ namespace Tmpl8
         Drive(direction);
         aim = TurnTowards(aim, look, TurretSpeed * deltaTime);
         reload -= deltaTime;
-        if (seen && aim.dot(toTarget / distance) > 0.98f)
-            Fire(Spread); // aimed well enough at the target: fire!
     }
 
     Tank player({ 3 * TileSize + 32, 2 * TileSize + 32 }, 0, 0);

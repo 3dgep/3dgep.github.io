@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Turn Towards</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--from: #5fb8ff;
+		--to: #e5c07b;
+		--result: #5fd38a;
+		--limit: #c678dd;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--from: #1f6fc2;
+		--to: #a86b00;
+		--result: #1d8a4a;
+		--limit: #8e3fb0;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: default; }
+	canvas.can-drag { cursor: grab; }
+	canvas.dragging { cursor: grabbing; }
+	#bar {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+		padding: 6px 8px; border-top: 1px solid var(--border); background: var(--panel);
+	}
+	.slider { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+	.slider input { width: 110px; accent-color: var(--accent); }
+	.slider output { color: var(--text); font-variant-numeric: tabular-nums; min-width: 3ch; }
+	.sliders { flex-basis: 100%; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 10px; }
+	/* three columns: the names, the sliders (as wide as possible, both the same), and the values */
+	.sliders .slider { display: contents; }
+	.sliders .slider input { width: 100%; min-width: 0; margin: 0; }
+	.sliders .slider output { min-width: 21ch; } /* room for the longest value, so the sliders do not jump while dragging */
+	.buttons { flex-basis: 100%; display: flex; justify-content: center; gap: 8px; }
+	button {
+		font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border);
+		border-radius: 4px; padding: 3px 12px 3px 9px; cursor: pointer;
+		display: inline-flex; align-items: center; gap: 6px;
+	}
+	button svg { width: 14px; height: 14px; fill: currentColor; flex: none; }
+	button:hover { border-color: var(--accent); }
+	.hint { flex-basis: 100%; display: flex; align-items: center; gap: 12px; }
+	.hint b { color: var(--accent); font-weight: 600; }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="Two directions, from and to, drawn as arrows from the same point. The result of TurnTowards is a third arrow: from, turned towards to, but by at most maxAngle: TurretSpeed times deltaTime, the time of one frame. Sliders set the speed and the frames per second (deltaTime is 1 / frames per second). The shaded wedge shows how far from can turn."></canvas>
+	</div>
+	<div id="bar">
+		<div class="sliders">
+			<label class="slider">TurretSpeed <input id="max" type="range" min="10" max="180" step="1" value="172" /> <output id="max-out"></output></label>
+			<label class="slider">frames per second <input id="dt" type="range" min="0" max="5" step="1" value="1" /> <output id="dt-out"></output></label>
+		</div>
+		<div class="buttons">
+			<button id="play" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="play-icon" d="M4 2.5v11l9-5.5z" /></svg><span id="play-text">Play</span></button>
+			<button id="step" type="button" title="from = TurnTowards(from, to, TurretSpeed * deltaTime)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 2.5v11l8-5.5zM11 2.5h2.5v11H11z" /></svg>Step</button>
+			<button id="reset" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 1 1-5.2 7.3l1.9-.6A3.5 3.5 0 1 0 8 4.5H6.5V7L2.5 3.5 6.5 0v2.5z" /></svg>Reset</button>
+		</div>
+		<div class="hint"><span>drag the ends of <b>from</b> and <b>to</b>; <b>Step</b> plays one frame, <b>Play</b> plays them in real time</span>
+			<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" /></div>
+	</div>
+</div>
+<script>
+'use strict';
+// World units are pixels; the screen's y axis points down, like in the game.
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W = 1, H = 1, DPR = 1, scale = 1, ox = 0, oy = 0;
+const FieldW = 600, FieldH = 330, TopRoom = 62;
+const center = { x: 300, y: 165 }, Radius = 140;
+const Start = { from: { x: 1, y: 0 }, to: { x: Math.cos(1.9), y: Math.sin(1.9) }, degreesPerSecond: 172, framesPerSecond: 12 }; // 172 degrees per second: TurretSpeed in the game
+let from = Start.from, to = Start.to;
+let saved = { from, to }; // where Reset puts from and to: as they were when Play was pressed, or after dragging
+let turnSpeed = Start.degreesPerSecond * Math.PI / 180; // radians per second
+let deltaTime = 1 / Start.framesPerSecond; // seconds: the time of one frame
+let maxAngle = turnSpeed * deltaTime;      // the maxAngle that TurnTowards gets
+let time = 0, frames = 0;                  // the time spent turning, since from or to was moved
+
+// ---- the functions (the same as in the C++ code) ----
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+function rotate(v, angle) {
+	const c = Math.cos(angle), s = Math.sin(angle);
+	return { x: v.x * c - v.y * s, y: v.x * s + v.y * c };
+}
+function turnTowards(from, to, maxAngle) {
+	const cross = from.x * to.y - from.y * to.x; // positive: to is clockwise from from
+	const dot = from.x * to.x + from.y * to.y;
+	const angle = Math.atan2(cross, dot);        // the angle from from to to, between -PI and PI
+	const turn = clamp(angle, -maxAngle, maxAngle);
+	return { cross, dot, angle, turn, result: rotate(from, turn) };
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--from', '--to', '--result', '--limit'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	scale = Math.min((W - 20) / FieldW, (H - TopRoom - 10) / FieldH);
+	ox = (W - FieldW * scale) / 2; oy = TopRoom + (H - TopRoom - 10 - FieldH * scale) / 2;
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+const X = (x) => ox + x * scale, Y = (y) => oy + y * scale;
+const tip = (v, length) => ({ x: center.x + v.x * (length || Radius), y: center.y + v.y * (length || Radius) });
+// An arrow from the center; with handle, it ends in a big dot that can be dragged (like the other demos).
+function arrow(v, length, color, width, name, handle) {
+	const e = tip(v, length), x1 = X(center.x), y1 = Y(center.y), x2 = X(e.x), y2 = Y(e.y);
+	const a = Math.atan2(y2 - y1, x2 - x1), head = 11;
+	ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width;
+	if (handle) {
+		ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+		ctx.beginPath(); ctx.arc(x2, y2, 7, 0, 2 * Math.PI); ctx.fill();
+		if (name) label(name, x2 + Math.cos(a) * 22, y2 + Math.sin(a) * 18, color, 'center');
+		return;
+	}
+	ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a) * head * 0.8, y2 - Math.sin(a) * head * 0.8); ctx.stroke();
+	ctx.beginPath(); ctx.moveTo(x2, y2);
+	ctx.lineTo(x2 - Math.cos(a - 0.4) * head, y2 - Math.sin(a - 0.4) * head);
+	ctx.lineTo(x2 - Math.cos(a + 0.4) * head, y2 - Math.sin(a + 0.4) * head);
+	ctx.closePath(); ctx.fill();
+	if (name) label(name, x2 + Math.cos(a) * 18, y2 + Math.sin(a) * 14, color, 'center');
+}
+function arc(start, angle, radius, color, width, dash) {
+	if (Math.abs(angle) < 1e-4) return;
+	ctx.setLineDash(dash || []); ctx.strokeStyle = color; ctx.lineWidth = width;
+	ctx.beginPath(); ctx.arc(X(center.x), Y(center.y), radius * scale, start, start + angle, angle < 0); ctx.stroke();
+	ctx.setLineDash([]);
+}
+function label(text, x, y, color, align) {
+	ctx.fillStyle = color; ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = align || 'left'; ctx.textBaseline = 'middle';
+	ctx.fillText(text, x, y); ctx.textAlign = 'left';
+}
+const degrees = (a) => `${(a * 180 / Math.PI).toFixed(Math.abs(a) < 0.17 ? 1 : 0)}°`;
+const deltaText = () => `deltaTime ${(deltaTime * 1000).toFixed(0)} ms`;
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg']; ctx.fillRect(0, 0, W, H);
+	const r = turnTowards(from, to, maxAngle);
+	const a0 = Math.atan2(from.y, from.x);
+	const cx = X(center.x), cy = Y(center.y);
+
+	// the unit circle (scaled up): all directions with length 1 end on it
+	ctx.beginPath(); ctx.arc(cx, cy, Radius * scale, 0, 2 * Math.PI);
+	ctx.strokeStyle = colors['--muted']; ctx.globalAlpha = 0.4; ctx.lineWidth = 1; ctx.stroke(); ctx.globalAlpha = 1;
+
+	// the wedge of maxAngle to both sides of from: how far from can turn
+	ctx.beginPath(); ctx.moveTo(cx, cy);
+	ctx.arc(cx, cy, Radius * scale, a0 - maxAngle, a0 + maxAngle); ctx.closePath();
+	ctx.globalAlpha = 0.12; ctx.fillStyle = colors['--limit']; ctx.fill(); ctx.globalAlpha = 1;
+	for (const s of [-1, 1]) {
+		const e = tip({ x: Math.cos(a0 + s * maxAngle), y: Math.sin(a0 + s * maxAngle) });
+		ctx.setLineDash([5, 4]); ctx.strokeStyle = colors['--limit']; ctx.lineWidth = 1.2;
+		ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(X(e.x), Y(e.y)); ctx.stroke(); ctx.setLineDash([]);
+	}
+
+	// the angle from from to to (dashed), and the turn that is made (solid)
+	arc(a0, r.angle, 46, colors['--to'], 1.5, [4, 3]);
+	arc(a0, r.turn, 62, colors['--result'], 3);
+	const mid = a0 + r.angle / 2;
+	if (Math.abs(r.angle) > 0.15) label('angle', cx + Math.cos(mid) * 30 * scale, cy + Math.sin(mid) * 30 * scale, colors['--to'], 'center');
+
+	const together = Math.abs(r.angle) < 0.08; // on top of each other: one label for both
+	arrow(to, Radius, colors['--to'], 3, together ? null : 'to', true);
+	arrow(from, Radius, colors['--from'], 3, together ? 'from = to' : 'from', true);
+	arrow(r.result, Radius * 0.78, colors['--result'], 3.5, 'result');
+	ctx.fillStyle = colors['--text']; ctx.beginPath(); ctx.arc(cx, cy, 3, 0, 2 * Math.PI); ctx.fill();
+
+	// the numbers
+	ctx.textBaseline = 'top';
+	ctx.font = '13px system-ui, sans-serif';
+	const clamped = Math.abs(r.angle) > maxAngle;
+	const lines = [
+		[`cross = ${r.cross.toFixed(2)} (${r.cross >= 0 ? 'positive: to is clockwise from from' : 'negative: to is counterclockwise from from'}),  dot = ${r.dot.toFixed(2)}`, colors['--text']],
+		[`angle = atan2(cross, dot) = ${r.angle.toFixed(2)} (${degrees(r.angle)})`, colors['--to']],
+		[clamped
+			? `maxAngle = TurretSpeed × ${deltaText()} = ${maxAngle.toFixed(3)} (${degrees(maxAngle)}): clamped, from turns ${degrees(r.turn)}`
+			: `maxAngle = TurretSpeed × ${deltaText()} = ${maxAngle.toFixed(3)} (${degrees(maxAngle)}): from turns all the way to to`, colors['--result']],
+	];
+	// the frames that are still needed, minus the part of the next frame that already went by
+	const left = Math.max(0, Math.ceil(Math.abs(r.angle) / maxAngle - 1e-6) * deltaTime - (playing ? waited : 0));
+	const timeText = `time: ${time.toFixed(2)} s (${frames} frame${frames === 1 ? '' : 's'})` + (left > 0.0005 ? `,  ${left.toFixed(2)} s to go` : ',  on target');
+	if (Math.max(...lines.map(([t]) => ctx.measureText(t).width)) > W - 20) ctx.font = '11px system-ui, sans-serif';
+	lines.forEach(([t, c], i) => { ctx.fillStyle = c; ctx.fillText(t, 10, 6 + i * 17); });
+	ctx.textBaseline = 'bottom'; ctx.textAlign = 'right'; ctx.fillStyle = colors['--muted'];
+	ctx.fillText(timeText, W - 10, H - 8); ctx.textAlign = 'left';
+}
+
+// ---- dragging the ends of from and to ----
+let drag = null;
+function world(e) {
+	const rc = canvas.getBoundingClientRect();
+	return { x: (e.clientX - rc.left - ox) / scale, y: (e.clientY - rc.top - oy) / scale };
+}
+function pick(p) {
+	const near = 16 / scale;
+	for (const [name, v] of [['from', from], ['to', to]]) {
+		const e = tip(v);
+		if (Math.hypot(p.x - e.x, p.y - e.y) < near) return name;
+	}
+	return null;
+}
+canvas.addEventListener('pointerdown', (e) => {
+	const hit = pick(world(e));
+	if (!hit) return;
+	drag = hit;
+	canvas.setPointerCapture(e.pointerId); canvas.classList.add('dragging');
+});
+canvas.addEventListener('pointermove', (e) => {
+	const p = world(e);
+	if (!drag) { canvas.classList.toggle('can-drag', pick(p) !== null); return; }
+	const dx = p.x - center.x, dy = p.y - center.y, d = Math.hypot(dx, dy);
+	if (d === 0) return;
+	const v = { x: dx / d, y: dy / d }; // a direction: length 1
+	if (drag === 'from') from = v; else to = v;
+	time = 0; frames = 0; waited = 0;
+	saved = { from, to };
+	draw();
+});
+const stop = () => { drag = null; canvas.classList.remove('dragging'); };
+canvas.addEventListener('pointerup', stop);
+canvas.addEventListener('pointercancel', stop);
+
+// ---- the sliders and the buttons ----
+const maxInput = document.getElementById('max'), dtInput = document.getElementById('dt');
+// The frames per second slider goes 1, 12, 24, ... 60.
+const fpsOf = (position) => (position === 0 ? 1 : position * 12);
+function readSlider() {
+	const degreesPerSecond = Number(maxInput.value), framesPerSecond = fpsOf(Number(dtInput.value));
+	turnSpeed = degreesPerSecond * Math.PI / 180;
+	deltaTime = 1 / framesPerSecond;
+	maxAngle = turnSpeed * deltaTime;
+	document.getElementById('max-out').textContent = `${degreesPerSecond}°/s (${(turnSpeed / 1000).toFixed(4)} rad/ms)`;
+	document.getElementById('dt-out').textContent = `deltaTime = 1 / ${framesPerSecond} = ${(deltaTime * 1000).toFixed(deltaTime < 0.02 ? 1 : 0)} ms`;
+	draw();
+}
+maxInput.addEventListener('input', readSlider);
+dtInput.addEventListener('input', readSlider);
+// One frame: from turns towards to, by at most maxAngle. When it gets there, playing stops.
+function step() {
+	const r = turnTowards(from, to, maxAngle);
+	if (Math.abs(r.angle) < 1e-6) { pause(); return; } // already on target
+	from = r.result;
+	if (!playing) time += deltaTime; // while playing, the time runs on its own (in frame)
+	frames++;
+	if (Math.abs(r.angle) <= maxAngle) pause();
+	draw();
+}
+document.getElementById('step').addEventListener('click', () => { pause(); step(); });
+// Play: one frame every deltaTime, in real time.
+let playing = false, lastFrame = 0, waited = 0;
+const playButton = document.getElementById('play');
+const PlayIcon = 'M4 2.5v11l9-5.5z', PauseIcon = 'M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z';
+function setPlayButton(text, icon) {
+	document.getElementById('play-text').textContent = text;
+	document.getElementById('play-icon').setAttribute('d', icon);
+}
+function frame(now) {
+	if (!playing) return;
+	// Only use the animation frame's own clock: in an iframe that loaded off screen, it can lag far behind
+	// performance.now(). The first frame after Play only starts the clock.
+	if (lastFrame === null) lastFrame = now;
+	const seconds = Math.max(0, Math.min(0.25, (now - lastFrame) / 1000));
+	lastFrame = now;
+	waited += seconds; time += seconds;
+	while (playing && waited >= deltaTime) {
+		waited -= deltaTime;
+		step();
+		if (!playing) time -= waited; // arrived: the time of that last frame, not a bit after it
+	}
+	draw();
+	if (playing) requestAnimationFrame(frame);
+}
+function pause() {
+	playing = false;
+	setPlayButton('Play', PlayIcon);
+}
+playButton.addEventListener('click', () => {
+	if (playing) { pause(); return; }
+	if (frames === 0) saved = { from, to }; // a new start, not going on after a pause
+	playing = true;
+	setPlayButton('Pause', PauseIcon);
+	lastFrame = null; // the first frame comes after deltaTime
+	requestAnimationFrame(frame);
+});
+document.getElementById('reset').addEventListener('click', () => {
+	pause();
+	from = saved.from; to = saved.to; time = 0; frames = 0; waited = 0;
+	draw();
+});
+readSlider();
+
+applyTheme();
+resize();
+</script>
+</body>
+</html>

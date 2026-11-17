@@ -49,7 +49,7 @@ And add these variables, in the `private` part of the class (below `frame`):
 ```cpp source="tmpl8-part-16/game.hpp#L48-L50"
 ```
 
-The template calls `MouseMove` when the mouse moves, and `MouseDown` and `MouseUp` when a button goes down or up (button 1 is the left button). `mouseDown` is `true` as long as the button is held down. But a quick click can go down *and* up between two frames: then `Tick` would never see `mouseDown` as `true`. That's what `mousePressed` is for: it remembers that the button went down, until `Tick` has seen it.
+The template calls `MouseMove` when the mouse moves, and `MouseDown` and `MouseUp` when a button goes down or up (button 1 is the left mouse button). `mouseDown` is `true` as long as the button is held down. But a quick click can go down *and* up between two frames: then `Tick` would never see `mouseDown` as `true`. That's what `mousePressed` is for: it remembers that the button went down, until `Tick` has seen it.
 
 ### Aiming
 
@@ -101,18 +101,18 @@ Remember the bug in `Surface::Bar` from [part 7](/cpp-fast-track-7-debugging/)? 
 
 ### Shells
 
-A shell flies in a straight line, until it hits something, or its time is up. Shells are not bodies: they are much faster than the tanks, too small to push anything around, and they disappear when they hit something anyway. So they get a struct of their own, with an array of them. Add this below `bodyCount`:
+A shell flies in a straight line, until it hits something, or its time is up. Shells are not bodies: they are much faster than the tanks, nothing pushes them around, and they disappear when they hit something anyway. (A shell does push a drum when it hits it, but we'll handle that ourselves later, instead of leaving it to the physics engine.) Shells get a struct of their own, with an array of them. Add this below `bodyCount`:
 
 ```cpp source="tmpl8-part-16/1-weapons/game.cpp#L301-L313"
 ```
 
-Like the drums, there is a fixed number of shells. A shell with a `time` of 0 isn't flying, so it's free: when a tank fires, `Fire` looks for a free shell and sends it on its way.
+Like the drums, there is a fixed number of shells. A shell with a `time` of 0 (or less) is free for reuse: when a tank fires, `Fire` looks for a free shell and sends it on its way.
 
 :::note[Is 32 Enough?]
 A tank fires at most once every 400 milliseconds (`ReloadTime`), and a shell flies for 1500 milliseconds (`ShellTime`), so one tank never has more than 4 shells in the air. Even with the player and 5 enemies, that's 24 at most. (And if all shells are in use, `Fire` simply doesn't fire.)
 :::
 
-`UpdateShells` uses `Explode`, which comes in the next section, with the rest of the explosion code. C++ reads the code from top to bottom, so it has to know about `Explode` before `UpdateShells` uses it. A *declaration* tells it that the function exists, just like the declarations of the methods in a class (see [part 12](/cpp-fast-track-12-classes/)). Add it below the shells:
+`UpdateShells` uses `Explode`, which comes in the next section, with the rest of the explosion code. C++ reads the code from top to bottom, so it has to know about `Explode` before `UpdateShells` can use it. A *forward declaration* tells the compiler that a function exists before it is defined, just like the declarations of the methods in a class (see [part 12](/cpp-fast-track-12-classes/)). Add it below the shells:
 
 ```cpp source="tmpl8-part-16/1-weapons/game.cpp#L315-L317"
 ```
@@ -154,7 +154,7 @@ A shell that hits an obstacle (any of the colliders, including the walls around 
 ```cpp source="tmpl8-part-16/1-weapons/game.cpp#L361-L368"
 ```
 
-Whatever the shell hit, it explodes, and its time becomes 0: it's free again for the next shot.
+Regardless of what the shell hit, it explodes, and its time becomes 0 so it's free again for the next shot.
 
 `DrawShells` draws the flying shells:
 
@@ -202,7 +202,7 @@ Now the tanks can fire. `Fire` sends a free shell on its way:
 
 The shell starts 30 pixels in front of the middle of the tank (at the end of the barrel, and outside the tank's own circle), and flies in the direction of the barrel. Its colour is the colour of the tank: green or red. Then the tank has to reload.
 
-<svg class="memory-diagram fire-diagram" viewBox="0 70 700 290" role="img" aria-label="A green tank facing up, with its barrel turned 45 degrees to the right. The middle of the tank is body.position. A dashed circle with a radius of 30 pixels shows the distance from the middle at which shells start; a smaller circle with a radius of 20 pixels is the tank's collision circle. An arrow of 30 pixels goes from the middle of the tank in the direction of aim, along the barrel, to the end of the barrel, where the new shell starts: just outside the circle.">
+<svg class="memory-diagram fire-diagram" viewBox="0 70 700 290" role="img" aria-label="A green tank facing up, with its barrel turned 45° to the right. The middle of the tank is body.position. A dashed circle with a radius of 30 pixels shows the distance from the middle at which shells start; a smaller circle with a radius of 20 pixels is the tank's collision circle. An arrow of 30 pixels goes from the middle of the tank in the direction of aim, along the barrel, to the end of the barrel, where the new shell starts: just outside the circle.">
 <defs><marker id="fire-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" class="arrow-head"/></marker></defs>
 <image href="/images/cpp-fast-track-16/fire-tank.png" x="60" y="70" width="256" height="256"/>
 <circle class="radius" cx="188" cy="198" r="120"/>
@@ -273,45 +273,89 @@ $$
 
 where $c$ is the middle of the circle. The dot product measures how far $c$ lies along the line (part 15 used the dot product for that too, in `Push`). Clamping $t$ between 0 and 1 keeps the point on the line. Then the line crosses the circle when that point is closer to the middle than the radius.
 
+<iframe class="embed embed-demo embed-line-tests" src="/demos/line-tests.html?test=lc" title="Drag the ends of a line, or the circle: the closest point of the line to the middle of the circle is shown, also on the x and y axes, where the line runs from t = 0 to t = 1; the line turns green when that point is closer than the radius" loading="lazy" allowfullscreen></iframe>
+
+<div class="caption">
+
+Drag $a$ or $b$ to move one end of the line, drag the line itself to move both ends, or drag the circle to move it. The purple arrow is $c - a$. The dot product with $b - a$ gives the yellow part: how far $c$ lies along the line, where a line from $c$ meets it at a right angle. Divided by the length of the line, that is $t$: 0 at $a$, 1 at $b$. The axes at the bottom and the left show the same thing for $x$ and $y$: the line from $t = 0$ to $t = 1$, the yellow part, and the closest point. When the closest point would be beyond $a$ or $b$ (the grey dot), $t$ is clamped to 0 or 1.
+
+</div>
+
 ### A Line Through a Box
 
-A box takes a different trick. Look at one axis at a time:
+A box takes a different trick: look at one axis at a time:
 
 ```cpp source="tmpl8-part-16/2-sight/game.cpp#L161-L187"
 ```
 
 - On the x axis, the line enters the space between the left and the right side of the box at some $t$, and leaves it at another $t$. Same for the y axis: between the top and the bottom.
-- The line is inside the box where it is between the left and right sides *and* between the top and bottom sides: where both ranges of $t$ overlap. And only the part from $t = 0$ to $t = 1$ is the line. So `first` and `last` start as 0 and 1, and each axis makes the range smaller.
+- The line is inside the box where it is between the left and right sides *and* between the top and bottom sides: where both ranges of $t$ overlap. But the line starts at $a$ and ends at $b$, so only values of $t$ between 0 and 1 count. That's why `first` and `last` start as 0 and 1, and each axis can only make that range smaller.
 - When the range is empty (`first > last`), the line misses the box.
 - When the line is exactly horizontal (or vertical), it never crosses the left and right sides (or the top and bottom): it's between them all the way, or never. Then there is nothing to divide by, so that is handled separately.
 
 This is called the *slab test*: the space between two opposite sides is a *slab*, and a box is where the slabs of both axes overlap.
 
+<iframe class="embed embed-demo embed-line-tests" src="/demos/line-tests.html?test=lb" title="Drag the ends of a line, or the box: the slabs of the box are shaded; the line from t = 0 to t = 1 is shown on the x axis next to the x slab, and on the y axis next to the y slab; the line turns green where it is inside both slabs" loading="lazy" allowfullscreen></iframe>
+
+<div class="caption">
+
+Drag $a$ or $b$ to move one end of the line, drag the line itself to move both ends, or drag the box to move it. The dots show where the line enters and leaves each slab. Along the bottom, the line runs from $t = 0$ (at $a$) to $t = 1$ (at $b$) next to the purple x slab; along the left, the same line next to the yellow y slab. The green part, on the line and on both axes, is where the line is inside both slabs: from `first` to `last`.
+
+</div>
+
 ### What a Tank Can See
 
-Now the three questions together. Add these below `Tank::Draw`:
+Now the three questions together. Add these below the `Tank::Draw` method:
 
 ```cpp source="tmpl8-part-16/2-sight/game.cpp#L327-L347"
 ```
 
 - Too far away: then it can't see the point.
-- The *field of view*: the dot product of two vectors with length 1 is the cosine of the angle between them. 1 means the same direction, 0 means 90 degrees apart, and -1 opposite directions. So when the dot product of the tank's `aim` and the direction to the point is less than 0.5 (the cosine of 60 degrees), the point is more than 60 degrees to the side: outside the field of view. The tank looks with its turret.
-- An obstacle in between: the line from the tank to the point crosses a collider.
+- The *field of view*: the dot product of two vectors with length 1 is the cosine of the angle between them. 1 means the same direction, 0 means 90° apart, and -1 opposite directions. So when the dot product of the tank's `aim` and the direction to the point is less than 0.5 (the cosine of 60°), then the point is more than 60° to the side and is outside the field of view of the enemy.
+- An obstacle in between: If the line from the tank to the point crosses a collider, then the enemy can't see the player.
 
-The enemy's turret now follows the player while it can see him, and otherwise looks where the enemy drives. The patrol code no longer sets `aim`:
+All of these points determine if the enemy can see the player. This is demonstrated in the interactive demo below:
+
+<iframe class="embed embed-demo embed-sight-test" src="/demos/sight-test.html" title="A tank with its view cone, a player and some obstacles; the line from the tank to the player is green when the tank can see the player, and red when the player is too far away, outside the field of view, or behind an obstacle. Sliders change the sight range and the field of view." loading="lazy" allowfullscreen></iframe>
+
+<div class="caption">
+
+Drag the tank, the end of its barrel (to aim), the player, or the obstacles. The three questions are at the top: the line turns red as soon as one of them says no, and the obstacles in the way turn red too. The sliders change `SightRange` and the field of view (`FieldOfView` is the cosine of the angle to each side).
+
+</div>
+
+<div id="only-a-point"></div>
+
+:::note[Only a Point]
+`CanSee` checks a single point: the middle of the player. But the player is a circle. When the player peeks out from behind a tree, with his middle still behind it, the enemy can't see him, although a real tank driver would. To see *any* part of the player, check more than one point: the middle isn't the only point of the circle that can stick out. Which points of the circle stick out the furthest to the sides, as seen from the enemy? You can try this in the [intermediate assignment](#intermediate).
+:::
+
+Now let's put `CanSee` to work: the enemy's turret should follow the player while the enemy can see him. Until now, `Tank::Update` pointed the turret in the direction the enemy drives (`aim = { patrol, 0 }`). Remove that line, so that `Update` only drives the enemy:
 
 ```cpp source="tmpl8-part-16/2-sight/game.cpp#L303-L309"
 ```
 
+The turret is aimed in `Game::Tick` instead, right after `enemy.Update()`: the enemy itself doesn't know where the player is, but the game does.
+
 ```cpp source="tmpl8-part-16/2-sight/game.cpp#L625-L631" {2-7}
 ```
+
+- When the enemy can see the player, `Aim` turns its turret towards the player: the same `Aim` that turns the player's turret towards the mouse.
+- When it can't, the turret looks where the enemy drives again. `Aim` needs a position to aim at, not a direction, so we give it a point right in front of the enemy: its position plus `{ enemy.patrol, 0 }`, one step to the right or to the left.
+- The answer of `CanSee` goes in a variable, `seen`, because we'll use it once more below, for the debug drawing.
 
 To see what the enemy sees, <kbd>Tab</kbd> draws its *view cone*: the two edges of its field of view, as long as it can see. And a line to the player: green when the enemy can see him, red when it can't. Add this to the drawing of the colliders:
 
 ```cpp source="tmpl8-part-16/2-sight/game.cpp#L672-L679"
 ```
 
-The edges are the direction of the turret, turned 60 degrees to both sides. Turning a vector by an angle $\theta$ uses its cosine and sine: here, they are 0.5 and $\sqrt{1 - 0.5^2}$.
+The edges are the direction of the turret, turned 60° to both sides. Turning a vector by an angle $\theta$ uses its cosine and sine: here, they are 0.5 and $\sqrt{1 - 0.5^2}$.
+
+:::note[A Sine from a Cosine]
+Draw a line of length 1 from the origin, at an angle $\theta$. Its end is the point $(\cos\theta, \sin\theta)$: the cosine is how far it goes along $x$, the sine how far along $y$. The line is the long side of a right triangle with those two sides, so Pythagoras says $\cos^2\theta + \sin^2\theta = 1$. That means $\sin\theta = \sqrt{1 - \cos^2\theta}$.
+
+`FieldOfView` already holds the cosine, so this gives us the sine without knowing the angle itself, and without calling `std::acos` and `std::sin`. A square root is also much cheaper for the CPU than `acos` and `sin`: it is a single instruction, while the trigonometric functions calculate their answer in many steps. (The square root is never negative, so this only works for angles from 0° to 180°, where the sine is positive. Half a field of view always is such an angle.)
+:::
 
 <iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-16-sight/index.html" title="With Tab, the red tank's view cone is shown, and a line to the green tank: green when the red tank can see it, red when it can't" loading="lazy" allowfullscreen></iframe>
 
@@ -323,7 +367,7 @@ Press <kbd>Tab</kbd>, and drive around the red tank: hide behind the trees and c
 
 ## Fighting Back
 
-Now the enemy fires back. But not perfectly: an enemy that reacts instantly, turns its turret instantly and never misses, would destroy you before you even see it. So we add three imperfections:
+So far, the enemy can only patrol and aim at the player. In this section, we teach it to fire back. But not perfectly: an enemy that reacts instantly, turns its turret instantly and never misses, would destroy you before you even see it. So we add three imperfections:
 
 1. A *reaction time*: the enemy must see the player for a moment, before it reacts.
 2. A turret that turns at a limited speed: drive fast, and its aim lags behind.
@@ -336,14 +380,42 @@ To turn the turret step by step, we need two helpers. Add them below `FrameOf`. 
 ```cpp source="tmpl8-part-16/3-fight/game.cpp#L253-L258"
 ```
 
-This is the formula of a rotation: $x' = x \cos\theta - y \sin\theta$ and $y' = x \sin\theta + y \cos\theta$. (The view cone of the last section used it already, with the cosine and the sine of 60 degrees.)
+This is the formula of a rotation: $x' = x \cos\theta - y \sin\theta$ and $y' = x \sin\theta + y \cos\theta$. (The view cone of the last section used it already, with the cosine and the sine of 60°.)
 
-The second one turns a direction towards another direction, but not too far:
+:::note[Why Not the Square Root Trick?]
+In the last section, we got the sine from the cosine with $\sin\theta = \sqrt{1 - \cos^2\theta}$. That doesn't work here, for two reasons:
+
+- The square root is never negative, but the sine of a negative angle is. We need negative angles to turn the other way.
+- The angles are often tiny: when the turret is almost on target, it only needs to turn a little bit. Then $\cos\theta$ is very close to 1, and $1 - \cos^2\theta$ subtracts two numbers that are almost equal. A `float` only holds about 7 digits, so many of the digits of the answer are lost. For an angle of 0.0001 radians, the result is even exactly 0.
+
+In the view cone, neither was a problem: half a field of view is never negative, and never that small. Also, there we already *had* the cosine, but here we start from an angle, so we need a call to `std::cos` anyway.
+:::
+
+The `TurnTowards` function turns a direction vector towards another direction, clamped to a maximum turn angle:
 
 ```cpp source="tmpl8-part-16/3-fight/game.cpp#L260-L266"
 ```
 
 `TurnTowards` finds the angle from one direction to the other: the *cross product* $x_1 y_2 - y_1 x_2$ says on which side the other direction is, and the dot product how far it is. `std::atan2` turns those two into an angle, between $-\pi$ and $\pi$. Then the angle is clamped to at most `maxAngle`, so the direction turns, but no further than that.
+
+<iframe class="embed embed-demo embed-turn-towards" src="/demos/turn-towards.html" title="Two directions, from and to, and the result of TurnTowards: from, turned towards to, but by at most maxAngle. Sliders set how fast the turret turns and the frames per second; Step plays one frame, and Play plays them in real time." loading="lazy" allowfullscreen></iframe>
+
+<div class="caption">
+
+Drag the dots at the ends of `from` and `to`. The dashed arc is the angle from `from` to `to`, and the shaded wedge shows how far `from` may turn: `maxAngle` to both sides. The green arc is the turn that is made, and ends at the `result`. The sliders set how fast the turret turns, in degrees per second, and the number of frames per second (FPS). One frame takes `deltaTime` = 1 / FPS, and `maxAngle` is the turret speed times `deltaTime`.
+
+Press **Step** to play one frame, or **Play** to play it at frames per second. With a few frames per second, `from` turns in big jumps that stop at the edge of the wedge. With 60 frames per second, the wedge is tiny, and `from` turns smoothly. Either way, it takes about the same time to get there.
+
+</div>
+
+:::note[Why Not the Inverse Cosine?]
+Both directions have length 1, so their dot product is the cosine of the angle between them. Why not just use `std::acos(from.dot(to))`?
+
+- `std::acos` only gives angles from 0 to $\pi$: it doesn't say on which side `to` is. Turned 30° to the left or 30° to the right, the dot product is the same. The cross product tells them apart: it is positive on one side and negative on the other.
+- Rounding can make the dot product a tiny bit larger than 1, like `1.0000001`. Then `std::acos` returns NaN ("not a number"), and the turret's direction becomes NaN too.
+
+`std::atan2` uses both: the cross product (the sine) gives the side, the dot product (the cosine) gives how far. Together they give the angle with its sign, and they never cause a NaN.
+:::
 
 Add the constants of the imperfections:
 
@@ -359,13 +431,19 @@ Add the constants of the imperfections:
 
 ### The Enemy's Brain
 
-The enemy's `Update` becomes `Think`: it gets to know the target, and the time. Change the declarations in the class:
+The enemy's `Update` becomes `Think`: it gets to know the target, and the time. Change the declarations in the `Tank` class:
 
 ```cpp source="tmpl8-part-16/3-fight/game.cpp#L291-L292"
 ```
 
+The `Fire` method takes the `spread` parameter that that determines how accurate the bullet is. The `= 0` is a *default argument*: when you leave the argument out, as the player's `Fire()` does, `spread` is 0. (The default argument is only specified in the declaration of the method, not in it's definition.) `Think` replaces `Update`, and gets the tank it should look for, and the change in time since the last frame.
+
+The enemy also has to remember something from one frame to the next: how long it has been since it noticed the player. We'll use this parameter to compute the reaction time. Add the `noticed` member variable below `patrol`:
+
 ```cpp source="tmpl8-part-16/3-fight/game.cpp#L301-L301"
 ```
+
+That's the reaction time at work: `Think` adds to `noticed` every frame the enemy sees the player, and the enemy only reacts once `noticed` reaches `ReactionTime`.
 
 Remove `Update`, and add `Think` below `CanSee` (it uses `CanSee`, so it must come after it):
 
@@ -375,7 +453,7 @@ Remove `Update`, and add `Think` below `CanSee` (it uses `CanSee`, so it must co
 - The driving is the same as before.
 - `noticed` adds up the time that the enemy has seen the target, and starts over at 0 when it loses sight of it. Only after `ReactionTime`, the enemy reacts.
 - `wanted` is where the turret should point: where the enemy drives, or at the target once it is noticed. `TurnTowards` turns the turret towards it, but at most `TurretSpeed` radians per millisecond.
-- The enemy fires when the turret points close enough at the target: the dot product of `aim` and `wanted` is more than 0.98, which is about 11 degrees.
+- The enemy fires when the turret points close enough at the target: the dot product of `aim` and `wanted` is more than 0.98, which is within 11°.
 
 In `Tick`, the enemy thinks:
 
@@ -401,37 +479,36 @@ Try the constants: a `ReactionTime` of 0, a `TurretSpeed` of 1 and a `Spread` of
 
 The enemy still drives back and forth, whatever happens. A real opponent decides what to do: drive around when it doesn't know where you are, come after you when it sees you, stop to fire when you are close, and look for you when it loses you. The most common way to organize such decisions is a *finite state machine*: the enemy is always in one of a few *states*, each state has its own behaviour, and *transitions* say when it switches to another state.
 
-<svg class="memory-diagram state-diagram" viewBox="0 0 700 330" role="img" aria-label="A state machine with four states: Patrol, Chase, Attack and Search. Patrol goes to Chase or Attack when it sees the player. Chase goes to Attack when the player is close, and to Search when it loses sight. Attack goes to Chase when the player is far away, and to Search when it loses sight. Search goes to Chase or Attack when it sees the player, and back to Patrol when the search time is up.">
+<svg class="memory-diagram state-diagram" viewBox="0 0 700 310" role="img" aria-label="A state machine with four states: Patrol, Chase, Attack and Search. Patrol goes to Chase when it sees the player. Chase goes to Attack when the player is close, and to Search when it loses sight. Attack goes to Chase when the player is far away, and to Search when it loses sight. Search goes to Chase when it sees the player, and back to Patrol when the search time is up.">
 <defs><marker id="state-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" class="arrow-head"/></marker></defs>
 <rect class="var" x="40" y="130" width="130" height="56" rx="10"/><text class="value" x="105" y="164" text-anchor="middle">Patrol</text>
 <rect class="var" x="285" y="30" width="130" height="56" rx="10"/><text class="value" x="350" y="64" text-anchor="middle">Chase</text>
 <rect class="var" x="530" y="130" width="130" height="56" rx="10"/><text class="value" x="595" y="164" text-anchor="middle">Attack</text>
 <rect class="var" x="285" y="234" width="130" height="56" rx="10"/><text class="value" x="350" y="268" text-anchor="middle">Search</text>
 <path class="arrow" d="M150 130 C 190 80, 230 64, 283 60" marker-end="url(#state-arrow)"/><text class="dim" x="168" y="100" text-anchor="end">sees the player</text>
-<path class="arrow" d="M170 158 L 528 158" marker-end="url(#state-arrow)"/><text class="dim" x="245" y="126" text-anchor="middle">sees the player</text><text class="dim" x="245" y="144" text-anchor="middle">and is close</text>
 <path class="arrow" d="M415 52 C 480 60, 540 90, 575 128" marker-end="url(#state-arrow)"/><text class="dim" x="478" y="62">close</text>
 <path class="arrow" d="M560 130 C 520 104, 470 90, 417 82" marker-end="url(#state-arrow)"/><text class="dim" x="452" y="126">far away</text>
-<path class="arrow" d="M380 88 L 380 232" marker-end="url(#state-arrow)"/><text class="dim" x="386" y="214">loses sight</text>
-<path class="arrow" d="M580 188 C 550 240, 480 262, 417 266" marker-end="url(#state-arrow)"/><text class="dim" x="500" y="282">loses sight</text>
+<path class="arrow" d="M380 88 L 380 232" marker-end="url(#state-arrow)"/><text class="dim" x="392" y="222">loses sight</text>
+<path class="arrow" d="M580 188 C 550 230, 480 246, 417 248" marker-end="url(#state-arrow)"/>
 <path class="arrow" d="M285 270 C 210 268, 140 240, 110 188" marker-end="url(#state-arrow)"/><text class="dim" x="80" y="284">search time up</text>
-<path class="arrow" d="M320 234 L 320 88" marker-end="url(#state-arrow)" stroke-dasharray="4 4"/><text class="dim" x="314" y="214" text-anchor="end">sees the player</text>
-<image class="made-by" href="/images/claude-logo.svg" x="679" y="309" width="16.8" height="16.8" opacity="0.35"><title>Made with Claude</title></image>
+<path class="arrow" d="M320 234 L 320 88" marker-end="url(#state-arrow)"/><text class="dim" x="314" y="214" text-anchor="end">sees the player</text>
+<image class="made-by" href="/images/claude-logo.svg" x="679" y="289" width="16.8" height="16.8" opacity="0.35"><title>Made with Claude</title></image>
 </svg>
 
 <div class="caption">
 
-The four states of an enemy, and when it switches. (From Search, it goes to Attack instead of Chase when the player is close; that arrow is left out to keep the picture clear.)
+The four states of an enemy, and when it switches.
 
 </div>
 
 ### States
 
-A state is one of a few fixed values: that's what an `enum class` is for. Add it, with two constants, below the other constants:
+A state is one of a few fixed values: that's what an `enum class` is for. Add the `State` enum and the `AttackRange` and `SearchTime` constants below the other constants:
 
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L276-L286"
 ```
 
-`State::Patrol`, `State::Chase` and so on are the four possible values. The compiler checks that you only use these values: a `State` can't be 7, or `"Chase"` by accident.
+`State::Patrol`, `State::Chase` and so on are the four possible values of a `State`. They are called *enumerators*: named constants of the type `State`. The compiler checks that you only use these values: a `State` can't be 7, or the string `"Chase"`, by accident.
 
 The enemy remembers its state, its goal, and a timer, instead of `patrol`:
 
@@ -447,19 +524,60 @@ For the patrols, the enemy needs random places to drive to. Add this below `CanS
 
 ### The State Machine
 
-Now `Think` becomes the state machine. Replace it:
+Now `Think` becomes the state machine. It's a long function, so we'll go through it piece by piece: replace `Think` with the code of the blocks below, from top to bottom.
 
-```cpp source="tmpl8-part-16/4-states/game.cpp#L385-L460" {1-2,5,10-72,74-75}
+First, the enemy finds out what it knows:
+
+```cpp source="tmpl8-part-16/4-states/game.cpp#L385-L402" {1-2,5,10-18}
 ```
 
-First, the enemy finds out what it knows: whether it has seen the target long enough to react (`seen`), and how far away it is. Then the `switch` does what the current state says:
+- `seen` is true when the enemy has seen the target long enough to react, like before.
+- `toTarget` and `distance` say where the target is, and `toGoal` and `goalDistance` where the enemy's goal is. They are calculated once, here at the top, because several states need them.
+- `direction` and `look` are what the states decide: where to drive, and where to point the turret. `direction` starts at zero, so a state that doesn't set it makes the tank brake. `look` starts at `aim`, so a state that doesn't set it leaves the turret where it is.
+- The `switch` picks the code of the current state. Each `case` ends with `break`, so only the code of that one state runs.
 
-- **Patrol**: drive to the goal, a random spot, and look where it drives. (`toGoal` and `goalDistance` are calculated once, at the top, like `toTarget` and `distance`: Patrol and Search both need them.) When it gets there, or when it's stuck behind an obstacle for a second (it hardly moves), it picks another spot. When it sees the target: Attack if the target is close, Chase if not.
-- **Chase**: drive straight at the target, and look at it. When it loses sight: Search. When it gets close enough: Attack.
-- **Attack**: stand still (the direction stays zero, so `Drive` brakes), and aim at the target. When it loses sight: Search. When the target gets away: Chase. Note the `AttackRange * 1.2f`: if Attack switched to Chase at exactly the same distance as Chase switches to Attack, an enemy at that distance would switch every frame. The difference between the two distances is called *hysteresis*.
-- **Search**: drive to `goal`, the place where it saw the target last, and look around by turning the turret. When it sees the target again: Attack or Chase. When the search takes too long: back to Patrol.
+In the **Patrol** state, the enemy drives around, to random spots:
 
-After the `switch`, the code that all states share: while the enemy sees the target, it remembers where (that's the goal for Search); it drives; it turns its turret; and it fires, in any state, when it aims well enough at a target that it sees.
+```cpp source="tmpl8-part-16/4-states/game.cpp#L403-L416"
+```
+
+The enemy drives to its goal, and looks where it drives. When it gets there, it picks another spot. It also picks another spot when it's stuck behind an obstacle: `timer` adds up the time that the tank hardly moves, and starts over at 0 as soon as it moves again. After a second of being stuck, it gives up on that spot. When it sees the target, it will transition to the `Chase` state. (Even when the target is close: then `Chase` switches to `Attack` in the next frame.)
+
+In the **Chase** state, the enemy comes after the target:
+
+```cpp source="tmpl8-part-16/4-states/game.cpp#L417-L427"
+```
+
+It drives straight at the target, and looks at it. When it loses sight: Search, with the timer at 0, to measure how long it searches. When it gets close enough: Attack.
+
+In the **Attack** state, the enemy stands still and fires at the target:
+
+```cpp source="tmpl8-part-16/4-states/game.cpp#L428-L439"
+```
+
+`direction` stays zero, so the tank brakes, and the turret aims at the target. Once the turret points close enough at the target, it fires: the dot product of `aim` and `look` is more than 0.98, about 11°, like before. (`Fire` itself checks whether the tank has reloaded.) When it loses sight: Search. When the target gets away: Chase. Note the `AttackRange * 1.2f`: if Attack switched to Chase at exactly the same distance as Chase switches to Attack, an enemy at that distance would switch every frame. The difference between the two distances is called *hysteresis*.
+
+:::note[Where the Word *Hysteresis* Comes From]
+*Hysteresis* comes from the Greek *hysterēsis*: "lagging behind", or "coming too late". The physicist James Alfred Ewing used it in the 1880s for magnetism: when you magnetize iron and then take the magnet away, the iron stays a bit magnetic. Its state lags behind the cause.
+
+You know it from a thermostat, too: it turns the heating on at 19°, but only turns it off again at 21°. Otherwise it would switch on and off all the time around 20°. The enemy does the same: it switches to Attack at 250 pixels, but only back to Chase at 300.
+:::
+
+In the **Search** state, the enemy looks for the target where it lost it:
+
+```cpp source="tmpl8-part-16/4-states/game.cpp#L440-L453"
+```
+
+It drives to `goal`: the place where it saw the target last. Meanwhile, it looks around by turning the turret a bit every frame. When it sees the target again: Chase. When the search takes longer than `SearchTime`: back to Patrol, with a new random goal.
+
+After the `switch` comes the code that all states share:
+
+```cpp source="tmpl8-part-16/4-states/game.cpp#L454-L460" {1-5}
+```
+
+- While the enemy sees the target, it remembers where: that's the goal for Search, when it loses the target.
+- It drives in the `direction` and turns its turret towards `look`, as its state decided.
+- It reloads. That happens in every state, not only in Attack: otherwise, an enemy that just came into Attack would still have to reload from the last shot it fired, which may be a long time ago.
 
 Give the enemy a first goal in `Init`, and a new one when it starts over:
 
@@ -494,7 +612,7 @@ Time for a battle: waves of enemies. Wave 1 has 1 enemy, wave 2 has 2, and so on
 
 ### Many Enemies
 
-Instead of one enemy, there is an array of them. An array of objects needs a constructor without arguments, to make the objects before the game knows their positions. The simplest way: give the constructor *default arguments*:
+Instead of one enemy, there is an array of them. An array of objects needs a constructor without arguments, to make the objects before the game knows their positions. The simplest way: give the constructor default arguments, like the `spread` of `Fire`:
 
 ```cpp source="tmpl8-part-16/game.cpp#L292-L292"
 ```
@@ -618,13 +736,19 @@ The shell needs about $t = d / s$ milliseconds to get to the player, where $d$ i
 Don't forget to add `"FLEE"` to the state names that <kbd>Tab</kbd> shows. Which state switches to `Flee` doesn't matter, so you can check the health once, after the `switch`.
 :::
 
+3. `CanSee` only checks the middle of the player (see the note [Only a Point](#only-a-point)). Make the enemies see the player as soon as *any* part of him sticks out from behind an obstacle.
+
+:::tip[Hint]
+Write a second `CanSee` that takes a `Circle` instead of a point (C++ allows two functions with the same name, as long as their arguments are different). The points of the circle that stick out the most to the sides, as seen from the enemy, are a step of the radius away from the middle, at a right angle to the line from the enemy to the middle. Turning a vector $(x, y)$ by 90° gives $(-y, x)$. Check the middle and those two points with the first `CanSee`: if the enemy can see one of them, it sees the player.
+:::
+
 If you completed the intermediate assignment, the solution should look like this:
 
-<iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-16-intermediate/index.html" title="The arena; the enemies aim ahead of the moving player, and damaged enemies flee" loading="lazy" allowfullscreen></iframe>
+<iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-16-intermediate/index.html" title="The arena; the enemies aim ahead of the moving player, damaged enemies flee, and the enemies see the player as soon as part of him sticks out from behind an obstacle" loading="lazy" allowfullscreen></iframe>
 
 <div class="caption">
 
-The result: enemies that lead their target, and flee when they are badly damaged (press <kbd>Tab</kbd> to see their states). (Click the demo first, so that it gets the keys.)
+The result: enemies that lead their target, flee when they are badly damaged, and see you as soon as part of your tank sticks out from behind an obstacle (press <kbd>Tab</kbd> to see their states). (Click the demo first, so that it gets the keys.)
 
 </div>
 

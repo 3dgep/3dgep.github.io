@@ -579,10 +579,12 @@ After the `switch` comes the code that all states share:
 - It drives in the `direction` and turns its turret towards `look`, as its state decided.
 - It reloads. That happens in every state, not only in Attack: otherwise, an enemy that just came into Attack would still have to reload from the last shot it fired, which may be a long time ago.
 
-Give the enemy a first goal in `Init`, and a new one when it starts over:
+The enemy needs a goal to patrol to from the start. Give it a first one at the end of `Init`:
 
-```cpp source="tmpl8-part-16/4-states/game.cpp#L692-L692"
+```cpp source="tmpl8-part-16/4-states/game.cpp#L692-L697" {5}
 ```
+
+When the enemy is destroyed in `Tick`, it starts over on the left. It should also start over in the Patrol state, with a new goal, and not go on chasing or searching where it left off:
 
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L754-L763" {8-9}
 ```

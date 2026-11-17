@@ -689,11 +689,11 @@ namespace Tmpl8
         boxes[boxCount++] = { { -100, 0 }, { 0, H } };             // to the left
         boxes[boxCount++] = { { W, 0 }, { W + 100, H } };          // to the right
 
-        enemy.goal = RandomSpot();
         bodies[bodyCount++] = &player.body;
         bodies[bodyCount++] = &enemy.body;
         for (int i = 0; i < drumCount; i++)
             bodies[bodyCount++] = &drums[i];
+        enemy.goal = RandomSpot(); // where the enemy patrols to first
     }
 
     // -----------------------------------------------------------

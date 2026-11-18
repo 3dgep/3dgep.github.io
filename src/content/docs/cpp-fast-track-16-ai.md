@@ -548,14 +548,16 @@ In the **Chase** state, the enemy comes after the target:
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L417-L427"
 ```
 
-It drives straight at the target, and looks at it. When it loses sight: Search, with the timer at 0, to measure how long it searches. When it gets close enough: Attack.
+It drives straight at the target, and looks in the direction of the target. When it loses sight of the target, it will transition back to the `Search` state and the timer is reset to 0 so it doesn't keep searching forever. If it's within attack range, it enter the `Attack` state.
 
 In the **Attack** state, the enemy stands still and fires at the target:
 
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L428-L439"
 ```
 
-`direction` stays zero, so the tank brakes, and the turret aims at the target. Once the turret points close enough at the target, it fires: the dot product of `aim` and `look` is more than 0.98, about 11°, like before. (`Fire` itself checks whether the tank has reloaded.) When it loses sight: Search. When the target gets away: Chase. Note the `AttackRange * 1.2f`: if Attack switched to Chase at exactly the same distance as Chase switches to Attack, an enemy at that distance would switch every frame. The difference between the two distances is called *hysteresis*.
+`direction` stays zero, so the tank brakes, and the turret aims at the target. Once the turret points close enough at the target, it fires when the dot product of `aim` and `look` is more than 0.98 (when the enemy's aim is within 11° of the target). (`Fire` itself checks whether the tank has reloaded.) When it loses sight of the target, it goes back to the `Search` state, and when the target is too far way, it goes back to the `Chase` state.
+
+Note the `AttackRange * 1.2f`: if `Attack` switched to `Chase` at exactly the same distance as `Chase` switches to `Attack`, an enemy at that distance would switch every frame. The difference between the two distances is called *hysteresis*.
 
 :::note[Where the Word *Hysteresis* Comes From]
 *Hysteresis* comes from the Greek *hysterēsis*: "lagging behind", or "coming too late". The physicist James Alfred Ewing used it in the 1880s for magnetism: when you magnetize iron and then take the magnet away, the iron stays a bit magnetic. Its state lags behind the cause.
@@ -563,23 +565,23 @@ In the **Attack** state, the enemy stands still and fires at the target:
 You know it from a thermostat, too: it turns the heating on at 19°, but only turns it off again at 21°. Otherwise it would switch on and off all the time around 20°. The enemy does the same: it switches to Attack at 250 pixels, but only back to Chase at 300.
 :::
 
-In the **Search** state, the enemy looks for the target where it lost it:
+In the **Search** state, the enemy looks for the target where it last saw it:
 
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L440-L453"
 ```
 
-It drives to `goal`: the place where it saw the target last. Meanwhile, it looks around by turning the turret a bit every frame. When it sees the target again: Chase. When the search takes longer than `SearchTime`: back to Patrol, with a new random goal.
+Just like in `Patrol`, the enemy points its `direction` towards `goal` (the last known location of the target), unless it is already within 40 pixels of it. In that case, `direction` stays zero and the enemy brakes. To look around, the enemy wants to look a little to the side of where it is aiming now, so `look` is the current aim rotated by a small angle (0.002 radians per millisecond). The `timer` counts how long the enemy has been searching. If it sees the target again, it switches to `Chase`. If it searches for longer than `SearchTime`, it gives up and goes back to `Patrol` with a new random goal.
 
 After the `switch` comes the code that all states share:
 
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L454-L460" {1-5}
 ```
 
-- While the enemy sees the target, it remembers where: that's the goal for Search, when it loses the target.
-- It drives in the `direction` and turns its turret towards `look`, as its state decided.
-- It reloads. That happens in every state, not only in Attack: otherwise, an enemy that just came into Attack would still have to reload from the last shot it fired, which may be a long time ago.
+- While the enemy sees the target, it updates the target's position in `goal`. When it loses the target, that's where it will go to search.
+- It drives in the `direction` and turns its turret towards `look`. In `Search`, `look` is always a little ahead of the aim, so the turret keeps turning.
+- It counts down the `reload` timer. That happens in every state, not only in `Attack` (where it fires). Otherwise.
 
-The enemy needs a goal to patrol to from the start. Give it a first one at the end of `Init`:
+The enemy needs a goal to patrol to from the start. So let's give it a random goal. Add this to the end of the `Init` method:
 
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L692-L697" {5}
 ```

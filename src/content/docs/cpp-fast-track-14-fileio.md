@@ -207,6 +207,8 @@ The editor uses letters as shortcuts: <kbd>E</kbd> for *edit*, <kbd>S</kbd> for 
 
 `KeyFor` gives you the scancode of the key with a certain letter on it. The note below explains why you need it for letter keys.
 
+<div id="scancodes-and-keycodes"></div>
+
 :::note[Scancodes and keycodes]
 SDL has two ways to name a key. A *scancode* (`SDL_SCANCODE_W`) is a *position* on the keyboard: the names come from a US keyboard, so `SDL_SCANCODE_W` is the key to the left of <kbd>E</kbd> on a US keyboard, whatever is printed on it. A *keycode* (`SDLK_W`) is the key that types a "w" on the player's keyboard, wherever that key is.
 

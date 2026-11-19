@@ -697,7 +697,11 @@ Finally, when the game is over, the player can start a new battle:
 ```cpp source="tmpl8-part-16/game.cpp#L839-L840"
 ```
 
-Pressing <kbd>R</kbd> calls `Restart`, which starts over from the first wave. The <kbd>R</kbd> stands for *restart*, so it's about the letter on the key, not about where the key is on the keyboard. That's why it uses the template's `KeyFor`, just like the shortcuts of the map editor in [part 14](/cpp-fast-track-14-fileio/).
+Pressing <kbd>R</kbd> calls `Restart`, which starts over from the first wave. 
+
+:::note[`KeyFor`]
+The <kbd>R</kbd> stands for *restart*, so we want to know if the <kbd>R</kbd> keycode (not scancode) was pressed. The `KeyFor` function converts the keycode to scancode so we can use `GetKeyPressed` method to see if the <kbd>R</kbd> key was pressed. See the [Scancodes and keycodes](/cpp-fast-track-14-fileio/#scancodes-and-keycodes) note in part 14 for more about the difference.
+:::
 
 The drawing of the tanks skips the destroyed ones:
 

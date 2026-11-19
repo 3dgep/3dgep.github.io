@@ -799,7 +799,7 @@ namespace Tmpl8
             screen.Line(e.x, e.y, p.x, p.y, CanSee(enemy, p) ? 0x40e040 : 0xe04040);
             const char* names[4] = { "PATROL", "CHASE", "ATTACK", "SEARCH" };
             screen.Print(names[static_cast<int>(enemy.state)], static_cast<int>(e.x) - 16, static_cast<int>(e.y) - 44, 0xffffff);
-            DrawCircle(screen, { enemy.goal, 6 }, 0x40c0ff); // the goal: a random spot, or where it saw the player
+            DrawCircle(screen, { enemy.goal, 8 }, 0xff40ff); // its goal (a random spot, or where it saw the player)
         }
     }
 }

@@ -46,7 +46,7 @@ First, the game needs to know where the mouse is, and whether its left button is
 
 And add these variables, in the `private` part of the class (below `frame`):
 
-```cpp source="tmpl8-part-16/game.hpp#L48-L50"
+```cpp source="tmpl8-part-16/game.hpp#L50-L52"
 ```
 
 The template calls `MouseMove` when the mouse moves, and `MouseDown` and `MouseUp` when a button goes down or up (button 1 is the left mouse button). `mouseDown` is `true` as long as the button is held down. But a quick click can go down *and* up between two frames: then `Tick` would never see `mouseDown` as `true`. That's what `mousePressed` is for: it remembers that the button went down, until `Tick` has seen it.
@@ -528,7 +528,7 @@ Now `Think` becomes the state machine. It's a long function, so we'll go through
 
 First, the enemy finds out what it knows:
 
-```cpp source="tmpl8-part-16/4-states/game.cpp#L385-L402" {1-2,5,10-18}
+```cpp source="tmpl8-part-16/4-states/game.cpp#L385-L402" {10-18}
 ```
 
 - `seen` is true when the enemy has seen the target long enough to react, like before.
@@ -541,21 +541,21 @@ In the **Patrol** state, the enemy drives around, to random spots:
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L403-L416"
 ```
 
-The enemy drives to its goal, and looks where it drives. When it gets there, it picks another spot. It also picks another spot when it's stuck behind an obstacle: `timer` adds up the time that the tank hardly moves, and starts over at 0 as soon as it moves again. After a second of being stuck, it gives up on that spot. When it sees the target, it will transition to the `Chase` state. (Even when the target is close: then `Chase` switches to `Attack` in the next frame.)
+The enemy points its `direction` towards its goal, unless it is already within 40 pixels of it, and it wants to `look` in that same direction. When it gets to its goal, it picks another spot. It also picks another spot when it's stuck behind an obstacle. The `timer` adds up the time that the tank hardly moves, and starts over at 0 as soon as it moves again. After a second of being stuck, it gives up on that spot. When it sees the target, it switches to the `Chase` state. It does that even when the target is close, because `Chase` switches to `Attack` in the next frame.
 
 In the **Chase** state, the enemy comes after the target:
 
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L417-L427"
 ```
 
-It drives straight at the target, and looks in the direction of the target. When it loses sight of the target, it will transition back to the `Search` state and the timer is reset to 0 so it doesn't keep searching forever. If it's within attack range, it enter the `Attack` state.
+Both `direction` and `look` point straight at the target. When the enemy loses sight of the target, it switches to the `Search` state, and the timer is reset to 0 so that it doesn't keep searching forever. If the target is within attack range, it switches to the `Attack` state.
 
 In the **Attack** state, the enemy stands still and fires at the target:
 
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L428-L439"
 ```
 
-`direction` stays zero, so the tank brakes, and the turret aims at the target. Once the turret points close enough at the target, it fires when the dot product of `aim` and `look` is more than 0.98 (when the enemy's aim is within 11° of the target). (`Fire` itself checks whether the tank has reloaded.) When it loses sight of the target, it goes back to the `Search` state, and when the target is too far way, it goes back to the `Chase` state.
+`direction` stays zero, so the tank will brake, and `look` points at the target. The enemy fires when the dot product of `aim` and `look` is more than 0.98, which means that its turret points within 11° of the target. (`Fire` itself checks whether the tank has reloaded.) When it loses sight of the target, it goes back to the `Search` state, and when the target is too far away, it goes back to the `Chase` state.
 
 Note the `AttackRange * 1.2f`: if `Attack` switched to `Chase` at exactly the same distance as `Chase` switches to `Attack`, an enemy at that distance would switch every frame. The difference between the two distances is called *hysteresis*.
 
@@ -579,7 +579,7 @@ After the `switch` comes the code that all states share:
 
 - While the enemy sees the target, it updates the target's position in `goal`. When it loses the target, that's where it will go to search.
 - It drives in the `direction` and turns its turret towards `look`. In `Search`, `look` is always a little ahead of the aim, so the turret keeps turning.
-- It counts down the `reload` timer. That happens in every state, not only in `Attack` (where it fires). Otherwise.
+- It counts down the `reload` timer. That happens in every state, not only in `Attack` (where it fires).
 
 The enemy needs a goal to patrol to from the start. So let's give it a random goal. Add this to the end of the `Init` method:
 
@@ -591,12 +591,12 @@ When the enemy is destroyed in `Tick`, it starts over on the left. It should als
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L754-L763" {8-9}
 ```
 
-And with <kbd>Tab</kbd>, show the state of the enemy above it, and its goal as a small blue circle:
+And with <kbd>Tab</kbd>, show the state of the enemy above it, and its goal as a small magenta circle:
 
 ```cpp source="tmpl8-part-16/4-states/game.cpp#L800-L802"
 ```
 
-The names are in the same order as the values of `State`: `static_cast<int>` turns a state into its number (0 for Patrol, 1 for Chase, and so on), which is the index in the array.
+The names are in the same order as the values of `State`. The `static_cast<int>` turns a state into its number (0 for Patrol, 1 for Chase, and so on), and that number is the index of its name in the array.
 
 <iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-16-states/index.html" title="With Tab, the red tank's state is shown above it: it patrols to random spots, chases and attacks the green tank, and searches where it lost it" loading="lazy" allowfullscreen></iframe>
 
@@ -607,7 +607,7 @@ Press <kbd>Tab</kbd> to see the enemy's state and goal. Let it find you, then hi
 </div>
 
 :::note[Getting stuck]
-Chase drives *straight* at the player. When there is an obstacle in between, the enemy slides along it, and usually gets around it; but sometimes it gets stuck in a corner. A real game would use *pathfinding*: finding a way around the obstacles. You will build that in the assignment.
+Chase drives *straight* at the player. When there is an obstacle in between, the enemy slides along it and usually gets around it, but sometimes it gets stuck in a corner. A real game would use *pathfinding* to find a way around the obstacles. You will build that in the assignment.
 :::
 
 ## The Arena
@@ -616,7 +616,7 @@ Time for a battle: waves of enemies. Wave 1 has 1 enemy, wave 2 has 2, and so on
 
 ### Many Enemies
 
-Instead of one enemy, there is an array of them. An array of objects needs a constructor without arguments, to make the objects before the game knows their positions. The simplest way: give the constructor default arguments, like the `spread` of `Fire`:
+Instead of one enemy, there is an array of them. An array of objects needs a default constructor (a constructor that doesn't take any arguments), to make the objects before the game knows their positions. The easiest way to do this is to give the constructor default arguments and let the compiler generate the constructors that take 0, 1, 2, or 3 arguments:
 
 ```cpp source="tmpl8-part-16/game.cpp#L292-L292"
 ```
@@ -633,22 +633,26 @@ The array of bodies needs room for all enemies:
 
 ### Waves
 
-An enemy that isn't in the battle (destroyed, or not needed yet in this wave) can't just disappear: it's in the array of bodies, and the physics moves all bodies. So it hides, far outside the map, where it's never in the way. Add these three functions above `showColliders` (they use the shells, so they must come after them):
+An enemy that isn't in the battle (it was destroyed, or the wave doesn't use it yet) can't just disappear, because it's in the array of bodies and the physics moves all bodies. Instead, it hides far outside the map, where it's never in the way. Add this `Hide` function above `showColliders`:
 
 ```cpp source="tmpl8-part-16/game.cpp#L658-L665"
 ```
 
-Each hidden enemy gets its own spot (500 pixels apart), so that the hidden enemies don't overlap, and push each other around. A health of 0 means: not in the battle.
+Each hidden enemy gets its own spot, 500 pixels apart from the others, so that the hidden enemies don't overlap and push each other around. Its health is set to 0, which means that it's not in the battle.
+
+Below `Hide`, add the `StartWave` function, which starts the next wave:
 
 ```cpp source="tmpl8-part-16/game.cpp#L667-L690"
 ```
 
-`StartWave` puts the enemies of the next wave on random spots. The `do`-`while` loop tries spots until it finds one that is at least 300 pixels away from the player: an enemy that appears right next to you isn't fair. The enemies that this wave doesn't need are hidden.
+`StartWave` puts the enemies of the next wave on random spots. The `do`-`while` loop keeps trying spots until it finds one that is at least 300 pixels away from the player, because an enemy that appears right next to you isn't fair. The enemies that this wave doesn't need are hidden.
+
+Below `StartWave`, add the `Restart` function, which starts a whole new battle:
 
 ```cpp source="tmpl8-part-16/game.cpp#L692-L703"
 ```
 
-`Restart` starts a whole new battle: the player as good as new, the score at 0, no shells in the air, and wave 1.
+The player is as good as new, the score goes back to 0, all shells disappear, and the first wave starts.
 
 In `Init`, all enemies go into the array of bodies, and the first battle starts:
 
@@ -667,15 +671,33 @@ The shells check all tanks: the player, and all enemies.
 ```cpp source="tmpl8-part-16/game.cpp#L803-L807" {1-4}
 ```
 
-Then the destroyed tanks, and the waves:
+After the shells done their damage, check whether the player was destroyed in this frame:
 
-```cpp source="tmpl8-part-16/game.cpp#L809-L840" {1-2,5-32}
+```cpp source="tmpl8-part-16/game.cpp#L809-L815" {1-2,5-7}
 ```
 
-- When the player is destroyed, he explodes, the game is over, and he hides too: otherwise the enemies would keep firing at his wreck.
-- An enemy with a health of 0 that is still on the map was destroyed in this frame: it explodes, hides, and the score goes up. (Hidden enemies are at negative positions, so `position.x > 0` means: still on the map.)
-- `remaining` counts the enemies that are still in the battle. When it is 0, `waveTimer` counts 2 seconds, and then the next wave comes.
-- When the game is over, <kbd>R</kbd> starts a new battle.
+When the player's health is gone, the player explodes and the game is over. The player also hides, just like a destroyed enemy, because otherwise the enemies would keep firing at the wreck. It gets the hiding spot after the last enemy's, so that it doesn't land on one of them. The `!gameOver` makes sure that all of this happens only once.
+
+Next, count the enemies that are still in the battle, and take care of the ones that were just destroyed:
+
+```cpp source="tmpl8-part-16/game.cpp#L816-L827"
+```
+
+An enemy with a health above 0 is still in the battle, so it counts towards `remaining`. An enemy with a health of 0 that is still on the map was destroyed in this frame. Hidden enemies are at negative positions, so `position.x > 0` means that the enemy isn't hidden yet. That enemy explodes and hides, and the score goes up. In the next frames it is hidden, so it doesn't explode again.
+
+When no enemies are left, the next wave comes after a short break:
+
+```cpp source="tmpl8-part-16/game.cpp#L828-L838"
+```
+
+`waveTimer` adds up the time since the last enemy of the wave was destroyed. After 2 seconds, the timer starts over at 0 and `StartWave` brings in the next wave. The new enemies are in the battle now, so `remaining` is updated too. It's used again at the end of `Tick`, to show that the next wave is coming. When the game is over, no new waves come.
+
+Finally, when the game is over, the player can start a new battle:
+
+```cpp source="tmpl8-part-16/game.cpp#L839-L840"
+```
+
+Pressing <kbd>R</kbd> calls `Restart`, which starts over from the first wave. The <kbd>R</kbd> stands for *restart*, so it's about the letter on the key, not about where the key is on the keyboard. That's why it uses the template's `KeyFor`, just like the shortcuts of the map editor in [part 14](/cpp-fast-track-14-fileio/).
 
 The drawing of the tanks skips the destroyed ones:
 

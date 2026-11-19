@@ -1,7 +1,5 @@
 #include "game.hpp"
 
-#include <SDL3/SDL_keyboard.h>
-
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -195,13 +193,6 @@ namespace Tmpl8
     // -----------------------------------------------------------
     void Game::Shutdown()
     {
-    }
-
-    // The scancode of the key that types this letter on the player's keyboard: SDLK_S is the key with an "s" on it,
-    // also when the keyboard isn't a US keyboard.
-    SDL_Scancode KeyFor(SDL_Keycode key)
-    {
-        return SDL_GetScancodeFromKey(key, nullptr);
     }
 
     // Drives the tank with the arrow keys (or W, A, S and D); the tank stops at solid objects.

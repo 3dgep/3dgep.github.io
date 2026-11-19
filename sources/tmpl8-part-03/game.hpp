@@ -3,7 +3,7 @@
 #include "surface.hpp"
 #include "template.hpp" // ScreenWidth/Height, Rand, vec2, fullscreen and VSync
 
-#include <SDL3/SDL_scancode.h>
+#include <SDL3/SDL_keyboard.h> // SDL_Scancode, SDL_Keycode and SDL_GetScancodeFromKey
 #include <bitset>
 
 namespace Tmpl8 {
@@ -24,6 +24,8 @@ public:
 	bool GetKey( SDL_Scancode key ) const { return held.test( key ); }             // true while the key is held down
 	bool GetKeyPressed( SDL_Scancode key ) const { return pressed.test( key ); }   // true in the first frame the key is down
 	bool GetKeyReleased( SDL_Scancode key ) const { return released.test( key ); } // true in the frame the key is released
+	// KeyFor( SDLK_S ) is the key with an "s" on it, on any keyboard (for keys where the letter matters, like S for save)
+	SDL_Scancode KeyFor( SDL_Keycode key ) const { return SDL_GetScancodeFromKey( key, nullptr ); }
 
 	// Called by the template, you don't need to call these yourself.
 	void KeyDown( SDL_Scancode key ) { keys.set( key ); downEvents.set( key ); }

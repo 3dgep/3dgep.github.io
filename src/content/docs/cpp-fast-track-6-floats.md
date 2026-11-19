@@ -29,7 +29,7 @@ As usual, start with a fresh copy of the template: extract the zip file to `C:\P
 
 Before we start working with floats, let's set things up so that we can show something interesting. Let's load the ball sprite again! Add the highlighted lines to `game.hpp`, below the `rotatingGun` sprite, just like in the [previous part](/cpp-fast-track-5-conditions/):
 
-```cpp source="tmpl8-part-06/game.hpp#L43-L48" {5-6}
+```cpp source="tmpl8-part-06/game.hpp#L45-L50" {5-6}
 ```
 
 :::note

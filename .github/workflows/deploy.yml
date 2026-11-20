@@ -49,3 +49,19 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  # Tell search engines (IndexNow: Bing, Yandex, …) which pages changed since the previous publish.
+  # A failure here doesn't undo the deploy; the pages are just found by the next regular crawl.
+  indexnow:
+    needs: deploy
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the previous publish commit is needed for the diff
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Submit changed pages to IndexNow
+        run: node tools/indexnow.mjs ${{ github.event.before }} ${{ github.sha }}

@@ -96,6 +96,7 @@ For each article:
 Site structure as content grows:
 - [ ] Sidebar groups per series (DirectX 12, DirectX 11, OpenGL, GPGPU, Math, C++) and a landing page per series.
 - [ ] Blog features: dates, tags, RSS (evaluate the `starlight-blog` community plugin).
+      (RSS done 2026-11-20: `/rss.xml`, see Phase 3. Dates come from `lastUpdated`; no tag pages.)
 - [ ] Image zoom for large diagrams (evaluate a community plugin).
 - [ ] Better HLSL highlighting (Shiki's HLSL grammar is minimal; consider using the C++ grammar for `hlsl`).
 
@@ -131,7 +132,7 @@ meta-refresh pages, which handle path-based URLs:
 
 ## Phase 5: Domain switch (3dgep.com → GitHub Pages)
 
-Do this only when all articles are ported and reviewed on `https://3dgep.github.io`.
+Do this only when all articles are ported and reviewed on `https://3dgep.github.io`. (Switched 2026-11-20.)
 
 1. [x] A few days before: lower the DNS TTL for 3dgep.com and www.3dgep.com (e.g. to 300 s).
 2. [x] Add `public/CNAME` containing `www.3dgep.com` (or `3dgep.com`, whichever should be canonical) and set
@@ -141,23 +142,53 @@ Do this only when all articles are ported and reviewed on `https://3dgep.github.
        `185.199.110.153`, `185.199.111.153` (+ AAAA `2606:50c0:8000::153` … `8003::153`); `www` CNAME
        `3dgep.github.io`. **Keep existing MX/TXT records** (email, verification).
        (Done differently 2026-11-20: DNS is at Cloudflare. `www` is a CNAME to `3dgep.github.io`; the apex
-       stays proxied and a Cloudflare Redirect Rule sends `3dgep.com/*` to `https://www.3dgep.com/*`.)
+       stays proxied and a Cloudflare Redirect Rule sends `3dgep.com/*` to `https://www.3dgep.com/*`.
+       `www` is **DNS only** (grey cloud): with Cloudflare's proxy in front, GitHub couldn't issue its
+       certificate. So Cloudflare rules don't apply to `www`; old-URL redirects are done in the site itself.)
 4. [x] Verify the domain in GitHub (org settings) to prevent takeover; enable "Enforce HTTPS" once the
        certificate is issued.
-5. [ ] Check a sample of old URLs, the redirects, RSS and search; submit the new sitemap
+5. [x] Check a sample of old URLs, the redirects, RSS and search; submit the new sitemap
        (`/sitemap-index.xml`) in Google Search Console.
+       (Done 2026-11-20: all 287 URLs of the WordPress sitemap checked, see Phase 3. Sitemap submitted to the
+       `3dgep.com` domain property; the two old WordPress sitemaps removed there. `3dgep.github.io` redirects to
+       `www.3dgep.com`.)
 6. [ ] Keep WordPress (read-only) for a few weeks as a fallback, then cancel hosting. Export the full WXR
-       backup and the `wp-content/uploads` folder first.
+       backup and the `wp-content/uploads` folder first. Then clean up Cloudflare DNS: delete the old cPanel
+       records (`cpanel`, `cpcalendars`, `cpcontacts`, `webdisk`, `webmail`, `mail`, `ftp`, `ssh`, `direct`,
+       `ipv6`, `www.ipv6`), `localhost.3dgep.com`, and the old CAA records (they only allow GlobalSign, DigiCert
+       and Comodo); keep the apex record proxied (the redirect rule needs it), the MX/TXT records, and the
+       `jenkins`/`kuma`/`rdp` tunnel records.
 
 ## Phase 6: C++ Fast Track rewrite
 
 The 17-part series (2019–2020) is outdated. Treat it as new content rather than a port:
 
-- [ ] Decide on the target toolchain/standard (e.g. C++20/23, CMake, current Visual Studio) and the template
+- [x] Decide on the target toolchain/standard (e.g. C++20/23, CMake, current Visual Studio) and the template
       project; keep the code in its own repository with a tag per part.
-- [ ] Write parts directly in Markdown, importing code from the tagged repository (`source="…"`), so the
-      text and the code never drift apart.
-- [ ] Redirect the old `cpp-fast-track-*` URLs to the new parts (or keep the old parts with an "outdated" note).
+      (Done: C++23, CMake, SDL3, web builds; `3dgep/tmpl8` `main` = the new template (the old one is tag
+      `v2026-02`), and each part's final code is a `part-NN` branch: one commit on top of `main`.)
+- [x] Write parts directly in Markdown, importing code from the tagged repository (`source="…"`), so the
+      text and the code never drift apart. (Parts 1–16; the code is pinned in `sources/tmpl8-part-NN/`.)
+- [x] Redirect the old `cpp-fast-track-*` URLs to the new parts (or keep the old parts with an "outdated" note).
+      (Same slugs where the part kept its number; renumbered and dropped parts redirect, see `astro.config.mjs`.)
+
+## Phase 7: After the switch (search and analytics)
+
+- [x] `robots.txt` with the sitemap (2026-11-20).
+- [x] Structured data and sharing previews (`src/routeData.ts`): JSON-LD `TechArticle` / `AboutPage` / `WebSite`,
+      `og:image` and `twitter:image` from each article's thumbnail (site logo as fallback), Twitter card `summary`.
+- [x] Proper descriptions for the articles that had placeholder ones (Learning DirectX 12 lessons 1 and 2, CUDA
+      N-body), and alt text for the content images that had none (decorative icons keep `alt=""`).
+- [x] Cloudflare Web Analytics (cookieless, no consent banner): the beacon is in the page head; the Cloudflare site
+      is set to "JS snippet installation". Google Analytics deliberately not used (it needs a cookie banner).
+- [x] Bing Webmaster Tools (also covers DuckDuckGo and Yahoo): the `3dgep.com` site already existed there.
+      New sitemap submitted, the two old WordPress `sitemap_index.xml` sitemaps deleted (2026-11-20).
+- [x] IndexNow (Bing recommends it): after each deploy, the `indexnow` job in `deploy.yml` runs
+      `tools/indexnow.mjs`, which submits the pages that changed since the previous publish (their Markdown, the
+      code sources they import, or the demos they embed). The key file is `public/<key>.txt`.
+- [ ] In a week or two: check Search Console → *Pages* for "Not found (404)" and redirect errors, and add
+      redirects for old URLs that still get traffic.
+- [ ] Run the Rich Results Test on an article (it failed on Google's side on 2026-11-20).
 
 ## External links (DirectX 12 lessons 1–4, checked 2026-11-13)
 

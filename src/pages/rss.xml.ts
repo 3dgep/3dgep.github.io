@@ -1,5 +1,5 @@
 // RSS feed of all articles, newest (last updated) first, at /rss.xml. The old WordPress feed URLs
-// (/feed/, /comments/feed/) redirect here (Cloudflare rule; /feed/ also has a meta-refresh page).
+// (/feed/, /comments/feed/) redirect here (meta-refresh pages, plus the old-URL script in astro.config.mjs).
 import { getCollection } from 'astro:content';
 import type { APIContext } from 'astro';
 

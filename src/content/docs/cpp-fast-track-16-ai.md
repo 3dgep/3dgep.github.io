@@ -757,10 +757,10 @@ The result: enemies that get better every wave, and a repair kit every 10 second
 1. The enemies aim at where the player *is*, so a player that keeps driving is hard to hit. Let the enemies *lead the target*: aim at the spot where the player will be when the shell gets there.
 
 :::tip[Hint]
-The shell needs about $t = d / s$ milliseconds to get to the player, where $d$ is the distance to the player and $s$ is the speed of a shell. In that time, the player moves $\vec{v} t$, where $\vec{v}$ is the velocity of the player's body. So aim at $\vec{p} + \vec{v} t$ instead of $\vec{p}$. (This is an estimate: the distance to that spot is a bit different from $d$. It's close enough.)
+The shell needs about $t = d / s$ milliseconds to get to the player, where $d$ is the distance to the player and $s$ is the speed of a shell. In that time, the player moves $\vec{v} t$, where $\vec{v}$ is the velocity of the player's body. So aim at $\vec{p} + \vec{v} t$ instead of $\vec{p}$. (This is an estimate: the distance to that spot is a bit different from $d$. But, it's close enough.)
 :::
 
-2. Add a fifth state: `Flee`. When an enemy's health drops to a quarter or less while it is fighting (in `Chase`, `Attack` or `Search`), it drives away from the player, with its turret still pointing at the player. When it is out of sight range, it goes back to `Patrol`.
+2. Add a fifth state: `Flee`. When an enemy's health drops to a quarter or less while it is fighting (in `Chase`, `Attack` or `Search`), it drives away from the player, with its turret still pointing at the player. When it is farther away from the player than `SightRange` (the distance an enemy can see, from [What a Tank Can See](#what-a-tank-can-see)), it goes back to `Patrol`.
 
 :::tip[Hint]
 Don't forget to add `"FLEE"` to the state names that <kbd>Tab</kbd> shows. Which state switches to `Flee` doesn't matter, so you can check the health once, after the `switch`.
@@ -787,7 +787,30 @@ The result: enemies that lead their target, flee when they are badly damaged, an
 1. An enemy in `Chase` drives straight at the player, so it gets stuck behind crates and trees. Give the enemies *pathfinding*: make a *flow field* over the tiles, with a *breadth-first search* from the player's tile. A chasing enemy drives to the neighbouring tile that is closest to the player.
 
 :::tip[Hint]
-A flow field is an array with a number for every tile of the map: the number of steps (up, down, left or right) to the player's tile, going around the objects. The player's tile gets 0; tiles with an object, or that can't be reached, get -1. Fill it like this: put the player's tile in a queue (like the `CellQueue` of [part 13](/cpp-fast-track-13-data-structures/)). Then, as long as the queue isn't empty, take the tile at the front, and look at its four neighbours: each free neighbour that doesn't have a number yet gets the number of the tile plus one, and goes in at the back of the queue. That's all! Because the queue handles the tiles in the order in which they were found, every tile gets the *shortest* number of steps. You only need to make a new flow field when the player moves to another tile. To see whether it works, print the numbers on the tiles when <kbd>Tab</kbd> is pressed.
+A flow field is an array with a number for every tile of the map. The number tells how many steps (up, down, left or right) it takes to get from that tile to the player's tile, going around the obstacles. You fill it using a queue, like the `CellQueue` of [part 13](/cpp-fast-track-13-data-structures/):
+
+```text
+FLOWFIELD(field, start)
+    for each tile t in field
+        field[t] ← −1
+    field[start] ← 0
+    Q ← an empty queue
+    ENQUEUE(Q, start)
+    while Q ≠ ∅
+        t ← DEQUEUE(Q)
+        for each neighbour n of t (up, down, left and right)
+            if n is on the map, n is not an obstacle, and field[n] = −1
+                field[n] ← field[t] + 1
+                ENQUEUE(Q, n)
+```
+
+`field` is the flow field array, with a number for every tile, and `start` is the player's tile. An obstacle is a tile that a tank can't drive through, like a crate or a tree. The drums and the tanks move around, so they don't count as obstacles. `ENQUEUE` puts a tile (its column and row) at the back of the queue, and `DEQUEUE` takes the tile at the front out of the queue. At the start, only the player's tile is in the queue, so that's the first tile that `DEQUEUE` takes out.
+
+The queue is emptied at the front and filled at the back at the same time. First the player's tile comes out, and its neighbours (1 step away) go in. Then those come out, and their neighbours (2 steps away) go in, and so on. When the queue is empty, every tile that can be reached has its number, and the obstacles and the tiles that can't be reached are still -1. Because the tiles come out in the same order in which they went in, every tile gets the *shortest* number of steps.
+
+You only need to make a new flow field when the player moves to another tile. To see whether it works, print the numbers on the tiles when <kbd>Tab</kbd> is pressed.
+
+Amit Patel explains this algorithm step by step, with interactive diagrams, in [Flow Field Pathfinding for Tower Defense](https://www.redblobgames.com/pathfinding/tower-defense/). For how a strategy game moves thousands of units with flow fields, see Elijah Emerson's [Crowd Pathfinding and Steering Using Flow Field Tiles](https://www.gameaipro.com/GameAIPro/GameAIPro_Chapter23_Crowd_Pathfinding_and_Steering_Using_Flow_Field_Tiles.pdf) (*Game AI Pro*, 2013).
 :::
 
 2. The enemies hit each other when one of them is between another one and the player. Make sure that an enemy only fires when no other enemy is in the way.

@@ -59,7 +59,7 @@ The linear allocator also suffers from internal fragmentation when a block of me
 
 <span id="attachment-8522"></span>
 
-![](../../assets/Linear-Allocator-Internal-Fragmentation.png)
+![Internal fragmentation in a linear allocator: small allocations padded to their 256-byte alignment](../../assets/Linear-Allocator-Internal-Fragmentation.png)
 
 <div class="caption">
 
@@ -822,7 +822,7 @@ If **Case 1** is true then the previous block in the free list needs to be merge
 
 <span id="attachment-8754"></span>
 
-![](../../assets/Free-List-Merge-1.png)
+![Freeing a block merges it with the previous free block (top) or the next free block (bottom)](../../assets/Free-List-Merge-1.png)
 
 <div class="caption">
 

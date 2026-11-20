@@ -1,6 +1,6 @@
 ---
 title: "Learning DirectX 12 – Lesson 1 – Initialize DirectX 12"
-description: "DirectX 12"
+description: "Create a DirectX 12 application from scratch: the device, swap chain, command queue and command list, and synchronizing the CPU and GPU with fences."
 slug: learning-directx-12-1
 lastUpdated: 2020-03-30
 ---
@@ -197,7 +197,7 @@ Although the DirectX 12 API defines these three different command queue types, i
 
 <span id="attachment-8017"></span>
 
-![](../../assets/GPU-Synchronization.png)
+![A timeline of CPU and GPU synchronization with a fence on one command queue](../../assets/GPU-Synchronization.png)
 
 <div class="caption">
 
@@ -219,7 +219,7 @@ It gets more complicated if you add an additional queue. In this case, you must 
 
 <span id="attachment-8018"></span>
 
-![](../../assets/GPU-Synchronization-2.png)
+![A timeline of incorrect synchronization with one fence on two command queues](../../assets/GPU-Synchronization-2.png)
 
 <div class="caption">
 
@@ -247,7 +247,7 @@ The DirectX 12 SDK comes included with the Windows 10 SDK which is part of the V
 
 <span id="attachment-7874"></span>
 
-![](../../assets/DirectX12Workload-1.png)
+![The Visual Studio Installer with the Game development with C++ workload selected](../../assets/DirectX12Workload-1.png)
 
 <div class="caption">
 
@@ -1580,7 +1580,7 @@ If everything is working correctly, you should see a window that is cleared with
 
 <span id="attachment-8112"></span>
 
-![](../../assets/Tutorial1.png)
+![The application window, cleared to cornflower blue](../../assets/Tutorial1.png)
 
 <div class="caption">
 

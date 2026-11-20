@@ -1,6 +1,6 @@
 ---
 title: "CUDA Case Study – N-Body Simulation"
-description: "I will analyze the CUDA implementation of the N-Body simulation"
+description: "A close look at the CUDA N-body simulation from the CUDA samples: how the all-pairs gravity calculation is split into tiles and uses shared memory on the GPU."
 slug: cuda-case-study-n-body-simulation
 lastUpdated: 2020-03-05
 ---

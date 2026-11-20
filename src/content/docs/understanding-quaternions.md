@@ -28,7 +28,7 @@ $$
 i^2=j^2=k^2=ijk=-1
 $$
 
-![](../../assets/William_Rowan_Hamilton_Plaque_-_geograph.org.uk_-_347941.jpg)
+![The plaque on Broom Bridge in Dublin with Hamilton's quaternion formula](../../assets/William_Rowan_Hamilton_Plaque_-_geograph.org.uk_-_347941.jpg)
 
 <div class="caption">
 

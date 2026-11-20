@@ -1,6 +1,6 @@
 ---
 title: "Learning DirectX 12 – Lesson 2 – Rendering"
-description: "DirectX 12 – Lesson 2"
+description: "Render a cube in DirectX 12: upload vertex and index buffers to the GPU, write vertex and pixel shaders, and create a root signature and a pipeline state object."
 slug: learning-directx-12-2
 lastUpdated: 2025-10-01
 ---

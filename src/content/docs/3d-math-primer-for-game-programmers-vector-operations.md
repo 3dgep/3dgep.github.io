@@ -59,7 +59,7 @@ The following images show examples of adding and subtracting vectors:
 
 <span id="attachment-398"></span>
 
-![](../../assets/VectorAdditionSubtraction.png)
+![Two vectors added head to tail, and subtracted](../../assets/VectorAdditionSubtraction.png)
 
 <div class="caption">
 

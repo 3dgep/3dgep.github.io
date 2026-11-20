@@ -31,7 +31,7 @@ Value categories are often defined in terms of the result of an *expression*. An
 
 <span id="attachment-9899"></span>
 
-![](../../assets/Expressions.png)
+![A C++ expression: operators and operands that produce a result](../../assets/Expressions.png)
 
 <div class="caption">
 
@@ -43,7 +43,7 @@ Expressions are categorized according to the following taxonomy:
 
 <span id="attachment-9931"></span>
 
-![](../../assets/Expression-Taxonomy.png)
+![The C++ expression taxonomy: glvalue and rvalue, split into lvalue, xvalue and prvalue](../../assets/Expression-Taxonomy.png)
 
 <div class="caption">
 
@@ -204,7 +204,7 @@ An rvalue is anything that is not an lvalue.
 
 <span id="attachment-9926"></span>
 
-![](../../assets/Value-Categories.png)
+![The C++ value categories by identity and movability, after Bjarne Stroustrup](../../assets/Value-Categories.png)
 
 <div class="caption">
 

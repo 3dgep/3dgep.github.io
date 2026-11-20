@@ -89,7 +89,7 @@ The image below shows an example of inertial space.
 
 <span id="attachment-346"></span>
 
-![](../../assets/IntertialSpaceCoordinateSystem.png)
+![An object with its inertial space axes, parallel to the world axes and centred on the object](../../assets/IntertialSpaceCoordinateSystem.png)
 
 <div class="caption">
 

@@ -68,6 +68,8 @@ export default defineConfig({
 			// Fail the build on broken internal links and #anchors (pages, headings, citations, figures).
 			plugins: [starlightLinksValidator()],
 			favicon: '/favicon.png',
+			// og:image, Twitter card and JSON-LD structured data for every page.
+			routeMiddleware: './src/routeData.ts',
 			logo: { src: './src/assets/logo.png', alt: '3DGEP' },
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/3dgep/3dgep.github.io' },

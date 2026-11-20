@@ -10,7 +10,7 @@ The articles from [3dgep.com](https://www.3dgep.com) (WordPress) are being moved
 Markdown and built with [Astro](https://astro.build) + [Starlight](https://starlight.astro.build).
 See [MIGRATION.md](MIGRATION.md) for the plan.
 
-> 📝 This website is under development: [https://3dgep.github.io](https://3dgep.github.io)
+> 🌐 The website: [https://www.3dgep.com](https://www.3dgep.com)
 
 ## Working on the site
 

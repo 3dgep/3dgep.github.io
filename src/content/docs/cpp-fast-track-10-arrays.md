@@ -108,7 +108,7 @@ Let's try another program. Remove the particles from `game.cpp` again (the array
 ```cpp source="tmpl8-part-10/3-crosshair/game.hpp#L20"
 ```
 
-```cpp source="tmpl8-part-10/3-crosshair/game.hpp#L43-L47" {5}
+```cpp source="tmpl8-part-10/3-crosshair/game.hpp#L45-L49" {5}
 ```
 
 The template calls `MouseMove` whenever the mouse moves over the window, with the position of the mouse. `mousex = x, mousey = y;` stores that position in two variables of the game (the comma trick again). Now change the `Tick` function in `game.cpp` to:

@@ -61,7 +61,7 @@ The answer is: *debug information*, and checks. The Debug version doesn't optimi
 
 Switch back to *Debug* in the drop-down box. Now add the highlighted lines to `game.hpp`, below the `rotatingGun` sprite:
 
-```cpp source="tmpl8-part-07/game.hpp#L43-L48" {5-6}
+```cpp source="tmpl8-part-07/game.hpp#L45-L50" {5-6}
 ```
 
 This loads the image `ball.png` into a `Surface`. We don't want to draw it as a sprite this time: we only want to read its pixels. Then make the `Tick` function in `game.cpp` like this:

@@ -133,6 +133,10 @@
 .sl-markdown-content iframe.embed-euler-orbit { aspect-ratio: auto; height: 460px; min-height: 0; }
 .sl-markdown-content iframe.embed-collision-tests { aspect-ratio: auto; height: 440px; min-height: 0; }
 .sl-markdown-content iframe.embed-velocity-projection { aspect-ratio: auto; height: 460px; min-height: 0; }
+/* Part 16: the line - circle and line - box tests. */
+.sl-markdown-content iframe.embed-line-tests { aspect-ratio: auto; height: 460px; min-height: 0; }
+.sl-markdown-content iframe.embed-sight-test { aspect-ratio: auto; height: 580px; min-height: 0; }
+.sl-markdown-content iframe.embed-turn-towards { aspect-ratio: auto; height: 500px; min-height: 0; }
 
 
 /* Theme-specific images: <img class="light-only"> / <img class="dark-only"> (e.g. the GitHub mark). */
@@ -363,8 +367,18 @@ dialog.lightbox img {
 .memory-diagram .byte { stroke: var(--sl-color-gray-4); stroke-dasharray: 3 3; }
 .memory-diagram .arrow { fill: none; stroke: var(--sl-color-accent-high); stroke-width: 2; }
 .memory-diagram .arrow-head { fill: var(--sl-color-accent-high); }
+/* The state machine: semi-transparent lines, so you can see where they cross (the arrow heads stay solid). */
+.memory-diagram.state-diagram .arrow { stroke-opacity: 0.7; }
 /* Part 15: the walls around the map. */
 .walls-diagram .wall { fill: #ffd84a; fill-opacity: 0.3; stroke: #ffd84a; stroke-width: 3; }
+/* Part 16: where a shell starts. */
+.fire-diagram .radius { fill: none; stroke: #e0a800; stroke-width: 2.5; stroke-dasharray: 7 5; }
+.fire-diagram .aim { stroke-width: 3; }
+.fire-diagram .collider { fill: none; stroke: #ffff00; stroke-width: 1.5; stroke-opacity: 0.8; } /* the yellow of the colliders in the demos */
+.fire-diagram .dot { fill: var(--sl-color-white); stroke: var(--sl-color-black); stroke-width: 2; }
+.fire-diagram .leader { fill: none; stroke: var(--sl-color-white); stroke-width: 2; }
+/* a dark outline, so that the lines stay visible over the tank */
+.fire-diagram .leader, .fire-diagram .aim { filter: drop-shadow(0 0 1.5px var(--sl-color-black)) drop-shadow(0 0 1px var(--sl-color-black)); }
 
 /* Tables are centered (a wide table still fills the column, and scrolls when it doesn't fit). */
 .sl-markdown-content table {

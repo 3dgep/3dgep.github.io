@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Line Tests</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--shape: #5fb8ff;
+		--fixed: #a9b1c2;
+		--hit: #f26d5b;
+		--see: #5fd38a;
+		--slabx: #c58af9;
+		--slaby: #e0b85a; /* not green: green is for the part of the line that is inside the box */
+		--vec: #c58af9;
+		--proj: #e0b85a;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		--shape: #1f6fc2;
+		--fixed: #6b7385;
+		--hit: #d1382a;
+		--see: #1d8a4a;
+		--slabx: #8a3fd1;
+		--slaby: #a86d00;
+		--vec: #8a3fd1;
+		--proj: #a86d00;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	[hidden] { display: none !important; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: default; }
+	canvas.can-drag { cursor: grab; }
+	canvas.dragging { cursor: grabbing; }
+	#bar {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+		padding: 6px 8px; border-top: 1px solid var(--border); background: var(--panel);
+	}
+	.group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+	.group > span { color: var(--muted); margin-right: 2px; }
+	.key { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+	.swatch { width: 14px; height: 10px; border-radius: 2px; flex: none; }
+	button {
+		font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border);
+		border-radius: 5px; padding: 3px 8px; cursor: pointer; user-select: none;
+	}
+	button:hover { border-color: var(--accent); }
+	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.hint { color: var(--text); }
+	.hint b { color: var(--accent); }
+	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="Drag the ends of the line, or the shape: the line turns green when it crosses the shape. t is 0 at a and 1 at b."></canvas>
+	</div>
+	<div id="bar">
+		<div class="group" id="tests">
+			<span>test</span>
+			<button id="lc" type="button" aria-pressed="true">line - circle</button>
+			<button id="lb" type="button" aria-pressed="false">line - box</button>
+		</div>
+		<div class="group hint" id="hint">drag <b>a</b> or <b>b</b> to move one end, the line to move both ends, or the circle</div>
+		<div class="group" id="key-lc">
+			<span class="key"><span class="swatch" style="background: var(--vec)"></span>c − a</span>
+			<span class="key"><span class="swatch" style="background: var(--proj)"></span>how far c lies along the line</span>
+		</div>
+		<div class="group" id="key-lb" hidden>
+			<span class="key"><span class="swatch" style="background: var(--slabx)"></span>between left and right</span>
+			<span class="key"><span class="swatch" style="background: var(--slaby)"></span>between top and bottom</span>
+		</div>
+		<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+	</div>
+</div>
+<script>
+'use strict';
+// World units are pixels of a 600 x 360 field, scaled to fit the canvas. The line runs from a to b.
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W = 1, H = 1, DPR = 1, scale = 1, ox = 0, oy = 0;
+const FieldW = 600, FieldH = 360;
+const TopRoom = 48; // room for the text at the top
+let mode = 'lc';
+const a = { x: 70, y: 290 }, b = { x: 540, y: 70 };
+const circle = { x: 330, y: 120, r: 70 };
+const box = { x: 250, y: 150, w: 180, h: 110 }; // top-left corner and size
+
+// ---- the tests (the same as in the C++ code) ----
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const f2 = (v) => (v === Infinity ? '∞' : v === -Infinity ? '-∞' : v.toFixed(2));
+function lineCircle() {
+	const lx = b.x - a.x, ly = b.y - a.y, length2 = lx * lx + ly * ly;
+	const raw = length2 > 0 ? ((circle.x - a.x) * lx + (circle.y - a.y) * ly) / length2 : 0; // before clamping
+	const t = clamp(raw, 0, 1);
+	const q = [a.x + lx * t, a.y + ly * t];
+	const d = Math.hypot(circle.x - q[0], circle.y - q[1]);
+	const hit = d < circle.r;
+	const dot = Math.round((circle.x - a.x) * lx + (circle.y - a.y) * ly), n = (v) => Math.round(v).toLocaleString('en-US');
+	const tText = `t = (c − a)·(b − a) / |b − a|² = ${n(dot)} / ${n(length2)} = ${f2(raw)}` + (raw === t ? '' : `, clamped to ${f2(t)}`);
+	return { hit, raw, t, q, text: [tText, `${hit ? '✓' : '✗'} distance ${d.toFixed(1)} ${hit ? '<' : '≥'} radius ${circle.r}: ${hit ? 'crosses' : 'misses'}`] };
+}
+function lineBox() {
+	const start = [a.x, a.y], step = [b.x - a.x, b.y - a.y];
+	const low = [box.x, box.y], high = [box.x + box.w, box.y + box.h];
+	const ranges = []; // per axis: the range of t between the two sides (empty when parallel and outside)
+	let first = 0, last = 1, hit = true;
+	for (let axis = 0; axis < 2; axis++) {
+		if (step[axis] === 0) {
+			const inside = !(start[axis] < low[axis] || start[axis] >= high[axis]);
+			ranges.push(inside ? [-Infinity, Infinity] : null);
+			if (!inside) hit = false;
+			continue;
+		}
+		let t1 = (low[axis] - start[axis]) / step[axis], t2 = (high[axis] - start[axis]) / step[axis];
+		if (t1 > t2) [t1, t2] = [t2, t1];
+		ranges.push([t1, t2]);
+		if (hit) {
+			first = Math.max(first, t1);
+			last = Math.min(last, t2);
+			if (first > last) hit = false;
+		}
+	}
+	// the text shows the whole calculation, also for the axis after the one where the C++ code would stop
+	const axisText = (r, name) => (r === null ? `${name}: parallel, outside` : r[0] === -Infinity ? `${name}: parallel, inside` : `${name}: t ${f2(r[0])} to ${f2(r[1])}`);
+	let verdict;
+	if (ranges[0] === null || ranges[1] === null) verdict = 'misses';
+	else {
+		const f = Math.max(0, ranges[0][0], ranges[1][0]), l = Math.min(1, ranges[0][1], ranges[1][1]);
+		verdict = `first ${f2(f)} ${f > l ? '>' : '≤'} last ${f2(l)}: ${f > l ? 'misses' : 'crosses'}`;
+	}
+	return { hit, ranges, first, last, text: [`${axisText(ranges[0], 'x')}; ${axisText(ranges[1], 'y')}`, `${hit ? '✓' : '✗'} ${verdict}`] };
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--shape', '--fixed', '--hit', '--see', '--slabx', '--slaby', '--vec', '--proj'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	// room for the axes at the left and the bottom
+	const left = 40, bottom = 40;
+	scale = Math.min((W - 10 - left) / FieldW, (H - TopRoom - bottom) / FieldH);
+	ox = left + (W - 10 - left - FieldW * scale) / 2; oy = TopRoom + (H - TopRoom - bottom - FieldH * scale) / 2;
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+const X = (x) => ox + x * scale, Y = (y) => oy + y * scale;
+function seg(x1, y1, x2, y2, color, width, dash) {
+	ctx.setLineDash(dash || []); ctx.strokeStyle = color; ctx.lineWidth = width;
+	ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.setLineDash([]);
+}
+function dot(x, y, color, r) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r || 4, 0, 2 * Math.PI); ctx.fill(); }
+function label(text, x, y, color, align) {
+	ctx.fillStyle = color; ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = align || 'left'; ctx.textBaseline = 'middle';
+	ctx.fillText(text, x, y); ctx.textAlign = 'left';
+}
+function arrow(x1, y1, x2, y2, color) {
+	const len = Math.hypot(x2 - x1, y2 - y1); if (len < 1) return;
+	const ux = (x2 - x1) / len, uy = (y2 - y1) / len, head = Math.min(10, len * 0.5);
+	seg(x1, y1, x2 - ux * head * 0.8, y2 - uy * head * 0.8, color, 2);
+	ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x2, y2);
+	ctx.lineTo(x2 - ux * head - uy * head * 0.5, y2 - uy * head + ux * head * 0.5);
+	ctx.lineTo(x2 - ux * head + uy * head * 0.5, y2 - uy * head - ux * head * 0.5); ctx.closePath(); ctx.fill();
+}
+// a small square in the corner where two directions meet at a right angle
+function rightAngle(p, u, v) {
+	const lu = Math.hypot(...u), lv = Math.hypot(...v);
+	if (lu * scale < 12 || lv === 0) return;
+	const s = 9 / scale, ux = u[0] / lu * s, uy = u[1] / lu * s, vx = v[0] / lv * s, vy = v[1] / lv * s;
+	ctx.strokeStyle = colors['--muted']; ctx.lineWidth = 1; ctx.beginPath();
+	ctx.moveTo(X(p[0] + ux), Y(p[1] + uy)); ctx.lineTo(X(p[0] + ux + vx), Y(p[1] + uy + vy)); ctx.lineTo(X(p[0] + vx), Y(p[1] + vy));
+	ctx.stroke();
+}
+// a point of the line (extended beyond a and b) at some t
+const at = (t) => [a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t];
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg']; ctx.fillRect(0, 0, W, H);
+	const r = mode === 'lc' ? lineCircle() : lineBox();
+	const lineColor = r.hit ? colors['--see'] : colors['--shape'];
+
+	ctx.save();
+	ctx.beginPath(); ctx.rect(X(0), Y(0), FieldW * scale, FieldH * scale); ctx.clip();
+	if (mode === 'lc') {
+		ctx.beginPath(); ctx.arc(X(circle.x), Y(circle.y), circle.r * scale, 0, 2 * Math.PI);
+		ctx.globalAlpha = 0.15; ctx.fillStyle = colors['--fixed']; ctx.fill(); ctx.globalAlpha = 1;
+		ctx.strokeStyle = colors['--fixed']; ctx.lineWidth = 2; ctx.stroke();
+	} else {
+		// the two slabs: the space between the left and the right side, and between the top and the bottom
+		ctx.globalAlpha = 0.12;
+		ctx.fillStyle = colors['--slabx']; ctx.fillRect(X(box.x), Y(0), box.w * scale, FieldH * scale);
+		ctx.fillStyle = colors['--slaby']; ctx.fillRect(X(0), Y(box.y), FieldW * scale, box.h * scale);
+		ctx.globalAlpha = 1;
+		for (const x of [box.x, box.x + box.w]) seg(X(x), Y(0), X(x), Y(FieldH), colors['--slabx'], 1, [4, 4]);
+		for (const y of [box.y, box.y + box.h]) seg(X(0), Y(y), X(FieldW), Y(y), colors['--slaby'], 1, [4, 4]);
+		ctx.beginPath(); ctx.rect(X(box.x), Y(box.y), box.w * scale, box.h * scale);
+		ctx.globalAlpha = 0.15; ctx.fillStyle = colors['--fixed']; ctx.fill(); ctx.globalAlpha = 1;
+		ctx.strokeStyle = colors['--fixed']; ctx.lineWidth = 2; ctx.stroke();
+	}
+
+	// the line, extended beyond a and b (dotted): only the part from a to b counts
+	const far = 1e4 / Math.max(1, Math.hypot(b.x - a.x, b.y - a.y));
+	const p0 = at(-far), p1 = at(1 + far);
+	seg(X(p0[0]), Y(p0[1]), X(p1[0]), Y(p1[1]), colors['--muted'], 1, [2, 4]);
+	seg(X(a.x), Y(a.y), X(b.x), Y(b.y), lineColor, 2.5);
+
+	if (mode === 'lc') {
+		// the dot product: c - a (an arrow from a to the middle), and how far c lies along the line: the projection,
+		// from a to the point where a line from c meets the line at a right angle. t is that length divided by |b - a|.
+		const raw = at(r.raw);
+		seg(X(circle.x), Y(circle.y), X(raw[0]), Y(raw[1]), colors['--muted'], 1, [2, 4]);
+		rightAngle(raw, [circle.x - raw[0], circle.y - raw[1]], [b.x - a.x, b.y - a.y]);
+		seg(X(a.x), Y(a.y), X(raw[0]), Y(raw[1]), colors['--proj'], 5);
+		arrow(X(a.x), Y(a.y), X(circle.x), Y(circle.y), colors['--vec']);
+		seg(X(circle.x), Y(circle.y), X(r.q[0]), Y(r.q[1]), r.hit ? colors['--see'] : colors['--text'], 1.5, [5, 5]);
+		dot(X(circle.x), Y(circle.y), colors['--fixed']);
+		label('c', X(circle.x) + 10, Y(circle.y) - 10, colors['--text'], 'center');
+		if (r.raw !== r.t) dot(X(raw[0]), Y(raw[1]), colors['--muted'], 3);
+		dot(X(r.q[0]), Y(r.q[1]), colors['--text']);
+	} else {
+		// where the line enters and leaves each slab (the part inside both is drawn green, below)
+		for (let axis = 0; axis < 2; axis++) {
+			const range = r.ranges[axis];
+			if (!range || range[0] === -Infinity) continue;
+			for (const t of range) { const e = at(t); dot(X(e[0]), Y(e[1]), axis === 0 ? colors['--slabx'] : colors['--slaby']); }
+		}
+		if (r.hit) {
+			const p = at(r.first), q = at(r.last);
+			seg(X(p[0]), Y(p[1]), X(q[0]), Y(q[1]), colors['--see'], 6);
+		}
+	}
+	ctx.restore();
+	drawAxes(r);
+
+	// the ends of the line (handles to drag)
+	for (const [p, name] of [[a, 'a'], [b, 'b']]) {
+		dot(X(p.x), Y(p.y), lineColor, 7);
+		let dx = p === a ? a.x - b.x : b.x - a.x, dy = p === a ? a.y - b.y : b.y - a.y;
+		if (mode === 'lc') { // beside the line, on the side away from c (the arrow and the projection start at a)
+			[dx, dy] = [-dy, dx];
+			if (dx * (circle.x - p.x) + dy * (circle.y - p.y) > 0) [dx, dy] = [-dx, -dy];
+		}
+		const d = Math.hypot(dx, dy) || 1;
+		label(name, X(p.x) + dx / d * 18, Y(p.y) + dy / d * 18, colors['--text'], 'center');
+	}
+
+	ctx.textBaseline = 'top';
+	ctx.font = '13px system-ui, sans-serif';
+	if (Math.max(...r.text.map((t) => ctx.measureText(t).width)) > W - 20) ctx.font = '11px system-ui, sans-serif'; // narrow screens
+	r.text.forEach((t, i) => {
+		// the second line is the condition (distance < radius, or first <= last): green with a check mark when it holds, red with a cross when not
+		ctx.fillStyle = i === 0 ? colors['--text'] : r.hit ? colors['--see'] : colors['--hit'];
+		ctx.fillText(t, 10, 8 + i * 18);
+	});
+}
+
+// The tests on the axes: t runs from a to b on the x axis (at the bottom) as well as on the y axis (at the left).
+// Line - circle: the projection (yellow) and the closest point, on both axes.
+// Line - box: on the x axis, the x slab (between the left and the right side) is a range of t; on the y axis, the y
+// slab. The green part on each axis is the part of the line that is inside the box: from first to last.
+function drawAxes(r) {
+	const axisY = Y(FieldH) + 14, axisX = X(0) - 14, lineColor = r.hit ? colors['--see'] : colors['--shape'];
+	// guides from a and b to both axes
+	for (const p of [a, b]) {
+		seg(X(p.x), Y(p.y), X(p.x), axisY, colors['--muted'], 1, [1, 4]);
+		seg(X(p.x), Y(p.y), axisX, Y(p.y), colors['--muted'], 1, [1, 4]);
+	}
+	seg(X(0), axisY, X(FieldW), axisY, colors['--muted'], 1, [2, 4]);
+	seg(axisX, Y(0), axisX, Y(FieldH), colors['--muted'], 1, [2, 4]);
+	if (mode === 'lc') {
+		// the projection, next to the axes (clipped to the field, when it reaches beyond it)
+		const raw = at(r.raw), cx = (x) => X(clamp(x, 0, FieldW)), cy = (y) => Y(clamp(y, 0, FieldH));
+		seg(X(a.x), axisY - 7, cx(raw[0]), axisY - 7, colors['--proj'], 4);
+		seg(axisX + 7, Y(a.y), axisX + 7, cy(raw[1]), colors['--proj'], 4);
+		// guides from the closest point to both axes
+		seg(X(r.q[0]), Y(r.q[1]), X(r.q[0]), axisY, colors['--text'], 1, [1, 4]);
+		seg(X(r.q[0]), Y(r.q[1]), axisX, Y(r.q[1]), colors['--text'], 1, [1, 4]);
+	} else {
+		// the slabs, next to the axes
+		seg(X(box.x), axisY - 7, X(box.x + box.w), axisY - 7, colors['--slabx'], 4);
+		seg(axisX + 7, Y(box.y), axisX + 7, Y(box.y + box.h), colors['--slaby'], 4);
+	}
+	// the line from a (t = 0) to b (t = 1), on both axes
+	seg(X(a.x), axisY, X(b.x), axisY, lineColor, 2.5);
+	seg(axisX, Y(a.y), axisX, Y(b.y), lineColor, 2.5);
+	if (mode === 'lc') {
+		// the closest point (and where it was before clamping, when it was clamped)
+		const raw = at(r.raw);
+		if (r.raw !== r.t) {
+			if (raw[0] >= 0 && raw[0] <= FieldW) dot(X(raw[0]), axisY, colors['--muted'], 3);
+			if (raw[1] >= 0 && raw[1] <= FieldH) dot(axisX, Y(raw[1]), colors['--muted'], 3);
+		}
+		dot(X(r.q[0]), axisY, colors['--text']);
+		dot(axisX, Y(r.q[1]), colors['--text']);
+	} else if (r.hit) {
+		const p = at(r.first), q = at(r.last);
+		seg(X(p[0]), axisY, X(q[0]), axisY, colors['--see'], 6);
+		seg(axisX, Y(p[1]), axisX, Y(q[1]), colors['--see'], 6);
+	}
+	ctx.font = '11px system-ui, sans-serif';
+	for (const [p, t] of [[a, 't = 0'], [b, 't = 1']]) {
+		seg(X(p.x), axisY - 4, X(p.x), axisY + 4, colors['--text'], 1.5);
+		seg(axisX - 4, Y(p.y), axisX + 4, Y(p.y), colors['--text'], 1.5);
+		// when a and b are close together on an axis, only t = 0 is labelled (the labels would overlap)
+		if (p === a || Math.abs(X(b.x) - X(a.x)) > 40) label(t, X(p.x), axisY + 13, colors['--muted'], 'center');
+		if (p === a || Math.abs(Y(b.y) - Y(a.y)) > 40) {
+			ctx.save(); ctx.translate(axisX - 12, Y(p.y)); ctx.rotate(-Math.PI / 2);
+			label(t, 0, 0, colors['--muted'], 'center'); ctx.restore();
+		}
+	}
+}
+
+// ---- dragging: the ends of the line, the shape, or the whole line ----
+let drag = null;
+function world(e) {
+	const rc = canvas.getBoundingClientRect();
+	return [(e.clientX - rc.left - ox) / scale, (e.clientY - rc.top - oy) / scale];
+}
+function pick(p) {
+	const near = 16 / scale;
+	for (const q of [a, b]) if (Math.hypot(p[0] - q.x, p[1] - q.y) < near) return [q];
+	const shape = mode === 'lc' ? circle : box;
+	const inShape = mode === 'lc'
+		? Math.hypot(p[0] - circle.x, p[1] - circle.y) < circle.r
+		: p[0] >= box.x && p[0] <= box.x + box.w && p[1] >= box.y && p[1] <= box.y + box.h;
+	// near the line itself: drag both ends
+	const lx = b.x - a.x, ly = b.y - a.y, l2 = lx * lx + ly * ly;
+	const t = l2 > 0 ? clamp(((p[0] - a.x) * lx + (p[1] - a.y) * ly) / l2, 0, 1) : 0;
+	if (Math.hypot(p[0] - (a.x + lx * t), p[1] - (a.y + ly * t)) < 10 / scale) return [a, b];
+	if (inShape) return [shape];
+	return null;
+}
+canvas.addEventListener('pointerdown', (e) => {
+	const p = world(e), items = pick(p);
+	if (!items) return;
+	drag = { items, last: p };
+	canvas.setPointerCapture(e.pointerId); canvas.classList.add('dragging');
+});
+canvas.addEventListener('pointermove', (e) => {
+	const p = world(e);
+	if (!drag) { canvas.classList.toggle('can-drag', pick(p) !== null); return; }
+	const dx = p[0] - drag.last[0], dy = p[1] - drag.last[1];
+	for (const it of drag.items) {
+		const cx = it.w !== undefined ? it.x + it.w / 2 : it.x, cy = it.h !== undefined ? it.y + it.h / 2 : it.y;
+		it.x += clamp(cx + dx, 0, FieldW) - cx;
+		it.y += clamp(cy + dy, 0, FieldH) - cy;
+	}
+	drag.last = p;
+	draw();
+});
+const stop = () => { drag = null; canvas.classList.remove('dragging'); };
+canvas.addEventListener('pointerup', stop);
+canvas.addEventListener('pointercancel', stop);
+
+function setMode(m) {
+	mode = m;
+	for (const id of ['lc', 'lb']) document.getElementById(id).setAttribute('aria-pressed', String(id === m));
+	document.getElementById('key-lb').hidden = m !== 'lb';
+	document.getElementById('key-lc').hidden = m !== 'lc';
+	resize();
+	document.getElementById('hint').innerHTML = `drag <b>a</b> or <b>b</b> to move one end, the line to move both ends, or the ${m === 'lc' ? 'circle' : 'box'}`;
+	draw();
+}
+for (const id of ['lc', 'lb']) document.getElementById(id).addEventListener('click', () => setMode(id));
+
+// ?test=lc or lb shows one test only (without the buttons to choose)
+const params = new URLSearchParams(location.search);
+if (['lc', 'lb'].includes(params.get('test'))) {
+	setMode(params.get('test'));
+	document.getElementById('tests').hidden = true;
+}
+
+applyTheme();
+resize();
+</script>
+</body>
+</html>

@@ -188,41 +188,40 @@ The editor also needs to know where the mouse is, and whether its buttons are do
 
 And add these variables (in the `private` part of the class, below `frame`):
 
-```cpp source="tmpl8-part-14/game.hpp#L50-L51"
+```cpp source="tmpl8-part-14/game.hpp#L52-L53"
 ```
 
 The template calls `MouseMove` whenever the mouse moves, with the position of the mouse in the screen (in pixels), and `MouseDown` and `MouseUp` when a button goes down or up. Button 1 is the left mouse button, and button 3 the right one (button 2 is the middle one). Now `mousex`, `mousey`, `mouseLeft` and `mouseRight` always tell you what the mouse is doing.
 
-Then, in `game.cpp`, add an include at the top:
+Then, in `game.cpp`, add these variables below `tankFrame`:
 
-```cpp source="tmpl8-part-14/3-editor/game.cpp#L1-L4" {3}
-```
-
-And add these variables below `tankFrame`:
-
-```cpp source="tmpl8-part-14/3-editor/game.cpp#L49-L56" {4-8}
+```cpp source="tmpl8-part-14/3-editor/game.cpp#L47-L54" {4-8}
 ```
 
 ### Letter Keys
 
-The editor uses letters as shortcuts: <kbd>E</kbd> for *edit*, <kbd>S</kbd> for *save*, and <kbd>L</kbd> for *load*. For those keys, we need one more small function. Add it below `Shutdown`:
+The editor uses letters as shortcuts: <kbd>E</kbd> for *edit*, <kbd>S</kbd> for *save*, and <kbd>L</kbd> for *load*. For those keys, the template has one more method in `game.hpp`, right below `GetKeyReleased`:
 
-```cpp source="tmpl8-part-14/3-editor/game.cpp#L158-L163"
+```cpp source="tmpl8-part-14/game.hpp#L29-L30"
 ```
+
+`KeyFor` gives you the scancode of the key with a certain letter on it. The note below explains why you need it for letter keys.
+
+<div id="scancodes-and-keycodes"></div>
 
 :::note[Scancodes and keycodes]
 SDL has two ways to name a key. A *scancode* (`SDL_SCANCODE_W`) is a *position* on the keyboard: the names come from a US keyboard, so `SDL_SCANCODE_W` is the key to the left of <kbd>E</kbd> on a US keyboard, whatever is printed on it. A *keycode* (`SDLK_W`) is the key that types a "w" on the player's keyboard, wherever that key is.
 
 On a French (AZERTY) keyboard, the key to the left of <kbd>E</kbd> is <kbd>Z</kbd>, and <kbd>A</kbd> and <kbd>Q</kbd> have swapped places. For driving, that's exactly what we want: `SDL_SCANCODE_W`, `A`, `S` and `D` become <kbd>Z</kbd>, <kbd>Q</kbd>, <kbd>S</kbd> and <kbd>D</kbd> there, in the same spot under the left hand. The same goes for <kbd>Z</kbd> and <kbd>X</kbd> in the editor: they are two keys next to each other. But <kbd>S</kbd> for *save* is about the letter, not the position: on some keyboards, `SDL_SCANCODE_S` isn't the key with an "s" on it.
 
-`GetKey` and `GetKeyPressed` take a scancode. `SDL_GetScancodeFromKey` (from `<SDL3/SDL_keyboard.h>`) finds the scancode of the key that types a letter on the player's keyboard, so `GetKeyPressed(KeyFor(SDLK_S))` means: the key with an "s" on it was pressed. (The `nullptr` means that we don't need to know whether <kbd>Shift</kbd> is needed for it.) The rule of thumb: **use a scancode when the position of the key matters, and a keycode when the letter matters**.
+`GetKey` and `GetKeyPressed` take a scancode. `KeyFor` calls `SDL_GetScancodeFromKey` (from `<SDL3/SDL_keyboard.h>`), which finds the scancode of the key that types a letter on the player's keyboard, so `GetKeyPressed(KeyFor(SDLK_S))` means: the key with an "s" on it was pressed. (The `nullptr` means that we don't need to know whether <kbd>Shift</kbd> is needed for it.) The rule of thumb: **use a scancode when the position of the key matters, and a keycode when the letter matters**.
 :::
 
 ### Update
 
-The first new method is `Update`. Add it below `KeyFor`, and *move* the code that drives the tank from `Tick` into it:
+The first new method is `Update`. Add it below `Shutdown`, and *move* the code that drives the tank from `Tick` into it:
 
-```cpp source="tmpl8-part-14/3-editor/game.cpp#L165-L176"
+```cpp source="tmpl8-part-14/3-editor/game.cpp#L156-L167"
 ```
 
 This is exactly the code of part 11; only its place changed. Because `Update` is a method of `Game`, it is written as `Game::Update`, just like `Game::Tick` (remember the methods of the `Tank` class in [part 12](/cpp-fast-track-12-classes/)?).
@@ -231,7 +230,7 @@ This is exactly the code of part 11; only its place changed. Because `Update` is
 
 The second new method is the editor. Add it below `Update`:
 
-```cpp source="tmpl8-part-14/3-editor/game.cpp#L178-L218"
+```cpp source="tmpl8-part-14/3-editor/game.cpp#L169-L209"
 ```
 
 - `layer` is the layer that you edit, and `brush` holds the tile that you paint, for each of the two layers. `layer = 1 - layer` switches between 0 and 1.
@@ -246,7 +245,7 @@ The second new method is the editor. Add it below `Update`:
 
 Finally, `Tick` itself. It still draws the map and the tank, and then lets <kbd>E</kbd> choose between driving and editing:
 
-```cpp source="tmpl8-part-14/3-editor/game.cpp#L220-L246" {23-26}
+```cpp source="tmpl8-part-14/3-editor/game.cpp#L211-L237" {23-26}
 ```
 
 Every frame, exactly one of the two methods runs: `Edit` when you are editing, and `Update` when you are driving. That's also why the editor can use <kbd>S</kbd> to save: while you edit, the tank doesn't drive. And `Tick` reads like a summary of the game: draw the world, then drive or edit.
@@ -269,7 +268,7 @@ Paint a few trees, press <kbd>S</kbd>, and close the game. Run it again: your tr
 
 A binary file usually starts with a *header*: a small block of data that describes the rest of the file. Add this `struct` below `LoadMap`:
 
-```cpp source="tmpl8-part-14/game.cpp#L143-L148"
+```cpp source="tmpl8-part-14/game.cpp#L141-L146"
 ```
 
 The first 4 bytes of the file are the characters `TMAP`. Such a code is called a *magic number*: many file formats start with one (a PNG file starts with the characters `PNG`, after one special byte). It tells a program that reads the file what kind of file it is. After the magic number, the header holds the size of the map, just like the first line of `map.txt`, and for the same reason: so that `LoadMapBinary` can refuse a file that was made for a map of a different size.
@@ -278,7 +277,7 @@ The first 4 bytes of the file are the characters `TMAP`. Such a code is called a
 
 Next, the function that saves the map as a binary file. Add it below `MapHeader`:
 
-```cpp source="tmpl8-part-14/game.cpp#L150-L160"
+```cpp source="tmpl8-part-14/game.cpp#L148-L158"
 ```
 
 `SaveMapBinary` opens the file in binary mode, and writes three blocks of bytes: the header, the ground layer and the object layer, exactly as they are in memory. Like `SaveMap`, it returns `true` when the map was saved, and `false` when it wasn't.
@@ -291,7 +290,7 @@ Next, the function that saves the map as a binary file. Add it below `MapHeader`
 
 And the function that loads it again. Add it below `SaveMapBinary`:
 
-```cpp source="tmpl8-part-14/game.cpp#L162-L183"
+```cpp source="tmpl8-part-14/game.cpp#L160-L181"
 ```
 
 `LoadMapBinary` reads the same three blocks back: first the header, and then the two layers. It returns `true` when the map was loaded, and `false` when it wasn't.
@@ -304,7 +303,7 @@ And the function that loads it again. Add it below `SaveMapBinary`:
 
 Finally, change the part of `Edit` that saves and loads the map (and the text at the top of the screen):
 
-```cpp source="tmpl8-part-14/game.cpp#L244-L258" {1-2,4,6-9,14}
+```cpp source="tmpl8-part-14/game.cpp#L235-L249" {1-2,4,6-9,14}
 ```
 
 <iframe class="embed embed-tmpl8 embed-768x512" src="/demos/cpp-fast-track-14-binary/index.html" title="The map editor, which can also save and load the map as a binary file with Shift+S and Shift+L" loading="lazy" allowfullscreen></iframe>

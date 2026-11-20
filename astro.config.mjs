@@ -78,6 +78,15 @@ export default defineConfig({
 			customCss: ['katex/dist/katex.min.css', './src/styles/custom.css'],
 			head: [
 				{
+					// Cloudflare Web Analytics: page views without cookies (so no consent banner). The token is public.
+					tag: 'script',
+					attrs: {
+						type: 'module',
+						src: 'https://static.cloudflareinsights.com/beacon.min.js',
+						'data-cf-beacon': '{"token": "6d34c229686b4734b3f39bf5ed18c7c7"}',
+					},
+				},
+				{
 					// Old WordPress URLs that GitHub Pages answers with the 404 page: tag, category and author archives
 					// go to the home page, and feeds (/feed/, /comments/feed/, /<article>/feed/) go to the RSS feed.
 					tag: 'script',

@@ -12,7 +12,7 @@ import rehypeCitationBackrefs from './src/plugins/rehype-citation-backrefs.mjs';
 import starlightLinksValidator from 'starlight-links-validator';
 
 export default defineConfig({
-	site: 'https://3dgep.github.io',
+	site: 'https://www.3dgep.com',
 	trailingSlash: 'always', // WordPress URLs end in a slash: /learning-directx-12-1/
 	// Astro 7 defaults to the Sätteri Markdown processor; use the unified (remark/rehype) pipeline for KaTeX math.
 	markdown: {

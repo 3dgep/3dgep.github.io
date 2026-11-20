@@ -130,13 +130,16 @@ meta-refresh pages, which handle path-based URLs:
 
 Do this only when all articles are ported and reviewed on `https://3dgep.github.io`.
 
-1. [ ] A few days before: lower the DNS TTL for 3dgep.com and www.3dgep.com (e.g. to 300 s).
-2. [ ] Add `public/CNAME` containing `www.3dgep.com` (or `3dgep.com`, whichever should be canonical) and set
+1. [x] A few days before: lower the DNS TTL for 3dgep.com and www.3dgep.com (e.g. to 300 s).
+2. [x] Add `public/CNAME` containing `www.3dgep.com` (or `3dgep.com`, whichever should be canonical) and set
        `site` in `astro.config.mjs` to the same URL. Set the custom domain in repo Settings → Pages.
-3. [ ] DNS at the registrar: apex `3dgep.com` A records `185.199.108.153`, `185.199.109.153`,
+       (Done 2026-11-20: `www.3dgep.com` is canonical.)
+3. [x] DNS at the registrar: apex `3dgep.com` A records `185.199.108.153`, `185.199.109.153`,
        `185.199.110.153`, `185.199.111.153` (+ AAAA `2606:50c0:8000::153` … `8003::153`); `www` CNAME
        `3dgep.github.io`. **Keep existing MX/TXT records** (email, verification).
-4. [ ] Verify the domain in GitHub (org settings) to prevent takeover; enable "Enforce HTTPS" once the
+       (Done differently 2026-11-20: DNS is at Cloudflare. `www` is a CNAME to `3dgep.github.io`; the apex
+       stays proxied and a Cloudflare Redirect Rule sends `3dgep.com/*` to `https://www.3dgep.com/*`.)
+4. [x] Verify the domain in GitHub (org settings) to prevent takeover; enable "Enforce HTTPS" once the
        certificate is issued.
 5. [ ] Check a sample of old URLs, the redirects, RSS and search; submit the new sitemap
        (`/sitemap-index.xml`) in Google Search Console.

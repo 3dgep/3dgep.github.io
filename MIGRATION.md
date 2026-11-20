@@ -104,18 +104,21 @@ Site structure as content grows:
 GitHub Pages has no server-side redirects. Astro's `redirects` (in `astro.config.mjs`) generates small
 meta-refresh pages, which handle path-based URLs:
 
-- [ ] Article slugs are unchanged, so most URLs need nothing.
+- [x] Article slugs are unchanged, so most URLs need nothing. (Audit 2026-11-20: all 36 posts and 5 pages of the
+      WordPress sitemap resolve; 14 go through redirect pages.)
 - [x] Dropped articles and pages redirect to the closest current page (`astro.config.mjs`): DirectX 9 → DirectX 11
       intro; Cg 3.1 and VBOs → GLSL texturing and lighting; Introduction to CUDA and OpenGL/CUDA interop → CUDA Thread
       Execution Model; Courses, GRP3, GRP4, AGT6 and the privacy policy → home page.
 - [ ] Old aliases that WordPress redirected (e.g. `learning-directx12-1` → `learning-directx-12-1`, already added).
       Collect the rest from WordPress (Redirection plugin / Yoast) or Search Console before the switch.
-- [ ] Category pages `/category/<slug>/` → series landing pages.
-- [ ] RSS: provide a feed at `/feed/` (existing subscribers use it).
-- [ ] Not covered: `/?p=<id>` shortlinks and other query-string URLs. Consider a small `404.astro` script that
+- [x] Tag, category and author archives (`/tag/`, `/category/`, `/author/`, 235 URLs) → home page, by a script in
+      the page head (`astro.config.mjs`) that runs on GitHub's 404 page.
+- [x] RSS: the feed is `/rss.xml` (`src/pages/rss.xml.ts`). `/feed/` and `/comments/feed/` have redirect pages;
+      other `…/feed/` URLs go there by the head script. (Feed readers only follow the redirect pages.)
+- [ ] Not covered (decided to skip): `/?p=<id>` shortlinks and other query-string URLs. Consider a small `404.astro` script that
       maps known `?p=` ids to slugs on the client.
-- [ ] `/wp-content/uploads/...` image URLs (hotlinked from elsewhere) will break. Optional: copy the most-linked
-      uploads to `public/wp-content/uploads/` at the same paths.
+- [x] `/wp-content/uploads/...` image URLs: the 212 uploads that the current articles still use are copied to
+      `public/wp-content/uploads/` at their old paths (15 MB). Uploads of dropped articles are gone.
 
 ## Phase 4: Comments
 

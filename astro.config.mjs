@@ -58,6 +58,9 @@ export default defineConfig({
 		'/graphics-programming-4-grp4/': '/',
 		'/advanced-game-technology-6-agt6/': '/',
 		'/privacy-and-cookie-policy/': '/',
+		// The old WordPress feeds: the feed is now /rss.xml (feed readers get a 301 from the Cloudflare rule).
+		'/feed/': 'https://www.3dgep.com/rss.xml', // a full URL, or Astro adds a trailing slash
+		'/comments/feed/': 'https://www.3dgep.com/rss.xml',
 	},
 	integrations: [
 		starlight({
@@ -72,6 +75,21 @@ export default defineConfig({
 			],
 			customCss: ['katex/dist/katex.min.css', './src/styles/custom.css'],
 			head: [
+				{
+					// Old WordPress URLs that GitHub Pages answers with the 404 page: tag, category and author archives
+					// go to the home page, and feeds (/feed/, /comments/feed/, /<article>/feed/) go to the RSS feed.
+					tag: 'script',
+					content: `(() => {
+						const p = location.pathname;
+						if (['/tag/', '/category/', '/author/'].some((a) => p.startsWith(a))) location.replace('/');
+						else if (p.endsWith('/feed/') || p.endsWith('/feed')) location.replace('/rss.xml');
+					})();`,
+				},
+				{
+					// The RSS feed of all articles (src/pages/rss.xml.ts), for feed readers that look for it in the page.
+					tag: 'link',
+					attrs: { rel: 'alternate', type: 'application/rss+xml', title: '3D Game Engine Programming', href: '/rss.xml' },
+				},
 				{
 					// External links in theme UI (e.g. the GitHub icon) also open in a new tab; article links are
 					// handled at build time by rehype-external-links.

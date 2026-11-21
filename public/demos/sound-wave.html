@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sound Wave</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--wave: #5fb8ff;
+		--sample: #e5c07b;
+		--period: #c678dd;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--wave: #1f6fc2;
+		--sample: #a86b00;
+		--period: #8e3fb0;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; }
+	#bar {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+		padding: 6px 8px; border-top: 1px solid var(--border); background: var(--panel);
+	}
+	.sliders { flex-basis: 100%; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 10px; }
+	.slider { display: contents; color: var(--muted); }
+	.slider input { width: 100%; min-width: 0; margin: 0; accent-color: var(--accent); }
+	.slider output { color: var(--text); font-variant-numeric: tabular-nums; min-width: 16ch; }
+	.buttons { flex-basis: 100%; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+	button {
+		font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border);
+		border-radius: 4px; padding: 3px 12px; cursor: pointer;
+		display: inline-flex; align-items: center; gap: 6px;
+	}
+	button svg { width: 14px; height: 14px; fill: currentColor; flex: none; }
+	button:hover { border-color: var(--accent); }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+	#play { padding-left: 9px; }
+	.hint { flex-basis: 100%; display: flex; align-items: center; gap: 12px; color: var(--muted); }
+	.hint b { color: var(--accent); font-weight: 600; }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="A sound wave: the air pressure over time, for a few milliseconds. Buttons choose the shape of the wave (sine, square, triangle or sawtooth), and sliders set its frequency, its amplitude, and the sample rate: the dots on the wave are the samples, the numbers that a computer stores. Play makes the wave audible."></canvas>
+	</div>
+	<div id="bar">
+		<div class="buttons" id="types">
+			<button type="button" data-type="sine" aria-pressed="true">Sine</button>
+			<button type="button" data-type="square" aria-pressed="false">Square</button>
+			<button type="button" data-type="triangle" aria-pressed="false">Triangle</button>
+			<button type="button" data-type="sawtooth" aria-pressed="false">Sawtooth</button>
+		</div>
+		<div class="sliders">
+			<label class="slider">frequency <input id="frequency" type="range" min="0" max="1000" step="1" value="500" /> <output id="frequency-out"></output></label>
+			<label class="slider">amplitude <input id="amplitude" type="range" min="0" max="100" step="1" value="80" /> <output id="amplitude-out"></output></label>
+			<label class="slider">sample rate <input id="rate" type="range" min="0" max="5" step="1" value="2" /> <output id="rate-out"></output></label>
+		</div>
+		<div class="buttons">
+			<button id="play" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="play-icon" d="M4 2.5v11l9-5.5z" /></svg><span id="play-text">Play</span></button>
+		</div>
+		<div class="hint"><span><b>Play</b> to hear the wave (turn your volume down first); change the sliders while it plays</span>
+			<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" /></div>
+	</div>
+</div>
+<script>
+'use strict';
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W = 1, H = 1, DPR = 1;
+const Window = 10;                    // the time on the screen, in milliseconds
+const Rates = [2000, 4000, 8000, 11025, 22050, 44100]; // the sample rates of the slider, in samples per second
+let type = 'sine', frequency = 440, amplitude = 0.8, rate = 8000;
+
+// The wave: the value (-1 to 1) at a time t, in seconds. The same shapes as Audio::Waveform (and Web Audio).
+function wave(t) {
+	const phase = (t * frequency) % 1; // how far into the current period: 0 to 1
+	switch (type) {
+	case 'sine': return Math.sin(2 * Math.PI * phase);
+	case 'square': return phase < 0.5 ? 1 : -1;
+	case 'triangle': return phase < 0.25 ? 4 * phase : phase < 0.75 ? 2 - 4 * phase : 4 * phase - 4;
+	case 'sawtooth': return phase < 0.5 ? 2 * phase : 2 * phase - 2;
+	}
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--wave', '--sample', '--period', '--border'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+function text(s, x, y, color, align, baseline) {
+	ctx.fillStyle = color; ctx.textAlign = align || 'left'; ctx.textBaseline = baseline || 'middle';
+	ctx.fillText(s, x, y);
+}
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg']; ctx.fillRect(0, 0, W, H);
+	ctx.font = '12px system-ui, sans-serif';
+	const left = 44, right = W - 14, top = 50, bottom = H - 30;
+	const mid = (top + bottom) / 2, half = (bottom - top) / 2;
+	const X = (ms) => left + (ms / Window) * (right - left);
+	const Y = (v) => mid - v * half;
+
+	// the axes: the value from -1 to 1, the time in milliseconds
+	ctx.strokeStyle = colors['--border']; ctx.lineWidth = 1;
+	for (const v of [-1, 0, 1]) {
+		ctx.beginPath(); ctx.moveTo(left, Y(v)); ctx.lineTo(right, Y(v)); ctx.stroke();
+		text(v === 0 ? '0' : v > 0 ? '1' : '-1', left - 8, Y(v), colors['--muted'], 'right');
+	}
+	for (let ms = 0; ms <= Window; ms++) {
+		ctx.beginPath(); ctx.moveTo(X(ms), bottom); ctx.lineTo(X(ms), bottom + 4); ctx.stroke();
+		if (ms % 2 === 0 || W > 600) text(`${ms} ms`, X(ms), bottom + 6, colors['--muted'], 'center', 'top');
+	}
+
+	// one period, from the first top of the wave
+	const period = 1000 / frequency; // milliseconds
+	if (period < Window * 0.9) {
+		const p0 = type === 'sine' ? period / 4 : type === 'triangle' ? period / 4 : 0;
+		const y = top - 12;
+		ctx.strokeStyle = colors['--period']; ctx.lineWidth = 1.5;
+		ctx.beginPath(); ctx.moveTo(X(p0), y); ctx.lineTo(X(p0 + period), y); ctx.stroke();
+		for (const x of [X(p0), X(p0 + period)]) { ctx.beginPath(); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.stroke(); }
+		const label = `one period: ${period.toFixed(period < 1 ? 2 : 1)} ms`;
+		const lx = Math.min(Math.max(X(p0 + period / 2), left + 70), right - 70);
+		ctx.fillStyle = colors['--bg']; const w = ctx.measureText(label).width + 8; ctx.fillRect(lx - w / 2, y - 8, w, 16);
+		text(label, lx, y, colors['--period'], 'center');
+	}
+
+	// the amplitude: how far the wave goes up and down
+	ctx.setLineDash([4, 4]); ctx.strokeStyle = colors['--muted']; ctx.lineWidth = 1;
+	for (const v of [amplitude, -amplitude]) { ctx.beginPath(); ctx.moveTo(left, Y(v)); ctx.lineTo(right, Y(v)); ctx.stroke(); }
+	ctx.setLineDash([]);
+
+	// the wave itself (finely, as the air pressure that it stands for)
+	ctx.strokeStyle = colors['--wave']; ctx.lineWidth = 2; ctx.beginPath();
+	const steps = Math.max(400, Math.round((right - left) * 4));
+	for (let i = 0; i <= steps; i++) {
+		const ms = (i / steps) * Window;
+		const v = amplitude * wave(ms / 1000);
+		if (i === 0) ctx.moveTo(X(ms), Y(v)); else ctx.lineTo(X(ms), Y(v));
+	}
+	ctx.stroke();
+
+	// the samples: the value of the wave, rate times per second (only drawn when they don't overlap)
+	const spacing = (right - left) / (Window * rate / 1000);
+	if (spacing >= 3) {
+		ctx.fillStyle = colors['--sample'];
+		const count = Math.floor(Window * rate / 1000);
+		for (let i = 0; i <= count; i++) {
+			const ms = (i * 1000) / rate;
+			const v = amplitude * wave(ms / 1000);
+			ctx.beginPath(); ctx.arc(X(ms), Y(v), spacing > 8 ? 3.5 : 2.5, 0, 2 * Math.PI); ctx.fill();
+			if (spacing > 8) {
+				ctx.globalAlpha = 0.35; ctx.strokeStyle = colors['--sample']; ctx.lineWidth = 1;
+				ctx.beginPath(); ctx.moveTo(X(ms), Y(0)); ctx.lineTo(X(ms), Y(v)); ctx.stroke(); ctx.globalAlpha = 1;
+			}
+		}
+	}
+	const perPeriod = rate / frequency;
+	const info = `${rate} samples per second: ${perPeriod >= 10 ? Math.round(perPeriod) : perPeriod.toFixed(1)} samples in one period` +
+		(spacing < 3 ? ' (too close together to draw)' : '') + (perPeriod < 2 ? ': too few to follow the wave!' : '');
+	text(info, right, 12, colors['--sample'], 'right');
+}
+
+// ---- the sound: a Web Audio oscillator with the same shape, frequency and amplitude ----
+let audio = null, oscillator = null, gain = null;
+function startSound() {
+	audio = audio || new AudioContext();
+	audio.resume();
+	oscillator = audio.createOscillator();
+	gain = audio.createGain();
+	oscillator.connect(gain).connect(audio.destination);
+	updateSound();
+	oscillator.start();
+}
+function stopSound() {
+	if (!oscillator) return;
+	gain.gain.setTargetAtTime(0, audio.currentTime, 0.02); // fade out quickly: an abrupt stop clicks
+	oscillator.stop(audio.currentTime + 0.1);
+	oscillator = null;
+}
+function updateSound() {
+	if (!oscillator) return;
+	oscillator.type = type;
+	oscillator.frequency.setTargetAtTime(frequency, audio.currentTime, 0.01);
+	// a square or a sawtooth sounds much louder than a sine with the same amplitude
+	const loudness = type === 'sine' || type === 'triangle' ? 0.3 : 0.15;
+	gain.gain.setTargetAtTime(amplitude * loudness, audio.currentTime, 0.02);
+}
+// Only play sound while this demo has the focus: other demos on the page may be playing too.
+function syncFocus() {
+	if (!audio) return;
+	if (document.hasFocus()) { if (audio.state === 'suspended') audio.resume(); }
+	else if (audio.state === 'running') audio.suspend();
+}
+window.addEventListener('blur', syncFocus);
+window.addEventListener('focus', syncFocus);
+const playButton = document.getElementById('play');
+playButton.addEventListener('click', () => {
+	const playing = oscillator !== null;
+	if (playing) stopSound(); else startSound();
+	document.getElementById('play-text').textContent = playing ? 'Play' : 'Stop';
+	document.getElementById('play-icon').setAttribute('d', playing ? 'M4 2.5v11l9-5.5z' : 'M3.5 3.5h9v9h-9z');
+});
+
+// ---- the controls ----
+for (const b of document.querySelectorAll('#types button'))
+	b.addEventListener('click', () => {
+		type = b.dataset.type;
+		for (const o of document.querySelectorAll('#types button')) o.setAttribute('aria-pressed', String(o === b));
+		updateSound(); draw();
+	});
+const inputs = { frequency: document.getElementById('frequency'), amplitude: document.getElementById('amplitude'), rate: document.getElementById('rate') };
+function readSliders() {
+	// the frequency slider is logarithmic: every step to the right multiplies the frequency, like the keys of a piano
+	frequency = Math.round(110 * Math.pow(2, Number(inputs.frequency.value) / 1000 * 4)); // 110 to 1760 Hz
+	amplitude = Number(inputs.amplitude.value) / 100;
+	rate = Rates[Number(inputs.rate.value)];
+	document.getElementById('frequency-out').textContent = `${frequency} Hz`;
+	document.getElementById('amplitude-out').textContent = amplitude.toFixed(2);
+	document.getElementById('rate-out').textContent = `${rate} Hz`;
+	updateSound(); draw();
+}
+for (const input of Object.values(inputs)) input.addEventListener('input', readSliders);
+inputs.frequency.value = String(Math.round(Math.log2(440 / 110) / 4 * 1000)); // start at 440 Hz
+readSliders();
+applyTheme();
+resize();
+</script>
+</body>
+</html>

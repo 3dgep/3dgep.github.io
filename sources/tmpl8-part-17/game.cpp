@@ -3,10 +3,8 @@
 #include <Audio/Audio.hpp>
 
 #include <algorithm>
-#include <cmath>
 #include <format>
 #include <iostream>
-#include <string>
 
 using namespace std::chrono_literals; // to write 2 seconds as 2s
 
@@ -21,101 +19,6 @@ namespace Tmpl8
     Sprite tank("assets/tank.png", 16, 2), barrel("assets/barrel.png", 16, 2);
     Sprite drumSprite("assets/drums.png", 4);
     Sprite shellSprite("assets/shells.png", 16, 2), explosionSprite("assets/explosion.png", 5);
-
-    // The audio world is 3D, and its y axis points up. The map lies flat in it: the x of the screen is its x, and the
-    // y of the screen is its z. The listener (the ears of the game) hovers ListenerHeight pixels above the map.
-    constexpr float ListenerHeight = 200;
-
-    // A position on the map (and a height above it) as a position in the audio world.
-    Audio::Vector ToAudio(vec2 position, float height = 0)
-    {
-        return { position.x, height, position.y };
-    }
-
-    // A sound effect that can be heard several times at once, like when two tanks fire at the same moment. A copy of an
-    // Audio::Sound is the same sound, so an effect has a few sounds of its own (its "voices"), which take turns.
-    struct Effect
-    {
-        static constexpr int Voices = 6;
-        Audio::Sound voices[Voices];
-        int next = 0; // the voice that plays next
-
-        void Load(const std::string& name, int variations = 1, float volume = 1);
-        void Play(vec2 position);
-    };
-
-    // Loads the voices from assets/sounds/name.ogg, or, with variations, from name1.ogg, name2.ogg, ... in turn.
-    void Effect::Load(const std::string& name, int variations, float volume)
-    {
-        for (int i = 0; i < Voices; i++)
-        {
-            const std::string file = variations > 1
-                ? std::format("assets/sounds/{}{}.ogg", name, i % variations + 1)
-                : std::format("assets/sounds/{}.ogg", name);
-            voices[i].load(file);
-            voices[i].setVolume(volume);
-            voices[i].setMinDistance(ListenerHeight); // closer than this, a voice plays at its full volume
-        }
-    }
-
-    // Plays the next voice from the start, at a position on the map, a little higher or lower each time.
-    void Effect::Play(vec2 position)
-    {
-        Audio::Sound& voice = voices[next];
-        next = (next + 1) % Voices;
-        voice.setPosition(ToAudio(position));
-        voice.setPitch(0.9f + Rand(0.2f)); // between 0.9 and 1.1
-        voice.replay();
-    }
-
-    Effect fireSound, explosionSound, hitSound, destroyedSound;
-
-    Audio::Sound music;
-    constexpr float MusicVolume = 0.4f;
-
-    // The frequency of a note, in Hz: a number of semitones above the A of 440 Hz (or below it, when it is negative).
-    // Every semitone multiplies the frequency by the 12th root of 2, so 12 semitones (an octave) double it.
-    float Note(int semitones)
-    {
-        return 440 * std::pow(2.0f, semitones / 12.0f);
-    }
-
-    // The jingles: a few notes, played one after the other. C, E, G and a high C go up for a new wave, and four
-    // notes go down, a semitone at a time, when the game is over.
-    const float WaveJingle[] = { Note(3), Note(7), Note(10), Note(15) };
-    const float GameOverJingle[] = { Note(-2), Note(-3), Note(-4), Note(-5), Note(-5), Note(-5) };
-    constexpr float NoteTime = 120; // milliseconds per note
-
-    Audio::Waveform beeper;         // a square wave, like the sound chips of old game consoles
-    const float* jingle = nullptr;  // the notes of the jingle that is playing (nullptr: none)
-    int jingleLength = 0;           // the number of notes in it
-    float jingleTime = 0;           // how long it has been playing, in milliseconds
-
-    // Starts a jingle: an array of notes, and the number of notes in it.
-    void PlayJingle(const float* notes, int length)
-    {
-        jingle = notes;
-        jingleLength = length;
-        jingleTime = 0;
-        beeper.setFrequency(notes[0]);
-        beeper.start();
-    }
-
-    // Plays the note of the jingle that matches the time, and stops after the last one.
-    void UpdateJingle(float deltaTime)
-    {
-        if (jingle == nullptr)
-            return;
-        jingleTime += deltaTime;
-        const int note = static_cast<int>(jingleTime / NoteTime);
-        if (note < jingleLength)
-            beeper.setFrequency(jingle[note]);
-        else
-        {
-            beeper.stop();
-            jingle = nullptr;
-        }
-    }
 
     int ground[MapHeight][MapWidth] = {
         {  0,  0, 10,  1,  0,  0, 10,  0,  0,  0, 10,  0 },
@@ -343,6 +246,16 @@ namespace Tmpl8
             return; // two bodies that can't move
         a.position += push * (a.inverseMass / total);
         b.position -= push * (b.inverseMass / total);
+    }
+
+    // The audio world is 3D, and its y axis points up. The map lies flat in it: the x of the screen is its x, and the
+    // y of the screen is its z. The listener (the ears of the game) hovers ListenerHeight pixels above the map.
+    constexpr float ListenerHeight = 200;
+
+    // A position on the map (and a height above it) as a position in the audio world.
+    Audio::Vector ToAudio(vec2 position, float height = 0)
+    {
+        return { position.x, height, position.y };
     }
 
     // The frame (0 to 15) that faces a direction: 0 is up, 4 is right, 8 is down, 12 is left.
@@ -608,6 +521,91 @@ namespace Tmpl8
     Body* bodies[1 + MaxEnemies + MaxDrums];
     int bodyCount = 0;
 
+    // A sound effect that can be heard several times at once, like when two tanks fire at the same moment. A copy of an
+    // Audio::Sound is the same sound, so an effect has a few sounds of its own (its "voices"), which take turns.
+    struct Effect
+    {
+        static constexpr int Voices = 6;
+        Audio::Sound voices[Voices];
+        int next = 0; // the voice that plays next
+
+        void Load(const std::string& name, int variations = 1, float volume = 1);
+        void Play(vec2 position);
+    };
+
+    // Loads the voices from assets/sounds/name.ogg, or, with variations, from name1.ogg, name2.ogg, ... in turn.
+    void Effect::Load(const std::string& name, int variations, float volume)
+    {
+        for (int i = 0; i < Voices; i++)
+        {
+            const std::string file = variations > 1
+                ? std::format("assets/sounds/{}{}.ogg", name, i % variations + 1)
+                : std::format("assets/sounds/{}.ogg", name);
+            voices[i].load(file);
+            voices[i].setVolume(volume);
+            voices[i].setMinDistance(ListenerHeight); // closer than this, a voice plays at its full volume
+        }
+    }
+
+    // Plays the next voice from the start, at a position on the map, a little higher or lower each time.
+    void Effect::Play(vec2 position)
+    {
+        Audio::Sound& voice = voices[next];
+        next = (next + 1) % Voices;
+        voice.setPosition(ToAudio(position));
+        voice.setPitch(0.9f + Rand(0.2f)); // between 0.9 and 1.1
+        voice.replay();
+    }
+
+    Effect fireSound, explosionSound, hitSound, destroyedSound;
+
+    Audio::Sound music;
+    constexpr float MusicVolume = 0.4f;
+
+    // The frequency of a note, in Hz: a number of semitones above the A of 440 Hz (or below it, when it is negative).
+    // Every semitone multiplies the frequency by the 12th root of 2, so 12 semitones (an octave) double it.
+    float Note(int semitones)
+    {
+        return 440 * std::pow(2.0f, semitones / 12.0f);
+    }
+
+    // The jingles: a few notes, played one after the other. C, E, G and a high C go up for a new wave, and four
+    // notes go down, a semitone at a time, when the game is over.
+    const float WaveJingle[] = { Note(3), Note(7), Note(10), Note(15) };
+    const float GameOverJingle[] = { Note(-2), Note(-3), Note(-4), Note(-5), Note(-5), Note(-5) };
+    constexpr float NoteTime = 120; // milliseconds per note
+
+    Audio::Waveform beeper;         // a square wave, like the sound chips of old game consoles
+    const float* jingle = nullptr;  // the notes of the jingle that is playing (nullptr: none)
+    std::size_t jingleLength = 0;   // the number of notes in it
+    float jingleTime = 0;           // how long it has been playing, in milliseconds
+
+    // Starts a jingle: an array of notes, and the number of notes in it.
+    void PlayJingle(const float* notes, std::size_t length)
+    {
+        jingle = notes;
+        jingleLength = length;
+        jingleTime = 0;
+        beeper.setFrequency(notes[0]);
+        beeper.start();
+    }
+
+    // Plays the note of the jingle that matches the time, and stops after the last one.
+    void UpdateJingle(float deltaTime)
+    {
+        if (jingle == nullptr)
+            return;
+        jingleTime += deltaTime;
+        const auto note = static_cast<std::size_t>(jingleTime / NoteTime);
+        if (note < jingleLength)
+            beeper.setFrequency(jingle[note]);
+        else
+        {
+            beeper.stop();
+            jingle = nullptr;
+        }
+    }
+
     // Shells fly in a straight line, until they hit something or their time is up. They are not bodies: they are too
     // fast and too small for the physics, and they disappear when they hit something anyway.
     struct Shell
@@ -673,8 +671,8 @@ namespace Tmpl8
             if (hit)
             {
                 Explode(shell.position);
-                explosionSound.Play(shell.position);
                 shell.time = 0;
+                explosionSound.Play(shell.position);
             }
         }
     }
@@ -799,7 +797,7 @@ namespace Tmpl8
     void StartWave()
     {
         wave++;
-        PlayJingle(WaveJingle, 4);
+        PlayJingle(WaveJingle, std::size(WaveJingle));
         for (int i = 0; i < MaxEnemies; i++)
         {
             if (i >= wave)
@@ -899,7 +897,6 @@ namespace Tmpl8
         music.load("assets/sounds/music.ogg", Audio::Sound::Type::Music);
         music.setLooping(true);
         music.play();
-
         beeper.create(Audio::Waveform::Type::Square, 0.1f); // a square wave at 10% of the full volume
         Restart();
     }
@@ -959,10 +956,10 @@ namespace Tmpl8
         for (int i = 0; i < MaxEnemies; i++)
             tanks[1 + i] = &enemies[i];
         UpdateShells(deltaTime, tanks, 1 + MaxEnemies);
-        for (int i = 0; i < 1 + MaxEnemies; i++)
-            tanks[i]->UpdateEngine();
         UpdateExplosions(deltaTime);
         UpdateJingle(deltaTime);
+        for (int i = 0; i < 1 + MaxEnemies; i++)
+            tanks[i]->UpdateEngine();
 
         // destroyed tanks: the player's game is over; an enemy explodes and leaves the battle
         if (player.health <= 0 && !gameOver)
@@ -970,7 +967,7 @@ namespace Tmpl8
             Explode(player.body.position);
             destroyedSound.Play(player.body.position);
             music.setFade(0.0f, 3s); // the music fades out, in 3 seconds
-            PlayJingle(GameOverJingle, 6);
+            PlayJingle(GameOverJingle, std::size(GameOverJingle));
             Hide(player, MaxEnemies); // out of sight, so that the enemies stop firing at the wreck
             gameOver = true;
         }

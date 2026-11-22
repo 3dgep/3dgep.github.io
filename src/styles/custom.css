@@ -307,6 +307,10 @@
 	cursor: zoom-in;
 }
 dialog.lightbox {
+	/* Centred on the screen (a modal dialog's default, undone by the CSS reset). */
+	position: fixed;
+	inset: 0;
+	margin: auto;
 	max-width: 100vw;
 	max-height: 100vh;
 	padding: 0;

@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <format>
 #include <iostream>
-#include <string>
 
 namespace Tmpl8
 {
@@ -18,42 +17,6 @@ namespace Tmpl8
     Sprite tank("assets/tank.png", 16, 2), barrel("assets/barrel.png", 16, 2);
     Sprite drumSprite("assets/drums.png", 4);
     Sprite shellSprite("assets/shells.png", 16, 2), explosionSprite("assets/explosion.png", 5);
-
-    // A sound effect that can be heard several times at once, like when two tanks fire at the same moment. A copy of an
-    // Audio::Sound is the same sound, so an effect has a few sounds of its own (its "voices"), which take turns.
-    struct Effect
-    {
-        static constexpr int Voices = 6;
-        Audio::Sound voices[Voices];
-        int next = 0; // the voice that plays next
-
-        void Load(const std::string& name, int variations = 1, float volume = 1);
-        void Play();
-    };
-
-    // Loads the voices from assets/sounds/name.ogg, or, with variations, from name1.ogg, name2.ogg, ... in turn.
-    void Effect::Load(const std::string& name, int variations, float volume)
-    {
-        for (int i = 0; i < Voices; i++)
-        {
-            const std::string file = variations > 1
-                ? std::format("assets/sounds/{}{}.ogg", name, i % variations + 1)
-                : std::format("assets/sounds/{}.ogg", name);
-            voices[i].load(file);
-            voices[i].setVolume(volume);
-        }
-    }
-
-    // Plays the next voice from the start, a little higher or lower each time.
-    void Effect::Play()
-    {
-        Audio::Sound& voice = voices[next];
-        next = (next + 1) % Voices;
-        voice.setPitch(0.9f + Rand(0.2f)); // between 0.9 and 1.1
-        voice.replay();
-    }
-
-    Effect fireSound, explosionSound, hitSound, destroyedSound;
 
     int ground[MapHeight][MapWidth] = {
         {  0,  0, 10,  1,  0,  0, 10,  0,  0,  0, 10,  0 },
@@ -519,6 +482,42 @@ namespace Tmpl8
     Body* bodies[1 + MaxEnemies + MaxDrums];
     int bodyCount = 0;
 
+    // A sound effect that can be heard several times at once, like when two tanks fire at the same moment. A copy of an
+    // Audio::Sound is the same sound, so an effect has a few sounds of its own (its "voices"), which take turns.
+    struct Effect
+    {
+        static constexpr int Voices = 6;
+        Audio::Sound voices[Voices];
+        int next = 0; // the voice that plays next
+
+        void Load(const std::string& name, int variations = 1, float volume = 1);
+        void Play();
+    };
+
+    // Loads the voices from assets/sounds/name.ogg, or, with variations, from name1.ogg, name2.ogg, ... in turn.
+    void Effect::Load(const std::string& name, int variations, float volume)
+    {
+        for (int i = 0; i < Voices; i++)
+        {
+            const std::string file = variations > 1
+                ? std::format("assets/sounds/{}{}.ogg", name, i % variations + 1)
+                : std::format("assets/sounds/{}.ogg", name);
+            voices[i].load(file);
+            voices[i].setVolume(volume);
+        }
+    }
+
+    // Plays the next voice from the start, a little higher or lower each time.
+    void Effect::Play()
+    {
+        Audio::Sound& voice = voices[next];
+        next = (next + 1) % Voices;
+        voice.setPitch(0.9f + Rand(0.2f)); // between 0.9 and 1.1
+        voice.replay();
+    }
+
+    Effect fireSound, explosionSound, hitSound, destroyedSound;
+
     // Shells fly in a straight line, until they hit something or their time is up. They are not bodies: they are too
     // fast and too small for the physics, and they disappear when they hit something anyway.
     struct Shell
@@ -584,8 +583,8 @@ namespace Tmpl8
             if (hit)
             {
                 Explode(shell.position);
-                explosionSound.Play();
                 shell.time = 0;
+                explosionSound.Play();
             }
         }
     }

@@ -1,25 +1,27 @@
-<!doctypehtml><html lang=en><head><meta charset=utf-8><meta content="width=device-width,initial-scale=1"name=viewport><title>Tmpl8</title><style>body,html{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#ccc;font:14px system-ui,sans-serif}canvas{position:fixed;inset:0;width:100%;height:100%;display:block;outline:0}#status{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}#fullscreen{position:fixed;top:12px;right:12px;z-index:1;width:36px;height:36px;padding:6px;border:0;border-radius:6px;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;opacity:.35;transition:opacity .3s}#fullscreen:focus-visible,#fullscreen:hover{opacity:.9}#fullscreen.idle:not(:hover){opacity:0;pointer-events:none}#fullscreen svg{display:block;width:100%;height:100%}#fullscreen .exit,:fullscreen #fullscreen .enter{display:none}:fullscreen #fullscreen .exit{display:block}</style></head><body><canvas id=canvas oncontextmenu=event.preventDefault() tabindex=-1></canvas><div id=status>Loading…</div><button aria-label="Toggle fullscreen"hidden id=fullscreen tabindex=-1 title="Fullscreen (F11)"type=button><svg aria-hidden=true class=enter fill=none stroke=currentColor stroke-linecap=round stroke-width=2 viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg> <svg aria-hidden=true class=exit fill=none stroke=currentColor stroke-linecap=round stroke-width=2 viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button><script>var Module={canvas:document.getElementById("canvas"),setStatus:function(e){document.getElementById("status").textContent=e},print:function(e){console.log(e)},printErr:function(e){console.error(e)}};!function(){var e=document.getElementById("fullscreen");if(document.fullscreenEnabled){e.hidden=!1,e.addEventListener("click",function(){document.fullscreenElement?document.exitFullscreen().catch(function(){}):document.documentElement.requestFullscreen().catch(function(){}),e.blur(),document.getElementById("canvas").focus()});var n=0;window.addEventListener("pointermove",t),window.addEventListener("pointerdown",t),t()}function t(){e.classList.remove("idle"),clearTimeout(n),n=setTimeout(function(){e.classList.add("idle")},2500)}}()</script><script async src=index.js></script><!-- silent-without-focus --><script>
+<!doctypehtml><html lang=en><head><!-- silent-without-focus --><script>
 // The demo only plays sound while it has the focus (click it to give it the focus). The sound keeps running in the
 // background, but its volume is 0, so that sounds don't pile up while the demo is silent.
 !function () {
+	if (!window.AudioNode) return;
+	var gains = [], connect = AudioNode.prototype.connect;
+	function level() { return document.hasFocus() ? 1 : 0; }
+	AudioNode.prototype.connect = function (target) {
+		if (target instanceof AudioDestinationNode) {
+			// node -> our gain -> the speakers, silent from the start without the focus
+			var gain = this.context.createGain();
+			gain.gain.value = level();
+			connect.call(gain, target);
+			gains.push(gain);
+			arguments[0] = gain;
+		}
+		return connect.apply(this, arguments);
+	};
 	function sync() {
-		var devices = (window.miniaudio && window.miniaudio.devices) || [], on = document.hasFocus() ? 1 : 0;
-		Array.prototype.forEach.call(devices, function (d) {
-			if (!d || !d.webaudio || !d.scriptNode) return;
-			var ctx = d.webaudio;
-			if (!d.focusGain) {
-				// once: miniaudio's output -> our gain -> the speakers
-				d.focusGain = ctx.createGain();
-				d.focusGain.gain.value = on;
-				d.scriptNode.disconnect();
-				d.scriptNode.connect(d.focusGain);
-				d.focusGain.connect(ctx.destination);
-			}
-			d.focusGain.gain.setTargetAtTime(on, ctx.currentTime, 0.02); // a quick fade, without a click
-		});
+		var on = level();
+		gains.forEach(function (g) { g.gain.setTargetAtTime(on, g.context.currentTime, 0.02); }); // a quick fade, without a click
 	}
 	window.addEventListener('blur', sync);
 	window.addEventListener('focus', sync);
-	setInterval(sync, 250); // also catches a device that is created later
+	setInterval(sync, 250); // a safety net, in case a focus change was missed
 }()
-</script></body></html>
+</script><!-- /silent-without-focus --><meta charset=utf-8><meta content="width=device-width,initial-scale=1"name=viewport><title>Tmpl8</title><style>body,html{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#ccc;font:14px system-ui,sans-serif}canvas{position:fixed;inset:0;width:100%;height:100%;display:block;outline:0}#status{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}#fullscreen{position:fixed;top:12px;right:12px;z-index:1;width:36px;height:36px;padding:6px;border:0;border-radius:6px;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;opacity:.35;transition:opacity .3s}#fullscreen:focus-visible,#fullscreen:hover{opacity:.9}#fullscreen.idle:not(:hover){opacity:0;pointer-events:none}#fullscreen svg{display:block;width:100%;height:100%}#fullscreen .exit,:fullscreen #fullscreen .enter{display:none}:fullscreen #fullscreen .exit{display:block}</style></head><body><canvas id=canvas oncontextmenu=event.preventDefault() tabindex=-1></canvas><div id=status>Loading…</div><button aria-label="Toggle fullscreen"hidden id=fullscreen tabindex=-1 title="Fullscreen (F11)"type=button><svg aria-hidden=true class=enter fill=none stroke=currentColor stroke-linecap=round stroke-width=2 viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg> <svg aria-hidden=true class=exit fill=none stroke=currentColor stroke-linecap=round stroke-width=2 viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button><script>var Module={canvas:document.getElementById("canvas"),setStatus:function(e){document.getElementById("status").textContent=e},print:function(e){console.log(e)},printErr:function(e){console.error(e)}};!function(){var e=document.getElementById("fullscreen");if(document.fullscreenEnabled){e.hidden=!1,e.addEventListener("click",function(){document.fullscreenElement?document.exitFullscreen().catch(function(){}):document.documentElement.requestFullscreen().catch(function(){}),e.blur(),document.getElementById("canvas").focus()});var n=0;window.addEventListener("pointermove",t),window.addEventListener("pointerdown",t),t()}function t(){e.classList.remove("idle"),clearTimeout(n),n=setTimeout(function(){e.classList.add("idle")},2500)}}()</script><script async src=index.js></script></body></html>

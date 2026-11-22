@@ -27,7 +27,7 @@ Using a grid of volume tiles and constructing a BVH over the lights in the scene
 
 To provide a brief overview of Volume Tiled Forward Shading, I’ve created a PowerPoint Presentation.
 
-[<img src="/images/PowerPoint.png" alt="Volume Tiled Forward Shading" width="45" class="thumb" />Volume Tiled Forward Shading.pptx](https://www.3dgep.com/wp-content/uploads/2017/07/Volume-Tiled-Forward-Shading.pptx)
+[<img src="/images/PowerPoint.png" alt="Volume Tiled Forward Shading" width="45" class="thumb" />Volume Tiled Forward Shading.pptx](/wp-content/uploads/2017/07/Volume-Tiled-Forward-Shading.pptx)
 
 ## Video
 

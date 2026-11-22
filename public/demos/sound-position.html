@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sound Position</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--map: #1b2a1f;
+		--listener: #5fd38a;
+		--sound: #ff8f5f;
+		--left: #5fb8ff;
+		--right: #e5c07b;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--map: #e3efe4;
+		--listener: #1d8a4a;
+		--sound: #c4521f;
+		--left: #1f6fc2;
+		--right: #a86b00;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: default; }
+	canvas.can-drag { cursor: grab; }
+	canvas.dragging { cursor: grabbing; }
+	#bar {
+		display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+		padding: 6px 8px; border-top: 1px solid var(--border); background: var(--panel);
+	}
+	.sliders { flex-basis: 100%; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 10px; }
+	.slider { display: contents; color: var(--muted); }
+	.slider input { width: 100%; min-width: 0; margin: 0; accent-color: var(--accent); }
+	.slider output { color: var(--text); font-variant-numeric: tabular-nums; min-width: 8ch; }
+	.buttons { flex-basis: 100%; display: flex; justify-content: center; gap: 8px; }
+	button {
+		font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border);
+		border-radius: 4px; padding: 3px 12px 3px 9px; cursor: pointer;
+		display: inline-flex; align-items: center; gap: 6px;
+	}
+	button svg { width: 14px; height: 14px; fill: currentColor; flex: none; }
+	button:hover { border-color: var(--accent); }
+	.hint { flex-basis: 100%; display: flex; align-items: center; gap: 12px; color: var(--muted); }
+	.hint b { color: var(--accent); font-weight: 600; }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { margin-left: auto; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="The map seen from above, with the listener (above the player's tank) and a sound. The volume of the sound follows from its distance to the listener (the Inverse attenuation model), and the left and right speakers each get a part of it, depending on the direction of the sound. Meters show the volume of the left and the right speaker."></canvas>
+	</div>
+	<div id="bar">
+		<div class="sliders">
+			<label class="slider">ListenerHeight <input id="height" type="range" min="0" max="400" step="10" value="200" /> <output id="height-out"></output></label>
+			<label class="slider">min distance <input id="min" type="range" min="10" max="400" step="10" value="200" /> <output id="min-out"></output></label>
+		</div>
+		<div class="buttons">
+			<button id="play" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="play-icon" d="M4 2.5v11l9-5.5z" /></svg><span id="play-text">Play</span></button>
+		</div>
+		<div class="hint"><span>drag the <b>listener</b> or the <b>sound</b>; <b>Play</b> repeats a bang with these volumes (use headphones)</span>
+			<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" /></div>
+	</div>
+</div>
+<script>
+'use strict';
+// World units are pixels, on the map of the game (768 x 512); the screen's y axis points down.
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W = 1, H = 1, DPR = 1, scale = 1, ox = 0, oy = 0;
+const MapW = 768, MapH = 512, Side = 150; // room to the right of the map for the meters
+let listener = { x: 224, y: 160 }, sound = { x: 600, y: 330 };
+let height = 200, minDistance = 200;
+const Rolloff = 1, MinChannelGain = 0.2;
+
+// ---- what the audio library calculates (miniaudio's spatializer) ----
+// The audio world: x is the screen's x, y points up (out of the screen), z is the screen's y. The listener looks
+// "forward", along -z: up on the screen. The speakers point forward-left and forward-right.
+function hear() {
+	const rel = { x: sound.x - listener.x, y: -height, z: sound.y - listener.y }; // from the listener to the sound
+	const distance = Math.hypot(rel.x, rel.y, rel.z);
+	// Inverse attenuation: full volume up to minDistance, then the volume drops with the distance
+	const d = Math.max(distance, minDistance);
+	const gain = minDistance / (minDistance + Rolloff * (d - minDistance));
+	// each speaker gets a part of it: more when the sound is on its side
+	const unit = distance > 0 ? { x: rel.x / distance, y: rel.y / distance, z: rel.z / distance } : { x: 0, y: 0, z: 0 };
+	const speaker = (dir) => Math.max((unit.x * dir.x + unit.z * dir.z + 1) / 2, MinChannelGain);
+	const left = speaker({ x: -0.7071, z: -0.7071 }), right = speaker({ x: 0.7071, z: -0.7071 });
+	return { distance, gain, left, right, L: gain * left, R: gain * right };
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--map', '--listener', '--sound', '--left', '--right', '--border'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	scale = Math.min((W - 20 - Side) / MapW, (H - 20) / MapH);
+	ox = 10; oy = (H - MapH * scale) / 2;
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+const X = (x) => ox + x * scale, Y = (y) => oy + y * scale;
+function text(s, x, y, color, align) {
+	ctx.fillStyle = color; ctx.textAlign = align || 'left'; ctx.textBaseline = 'middle';
+	ctx.fillText(s, x, y);
+}
+function meter(x, top, bottom, value, color, name) {
+	const h = bottom - top;
+	ctx.strokeStyle = colors['--border']; ctx.lineWidth = 1; ctx.strokeRect(x, top, 26, h);
+	ctx.fillStyle = color; ctx.fillRect(x + 2, bottom - 2 - (h - 4) * value, 22, (h - 4) * value);
+	text(name, x + 13, bottom + 12, color, 'center');
+	text(value.toFixed(2), x + 13, top - 10, colors['--text'], 'center');
+}
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg']; ctx.fillRect(0, 0, W, H);
+	ctx.font = '12px system-ui, sans-serif';
+	const h = hear();
+
+	// the map, with a grid of tiles
+	ctx.fillStyle = colors['--map']; ctx.fillRect(X(0), Y(0), MapW * scale, MapH * scale);
+	ctx.strokeStyle = colors['--border']; ctx.lineWidth = 1;
+	for (let x = 64; x < MapW; x += 64) { ctx.beginPath(); ctx.moveTo(X(x), Y(0)); ctx.lineTo(X(x), Y(MapH)); ctx.stroke(); }
+	for (let y = 64; y < MapH; y += 64) { ctx.beginPath(); ctx.moveTo(X(0), Y(y)); ctx.lineTo(X(MapW), Y(y)); ctx.stroke(); }
+
+	// minDistance: closer than this (in 3D), the sound plays at full volume. On the map, that's a circle around the
+	// listener, which gets smaller as the listener goes up (and is gone when ListenerHeight >= minDistance).
+	if (minDistance > height) {
+		const r = Math.sqrt(minDistance * minDistance - height * height);
+		ctx.setLineDash([5, 4]); ctx.strokeStyle = colors['--listener']; ctx.lineWidth = 1.2;
+		ctx.beginPath(); ctx.arc(X(listener.x), Y(listener.y), r * scale, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
+	}
+
+	// the line from the listener to the sound
+	ctx.strokeStyle = colors['--muted']; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
+	ctx.beginPath(); ctx.moveTo(X(listener.x), Y(listener.y)); ctx.lineTo(X(sound.x), Y(sound.y)); ctx.stroke(); ctx.setLineDash([]);
+	const mx = (X(listener.x) + X(sound.x)) / 2, my = (Y(listener.y) + Y(sound.y)) / 2;
+	text(`${Math.round(h.distance)} px`, mx + 8, my - 10, colors['--text']);
+
+	// the listener: above the player's tank, looking up the screen; and the sound
+	ctx.fillStyle = colors['--listener'];
+	ctx.beginPath(); ctx.arc(X(listener.x), Y(listener.y), 10, 0, 2 * Math.PI); ctx.fill();
+	ctx.beginPath(); ctx.moveTo(X(listener.x), Y(listener.y) - 20); ctx.lineTo(X(listener.x) - 6, Y(listener.y) - 11); ctx.lineTo(X(listener.x) + 6, Y(listener.y) - 11); ctx.closePath(); ctx.fill();
+	text('listener', X(listener.x), Y(listener.y) + 22, colors['--listener'], 'center');
+	const pulse = flash > 0 ? 1 + flash * 0.8 : 1;
+	ctx.fillStyle = colors['--sound'];
+	ctx.beginPath(); ctx.arc(X(sound.x), Y(sound.y), 9 * pulse, 0, 2 * Math.PI); ctx.fill();
+	text('sound', X(sound.x), Y(sound.y) + 22, colors['--sound'], 'center');
+
+	// the meters: the volume of the sound, and the part that each speaker plays
+	const sx = X(MapW) + 20, top = Y(0) + 30, bottom = Y(MapH) - 40;
+	meter(sx, top, bottom, h.L, colors['--left'], 'left');
+	meter(sx + 40, top, bottom, h.R, colors['--right'], 'right');
+	meter(sx + 80, top, bottom, h.gain, colors['--muted'], 'volume');
+	ctx.font = '11px system-ui, sans-serif';
+	text(`distance ${Math.round(h.distance)} (3D)`, sx, Y(MapH) - 8, colors['--muted']);
+}
+
+// ---- dragging ----
+let drag = null;
+function world(e) {
+	const rc = canvas.getBoundingClientRect();
+	return { x: (e.clientX - rc.left - ox) / scale, y: (e.clientY - rc.top - oy) / scale };
+}
+function pick(p) {
+	const near = 18 / scale;
+	if (Math.hypot(p.x - sound.x, p.y - sound.y) < near) return 'sound';
+	if (Math.hypot(p.x - listener.x, p.y - listener.y) < near) return 'listener';
+	return null;
+}
+canvas.addEventListener('pointerdown', (e) => {
+	const hit = pick(world(e));
+	if (!hit) return;
+	drag = hit;
+	canvas.setPointerCapture(e.pointerId); canvas.classList.add('dragging');
+});
+canvas.addEventListener('pointermove', (e) => {
+	const p = world(e);
+	if (!drag) { canvas.classList.toggle('can-drag', pick(p) !== null); return; }
+	const q = { x: Math.min(MapW, Math.max(0, p.x)), y: Math.min(MapH, Math.max(0, p.y)) };
+	if (drag === 'sound') sound = q; else listener = q;
+	draw();
+});
+const stop = () => { drag = null; canvas.classList.remove('dragging'); };
+canvas.addEventListener('pointerup', stop);
+canvas.addEventListener('pointercancel', stop);
+
+// ---- the sound: a short bang (noise that dies out), every 0.8 seconds, with the left and right volumes ----
+let audio = null, timer = null, flash = 0, noise = null;
+// Only play sound while this demo has the focus: other demos on the page may be playing too.
+function syncFocus() {
+	if (!audio) return;
+	if (document.hasFocus()) { if (audio.state === 'suspended') audio.resume(); }
+	else if (audio.state === 'running') audio.suspend();
+}
+window.addEventListener('blur', syncFocus);
+window.addEventListener('focus', syncFocus);
+function bang() {
+	if (!document.hasFocus()) return; // (a suspended context would play all the missed bangs at once later)
+	const h = hear();
+	const source = audio.createBufferSource(); source.buffer = noise;
+	const filter = audio.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 900;
+	const split = audio.createChannelSplitter(2), merge = audio.createChannelMerger(2);
+	const gl = audio.createGain(), gr = audio.createGain();
+	gl.gain.value = h.L; gr.gain.value = h.R;
+	source.connect(filter); filter.connect(gl).connect(merge, 0, 0); filter.connect(gr).connect(merge, 0, 1);
+	merge.connect(audio.destination);
+	source.start();
+	flash = 1;
+	const fade = () => { flash = Math.max(0, flash - 0.08); draw(); if (flash > 0) requestAnimationFrame(fade); };
+	requestAnimationFrame(fade);
+}
+document.getElementById('play').addEventListener('click', () => {
+	const playing = timer !== null;
+	if (playing) { clearInterval(timer); timer = null; }
+	else {
+		if (!audio) {
+			audio = new AudioContext();
+			// noise that dies out in 0.4 seconds, like a small explosion
+			noise = audio.createBuffer(1, Math.round(audio.sampleRate * 0.5), audio.sampleRate);
+			const data = noise.getChannelData(0);
+			for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audio.sampleRate * 0.08)) * 0.9;
+		}
+		audio.resume();
+		bang();
+		timer = setInterval(bang, 800);
+	}
+	document.getElementById('play-text').textContent = playing ? 'Play' : 'Stop';
+	document.getElementById('play-icon').setAttribute('d', playing ? 'M4 2.5v11l9-5.5z' : 'M3.5 3.5h9v9h-9z');
+});
+
+// ---- the sliders ----
+const heightInput = document.getElementById('height'), minInput = document.getElementById('min');
+function readSliders() {
+	height = Number(heightInput.value); minDistance = Number(minInput.value);
+	document.getElementById('height-out').textContent = `${height} px`;
+	document.getElementById('min-out').textContent = `${minDistance} px`;
+	draw();
+}
+heightInput.addEventListener('input', readSliders);
+minInput.addEventListener('input', readSliders);
+readSliders();
+applyTheme();
+resize();
+</script>
+</body>
+</html>

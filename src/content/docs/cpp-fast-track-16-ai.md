@@ -829,4 +829,4 @@ The result: chasing enemies that drive around the obstacles, and don't fire when
 
 </div>
 
-**Congratulations on getting here!** You started with a black window and a "Hello world", and now you have built a tank battle with physics and AI, from tiles and sprites to state machines. That's the end of the C++ Fast Track. Keep building games: that's the best way to keep learning.
+**Well done!** You started with a black window and a "Hello world", and now you have built a tank battle with physics and AI, from tiles and sprites to state machines. But it's a silent battle. In [part 17](/cpp-fast-track-17-audio/), you give it sound: shots, explosions, engines, and music.

@@ -492,40 +492,42 @@ namespace Tmpl8
     Body* bodies[1 + MaxEnemies + MaxDrums];
     int bodyCount = 0;
 
-    // A sound effect that can be heard several times at once, like when two tanks fire at the same moment. A copy of an
-    // Audio::Sound is the same sound, so an effect has a few sounds of its own (its "voices"), which take turns.
+    // A sound effect that can be heard several times at once, like when two tanks fire at the same moment. It has a few
+    // variations of the same kind of sound, and plays a copy of one of them every time.
     struct Effect
     {
-        static constexpr int Voices = 6;
-        Audio::Sound voices[Voices];
-        int next = 0; // the voice that plays next
+        static constexpr int MaxVariations = 3;
+        Audio::Sound sounds[MaxVariations];
+        int count = 1; // how many variations it has (Load sets it)
+        int next = 0;  // the variation that plays next
 
         void Load(const std::string& name, int variations = 1, float volume = 1);
         void Play(vec2 position);
     };
 
-    // Loads the voices from assets/sounds/name.ogg, or, with variations, from name1.ogg, name2.ogg, ... in turn.
+    // Loads assets/sounds/name.ogg, or, with variations, name1.ogg, name2.ogg, ... (at most MaxVariations).
     void Effect::Load(const std::string& name, int variations, float volume)
     {
-        for (int i = 0; i < Voices; i++)
+        count = variations;
+        for (int i = 0; i < count; i++)
         {
             const std::string file = variations > 1
-                ? std::format("assets/sounds/{}{}.ogg", name, i % variations + 1)
+                ? std::format("assets/sounds/{}{}.ogg", name, i + 1)
                 : std::format("assets/sounds/{}.ogg", name);
-            voices[i].load(file);
-            voices[i].setVolume(volume);
-            voices[i].setMinDistance(ListenerHeight); // closer than this, a voice plays at its full volume
+            sounds[i].load(file);
+            sounds[i].setVolume(volume);
+            sounds[i].setMinDistance(ListenerHeight); // closer than this, the effect plays at its full volume
         }
     }
 
-    // Plays the next voice from the start, at a position on the map, a little higher or lower each time.
+    // Plays a copy of the next variation, at a position on the map, a little higher or lower each time.
     void Effect::Play(vec2 position)
     {
-        Audio::Sound& voice = voices[next];
-        next = (next + 1) % Voices;
-        voice.setPosition(ToAudio(position));
-        voice.setPitch(0.9f + Rand(0.2f)); // between 0.9 and 1.1
-        voice.replay();
+        Audio::Sound& sound = sounds[next];
+        next = (next + 1) % count;
+        sound.setPosition(ToAudio(position));
+        sound.setPitch(0.9f + Rand(0.2f)); // between 0.9 and 1.1
+        sound.playOneShot();
     }
 
     Effect fireSound, explosionSound, hitSound, destroyedSound;

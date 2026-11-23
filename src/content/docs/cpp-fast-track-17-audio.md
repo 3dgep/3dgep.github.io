@@ -52,7 +52,7 @@ In this part, we don't use a shared library for the Audio library. So your proje
 
 ### Downloading the Library
 
-Go to the [releases of the Audio library](https://github.com/3dgep/Audio/releases/tag/v2.0.1), and download `Audio-2.0.1-windows-x64-static.zip`. *Static* means that the code of the library becomes part of your `.exe`, so your game doesn't need an extra DLL file to run.
+Go to the [releases of the Audio library](https://github.com/3dgep/Audio/releases/tag/v2.1.0), and download `Audio-2.1.0-windows-x64-static.zip`. *Static* means that the code of the library becomes part of your `.exe`, so your game doesn't need an extra DLL file to run.
 
 Extract the zip file. It contains an `include` folder (the header files) and a `lib` folder (the library files). Make a new folder `Audio` in the `lib` folder of your project (next to the `SDL3` folder, which holds the SDL library), and copy the `include` and `lib` folders into it. (You don't need to copy the `cmake` folder in `lib`, we're not using CMake in this project.) Your project should now look like this:
 
@@ -220,34 +220,40 @@ coin.setVolume(0.5f); // 0 is silent, 1 is the volume of the file
 coin.setPitch(1.5f);  // 1 is the pitch of the file, higher is higher (and faster)
 ```
 
-There is one catch. A sound can only play once at the same time. Two tanks that fire at the same moment need two sounds. And copying an `Audio::Sound` doesn't help, because a copy of a sound just points to the same sound, not a new one (just like a reference or a copy of a pointer). To play a sound several times at once, you load it several times. The library ensures that sound files are loaded only once, so it's cheap to create multiple sounds that all load the same sound file.
+There is one catch. A sound can only play once at the same time. When it is still playing, `play` and `replay` don't start a second one. But two tanks that fire at the same moment should be heard twice. That's what `playOneShot` is for:
 
-### Voices
-
-We put this in a struct of its own, an *effect*, with a few copies of a sound that take turns. These copies are called *voices*. Add this to `game.cpp`, just above `struct Shell`:
-
-```cpp source="tmpl8-part-17/2-effects/game.cpp#L485-L495"
+```cpp
+coin.playOneShot(); // play a copy of the sound, which can overlap with other copies
 ```
 
-`static constexpr` makes `Voices` a constant that belongs to the struct, so every effect has 6 voices. `next` is the voice that plays the next time. With 6 voices, an effect can be played 6 times at once. That's plenty. A seventh shot would restart the voice of the first one, which should be almost over anyway.
+The copy starts from the beginning, with the current volume and pitch of the sound, and plays next to the sound and its other copies. You can't stop a copy. It stops by itself when it reaches the end. That's fine for short sound effects, like shots and explosions.
 
-`Load` loads the sound into every voice:
+### Variations
 
-```cpp source="tmpl8-part-17/2-effects/game.cpp#L497-L508"
+Hearing exactly the same explosion over and over again soon gets boring. So an effect gets a few *variations*, which are different files of the same kind of sound, like `explosion1.ogg`, `explosion2.ogg` and `explosion3.ogg`. We put these in a struct of their own. Add this to `game.cpp`, just above `struct Shell`:
+
+```cpp source="tmpl8-part-17/2-effects/game.cpp#L485-L496"
 ```
 
-Hearing exactly the same explosion over and over again soon gets boring. So an effect can have *variations*, which are a few different files of the same kind of sound, like `explosion1.ogg`, `explosion2.ogg` and `explosion3.ogg`. With 3 variations, the voices get the files 1, 2, 3, 1, 2, 3, because `i % variations` goes 0, 1, 2, 0, 1, 2, and the `+ 1` makes that 1, 2, 3, 1, 2, 3. Without variations, the file name has no number. `std::format` builds the file name, just like it builds the status line at the top of the screen. It puts its arguments into the `{}` of the text, one after the other: `name` and the number, or only `name` if there is only 1 variation. Inside the `{}`, you can also say how a value should look, as you saw in [part 9](/cpp-fast-track-9-colours/). The [format specification](https://en.cppreference.com/w/cpp/utility/format/spec) on cppreference lists all the options. The volume is set to the same value for every voice.
+`static constexpr` makes `MaxVariations` a constant that belongs to the struct, so every effect has room for 3 variations. `count` is how many variations it really has, and `next` is the variation that plays the next time. `count` starts at 1 instead of 0, because `Play` divides by it (as you'll see below), and a division by 0 crashes the game.
 
-`Play` plays the next voice, and moves `next` on to the voice after it:
+`Load` loads the variations:
 
-```cpp source="tmpl8-part-17/2-effects/game.cpp#L510-L517"
+```cpp source="tmpl8-part-17/2-effects/game.cpp#L498-L510"
 ```
 
-The `(next + 1) % Voices` ensures that `next` goes back to 0 after the last voice. `voice.replay` starts the voice from the beginning, even when it is still playing. The *pitch* changes a little every time. `Rand(0.2f)` is a random number between 0 and 0.2, so the pitch is between 0.9 and 1.1. A higher pitch plays the sound faster, so it sounds higher and shorter, like a record that spins too fast. A small random change makes every shot sound a little different, without that, the voices will start to sound very repetitive.
+With 3 variations, `i` goes 0, 1, 2, so `i + 1` loads the files 1, 2 and 3. Without variations, the file name has no number. `std::format` builds the file name, just like it builds the status line at the top of the screen. It puts its arguments into the `{}` of the text, one after the other: `name` and the number, or only `name` if there is only 1 variation. Inside the `{}`, you can also say how a value should look, as you saw in [part 9](/cpp-fast-track-9-colours/). The [format specification](https://en.cppreference.com/w/cpp/utility/format/spec) on cppreference lists all the options. The volume is set to the same value for every variation.
+
+`Play` plays a copy of the next variation, and moves `next` on to the one after it:
+
+```cpp source="tmpl8-part-17/2-effects/game.cpp#L512-L519"
+```
+
+The `(next + 1) % count` ensures that `next` goes back to 0 after the last variation. `playOneShot` starts a copy of the sound, even when the sound (or another copy) is still playing, so shots that come quickly after each other all play to the end. The *pitch* changes a little every time, and because the copy takes the pitch of the sound, it is set before `playOneShot`. `Rand(0.2f)` is a random number between 0 and 0.2, so the pitch is between 0.9 and 1.1. A higher pitch plays the sound faster, so it sounds higher and shorter, like a record that spins too fast. A small random change makes every shot sound a little different. Without it, the effects soon sound very repetitive.
 
 Below `Effect`, add the effects of the game:
 
-```cpp source="tmpl8-part-17/2-effects/game.cpp#L519-L519"
+```cpp source="tmpl8-part-17/2-effects/game.cpp#L521-L521"
 ```
 
 :::caution[Still silent]
@@ -258,34 +264,34 @@ The effects are still empty, and an `Audio::Sound` that isn't loaded is silent. 
 
 In `UpdateShells`, a shell that hits a tank makes a clang of metal:
 
-```cpp source="tmpl8-part-17/2-effects/game.cpp#L555-L564" {8}
+```cpp source="tmpl8-part-17/2-effects/game.cpp#L557-L566" {8}
 ```
 
 A little further down, a shell that hit something explodes, and the explosion makes a bang:
 
-```cpp source="tmpl8-part-17/2-effects/game.cpp#L582-L588" {6}
+```cpp source="tmpl8-part-17/2-effects/game.cpp#L584-L590" {6}
 ```
 
 In `Tank::Fire`, replace `Audio::playSound` with the fire effect:
 
-```cpp source="tmpl8-part-17/2-effects/game.cpp#L652-L665" {11}
+```cpp source="tmpl8-part-17/2-effects/game.cpp#L654-L667" {11}
 ```
 
 Now load the effects at the end of `Init`, just before `Restart()`:
 
-```cpp source="tmpl8-part-17/2-effects/game.cpp#L794-L799" {1-5}
+```cpp source="tmpl8-part-17/2-effects/game.cpp#L796-L801" {1-5}
 ```
 
 The shots, the explosions and the hits have 3 variations each. The cannon is a bit softer, and so are the explosions, of which there are many. The volumes are a matter of taste, so try what you like.
 
 And a tank that is destroyed explodes with a deep boom. That happens in `Tick`, first for the player:
 
-```cpp source="tmpl8-part-17/2-effects/game.cpp#L856-L863" {5}
+```cpp source="tmpl8-part-17/2-effects/game.cpp#L858-L865" {5}
 ```
 
 Right below it, the same goes for every enemy that is destroyed:
 
-```cpp source="tmpl8-part-17/2-effects/game.cpp#L864-L876" {9}
+```cpp source="tmpl8-part-17/2-effects/game.cpp#L866-L878" {9}
 ```
 
 A destroyed enemy is hidden offscreen right after it explodes, so its boom plays only once. Now every shot, hit and explosion has a sound of its own. Run the game, or try it in the demo below.
@@ -319,9 +325,9 @@ $$
 \text{volume} = \frac{\text{minDistance}}{\text{minDistance} + \text{rolloff} \cdot (\text{distance} - \text{minDistance})}
 $$
 
-Closer than `minDistance`, the sound plays at its full volume. At twice that distance, it plays at half the volume, at three times the distance at a third, and so on (with a `rolloff` of 1, the default). That's roughly how sound behaves in the real world. The default `minDistance` is 1, which works when your world is in meters. But our world is in pixels, and at 1 pixel, the volume would already drop at the edge of the tank. So every voice gets a `minDistance` of `ListenerHeight`. A sound right below the listener plays at full volume, and the volume drops from there. Add one line to `Load`:
+Closer than `minDistance`, the sound plays at its full volume. At twice that distance, it plays at half the volume, at three times the distance at a third, and so on (with a `rolloff` of 1, the default). That's roughly how sound behaves in the real world. The default `minDistance` is 1, which works when your world is in meters. But our world is in pixels, and at 1 pixel, the volume would already drop at the edge of the tank. So every sound of an effect gets a `minDistance` of `ListenerHeight`. A sound right below the listener plays at full volume, and the volume drops from there. Add one line to `Load`:
 
-```cpp source="tmpl8-part-17/3-world/game.cpp#L507-L519" {11}
+```cpp source="tmpl8-part-17/3-world/game.cpp#L508-L521" {12}
 ```
 
 ### Left and Right
@@ -338,44 +344,44 @@ The dashed circle around the listener shows where the distance (in 3D) is less t
 
 `Play` gets a position now. Change its declaration in the `Effect` class:
 
-```cpp source="tmpl8-part-17/3-world/game.cpp#L497-L505" {8}
+```cpp source="tmpl8-part-17/3-world/game.cpp#L497-L506" {9}
 ```
 
-The definition of `Play` puts the voice at that position before it plays:
+The definition of `Play` puts the sound at that position before it plays a copy of it:
 
-```cpp source="tmpl8-part-17/3-world/game.cpp#L521-L529" {1-2,6}
+```cpp source="tmpl8-part-17/3-world/game.cpp#L523-L531" {1-2,6}
 ```
 
 Then give every effect the position where it happens. A tank fires from its own position:
 
-```cpp source="tmpl8-part-17/3-world/game.cpp#L664-L677" {11}
+```cpp source="tmpl8-part-17/3-world/game.cpp#L666-L679" {11}
 ```
 
 A shell hits a tank where the shell is:
 
-```cpp source="tmpl8-part-17/3-world/game.cpp#L567-L576" {8}
+```cpp source="tmpl8-part-17/3-world/game.cpp#L569-L578" {8}
 ```
 
 And it explodes in the same spot:
 
-```cpp source="tmpl8-part-17/3-world/game.cpp#L594-L600" {6}
+```cpp source="tmpl8-part-17/3-world/game.cpp#L596-L602" {6}
 ```
 
 The listener must follow the player. `Audio::getListener()` gives you the listener, and `setPosition` moves it. Do that in `Tick`, right after `Simulate`, when the player has moved:
 
-```cpp source="tmpl8-part-17/3-world/game.cpp#L861-L864" {2-4}
+```cpp source="tmpl8-part-17/3-world/game.cpp#L863-L866" {2-4}
 ```
 
 When the game is over, the player is hidden far outside the map. The listener stays where it was, because far away from the map, you wouldn't hear the battle anymore.
 
 Finally, a destroyed tank explodes where the tank is. For the player, that's the position of the player:
 
-```cpp source="tmpl8-part-17/3-world/game.cpp#L871-L878" {5}
+```cpp source="tmpl8-part-17/3-world/game.cpp#L873-L880" {5}
 ```
 
 For an enemy, it's the position of that enemy:
 
-```cpp source="tmpl8-part-17/3-world/game.cpp#L879-L891" {9}
+```cpp source="tmpl8-part-17/3-world/game.cpp#L881-L893" {9}
 ```
 
 Now every sound comes from the spot on the map where it happens. A tank on your left sounds louder in your left ear, and a battle on the other side of the map sounds softer than one right next to you. Headphones make the difference easiest to hear.
@@ -409,7 +415,7 @@ Every tank gets its own engine sound, and two methods to use it:
 ```cpp source="tmpl8-part-17/4-engines/game.cpp#L369-L375"
 ```
 
-The engine sound is only 2 seconds long. With `setLooping(true)`, it starts over as soon as it reaches its end, so it plays for as long as you want it to, without a gap. Like the voices of the effects, it gets a `minDistance` of `ListenerHeight`, so it plays at its full volume right below the listener and gets softer further away.
+The engine sound is only 2 seconds long. With `setLooping(true)`, it starts over as soon as it reaches its end, so it plays for as long as you want it to, without a gap. Like the sounds of the effects, it gets a `minDistance` of `ListenerHeight`, so it plays at its full volume right below the listener and gets softer further away.
 
 `UpdateEngine` sets the sound to the speed and the position of the tank:
 
@@ -420,14 +426,14 @@ The engine sound is only 2 seconds long. With `setLooping(true)`, it starts over
 
 Load the engines in `Init`, below the effects:
 
-```cpp source="tmpl8-part-17/4-engines/game.cpp#L837-L844" {2-7}
+```cpp source="tmpl8-part-17/4-engines/game.cpp#L839-L846" {2-7}
 ```
 
 The engines of the enemies get a *rolloff* of 3, instead of the default of 1. In the formula of [Distance](#distance), a bigger rolloff makes a sound softer faster when it is further away. With a whole wave of enemies on the field, their engines would otherwise hum almost as loud as your own. Now you mostly hear the enemies that are close to you.
 
 And update them every frame in `Tick`, right after `UpdateExplosions`, with the `tanks` array that `UpdateShells` gets:
 
-```cpp source="tmpl8-part-17/4-engines/game.cpp#L898-L904" {6-7}
+```cpp source="tmpl8-part-17/4-engines/game.cpp#L900-L906" {6-7}
 ```
 
 `UpdateEngine` is called for every tank, including yours and the destroyed tanks, because it stops their engine sounds when their health reaches 0. Drive around and listen to how your engine rises and falls with your speed, while the enemies hum around you.
@@ -455,29 +461,29 @@ The `s` in `2s` is a *literal suffix*, just like the `f` in `0.5f`. It tells C++
 
 Add the music below the effects:
 
-```cpp source="tmpl8-part-17/5-music/game.cpp#L562-L563"
+```cpp source="tmpl8-part-17/5-music/game.cpp#L564-L565"
 ```
 
 `Restart` starts a new battle, so that's where the music fades in:
 
-```cpp source="tmpl8-part-17/5-music/game.cpp#L777-L789" {11}
+```cpp source="tmpl8-part-17/5-music/game.cpp#L779-L791" {11}
 ```
 
 `setFade(0.0f, MusicVolume, 2s)` fades the music from silence (0) to `MusicVolume`, in 2 seconds.
 
 In `Init`, below the engines, load the music as `Audio::Sound::Type::Music`, so that the library streams it, and let it loop:
 
-```cpp source="tmpl8-part-17/5-music/game.cpp#L851-L855" {1-4}
+```cpp source="tmpl8-part-17/5-music/game.cpp#L853-L857" {1-4}
 ```
 
 When the player is destroyed, the music fades out, from its current volume to 0, in 3 seconds:
 
-```cpp source="tmpl8-part-17/5-music/game.cpp#L917-L925" {6}
+```cpp source="tmpl8-part-17/5-music/game.cpp#L919-L927" {6}
 ```
 
 Some players may not like music in our game, or would rather play their own. Let them use <kbd>M</kbd> to switch the music off and on, in `Tick`, just above <kbd>Tab</kbd>:
 
-```cpp source="tmpl8-part-17/5-music/game.cpp#L966-L975" {1-8}
+```cpp source="tmpl8-part-17/5-music/game.cpp#L968-L977" {1-8}
 ```
 
 `stop` pauses the music, and `play` continues where it stopped.
@@ -500,14 +506,14 @@ A tune is a series of notes, and every note has its own frequency. Musicians sta
 
 Add this function below `MusicVolume`:
 
-```cpp source="tmpl8-part-17/game.cpp#L565-L570"
+```cpp source="tmpl8-part-17/game.cpp#L567-L572"
 ```
 
 $2^{n/12}$ multiplies by the 12th root of 2, $n$ times. So `Note(0)` is the A of 440 Hz, `Note(12)` is 880 Hz, and `Note(-12)` is 220 Hz.
 
 Next comes the jingles:
 
-```cpp source="tmpl8-part-17/game.cpp#L572-L576"
+```cpp source="tmpl8-part-17/game.cpp#L574-L578"
 ```
 
 C is 3 semitones above A, E is 7, G is 10, and the C of the next octave is 15. Those four notes, one after the other, go up cheerfully, to announce a new wave. The jingle of the game over goes down instead, a semitone at a time, and the last note is three times as long, so we just repeat it three times. Every note takes 120 milliseconds.
@@ -516,14 +522,14 @@ C is 3 semitones above A, E is 7, G is 10, and the C of the next octave is 15. T
 
 A waveform plays one frequency at a time, so a jingle changes the frequency at every note. These variables keep track of the jingle that is playing:
 
-```cpp source="tmpl8-part-17/game.cpp#L578-L581"
+```cpp source="tmpl8-part-17/game.cpp#L580-L583"
 ```
 
 `beeper` is the waveform that plays the notes. An `Audio::Waveform` doesn't load a file, it makes its sound itself, one wave after the other, like the waves in the demo of [What Is Sound?](#what-is-sound). `jingle` points to the notes of the jingle that is currently playing, and is `nullptr` when no jingle is playing. `jingleLength` is the number of notes, and `jingleTime` counts the milliseconds since the jingle started, so that we know which note to play.
 
 `PlayJingle` starts playing a jingle:
 
-```cpp source="tmpl8-part-17/game.cpp#L583-L591"
+```cpp source="tmpl8-part-17/game.cpp#L585-L593"
 ```
 
 An array can't be passed to a function by itself. Instead, the function gets a pointer to its first element (remember [part 8](/cpp-fast-track-8-memory-addresses/)?). That's why `PlayJingle` gets the length of the array too, because from the pointer alone, it can't know how many notes there are. `PlayJingle` remembers the notes and their number in `jingle` and `jingleLength`, and sets `jingleTime` back to 0, because the jingle starts now. When another jingle is still playing, this simply replaces it. Then it tunes `beeper` to the first note using the `setFrequency` function on the waveform, and `start` makes it play.
@@ -542,33 +548,33 @@ We use a pointer and a length here because we haven't introduced the `std::span`
 
 The `UpdateJingle` function plays the note according to the jingler timer:
 
-```cpp source="tmpl8-part-17/game.cpp#L593-L607"
+```cpp source="tmpl8-part-17/game.cpp#L595-L609"
 ```
 
 `jingleTime / NoteTime` is the number of the note, as a float. From 0 to 1 is the first note, 1 to 2 the second, and so on. The `static_cast` drops the part after the decimal point, so `note` is 0 during the first note, 1 during the second, and so on. It is a `std::size_t`, just like `jingleLength`, so that the two can be compared. After the last note, the waveform stops, and `jingle` becomes `nullptr` again.
 
 The jingle of a new wave plays in `StartWave`:
 
-```cpp source="tmpl8-part-17/game.cpp#L797-L800" {4}
+```cpp source="tmpl8-part-17/game.cpp#L799-L802" {4}
 ```
 
 `std::size` gives the number of elements of a static array, 4 for `WaveJingle`. If you add a note to a jingle, then the length of the array changes with it. `std::size` only works on a static array (like `WaveJingle`), and not on a pointer to an array, because a pointer doesn't know how many elements there are in the array, let alone that it's an array at all!. That's why we can use it here. `WaveJingle` is a statically size array, but when passed to the `PlayJingle` function, it becomes a pointer. The size of the array is returned from the `std::size` function as an `std::size_t` type (the type that C++ uses for sizes of arrays), so `jingleLength` and the `length` of the `PlayJingle` function are a `std::size_t` too.
 
 Create the waveform in `Init`, below the music:
 
-```cpp source="tmpl8-part-17/game.cpp#L898-L901" {3}
+```cpp source="tmpl8-part-17/game.cpp#L900-L903" {3}
 ```
 
 A square wave at full volume is very loud, so its amplitude is only 0.1. Create it before `Restart`, because `Restart` starts the first wave, and that plays a jingle.
 
 `Tick` updates the jingle every frame, below `UpdateExplosions`:
 
-```cpp source="tmpl8-part-17/game.cpp#L959-L960" {2}
+```cpp source="tmpl8-part-17/game.cpp#L961-L962" {2}
 ```
 
 And the jingle of the game over plays when the player is destroyed:
 
-```cpp source="tmpl8-part-17/game.cpp#L964-L973" {7}
+```cpp source="tmpl8-part-17/game.cpp#L966-L975" {7}
 ```
 
 `std::size(GameOverJingle)` is 6, the number of notes of the game over jingle.
@@ -624,7 +630,7 @@ The final result: sound effects, spatial audio, engines, music and jingles. (Cli
 1. The drums are silent. A shell that pushes a drum makes an explosion, but a tank that rams a drum, or a drum that slides into a crate, makes no sound at all. Let a drum *clang* when something pushes it or when it bumps into something. The harder the push or the bump, the louder the clang. Use the hit sounds for it, but deeper, because a drum is hollow.
 
    :::tip[Hint]
-   You don't have to find out *what* hits a drum, because a sudden change in its velocity tells you that something did. Remember the velocities of the drums before `Simulate`, and compare them after it. A drum that only slides loses a bit of its speed every millisecond, because of its drag. In one frame, its velocity becomes `velocity * std::pow(1 - drag, deltaTime)`. Any other change is a push or a bump, and the size of that change is how hard it was. Ignore very small changes, or the drums clang all the time when a tank leans against them. A new effect, loaded from the hit sounds, can set the volume and the pitch of the voice that it plays.
+   You don't have to find out *what* hits a drum, because a sudden change in its velocity tells you that something did. Remember the velocities of the drums before `Simulate`, and compare them after it. A drum that only slides loses a bit of its speed every millisecond, because of its drag. In one frame, its velocity becomes `velocity * std::pow(1 - drag, deltaTime)`. Any other change is a push or a bump, and the size of that change is how hard it was. Ignore very small changes, or the drums clang all the time when a tank leans against them. A new effect, loaded from the hit sounds, can set the volume and the pitch of its sound before it plays a copy.
    :::
 
    If you completed the hard assignment, the solution should look like this:

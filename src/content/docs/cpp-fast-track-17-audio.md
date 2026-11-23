@@ -52,7 +52,7 @@ In this part, we don't use a shared library for the Audio library. So your proje
 
 ### Downloading the Library
 
-Go to the [releases of the Audio library](https://github.com/3dgep/Audio/releases/tag/v2.1.0), and download `Audio-2.1.0-windows-x64-static.zip`. *Static* means that the code of the library becomes part of your `.exe`, so your game doesn't need an extra DLL file to run.
+Go to the [releases of the Audio library](https://github.com/3dgep/Audio/releases/tag/v2.1.1), and download `Audio-2.1.1-windows-x64-static.zip`. *Static* means that the code of the library becomes part of your `.exe`, so your game doesn't need an extra DLL file to run.
 
 Extract the zip file. It contains an `include` folder (the header files) and a `lib` folder (the library files). Make a new folder `Audio` in the `lib` folder of your project (next to the `SDL3` folder, which holds the SDL library), and copy the `include` and `lib` folders into it. (You don't need to copy the `cmake` folder in `lib`, we're not using CMake in this project.) Your project should now look like this:
 

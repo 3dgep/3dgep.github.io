@@ -1,0 +1,57 @@
+#pragma once
+
+#include "body.hpp"
+#include "enemy.hpp"
+#include "surface.hpp"
+
+#include <string>
+#include <vector>
+
+namespace Tmpl8
+{
+    class Camera;
+
+    // Where an enemy starts: E in the level file is a walker, W a flyer.
+    struct EnemyStart
+    {
+        Enemy::Kind kind;
+        vec2 position;
+    };
+
+    // A level: a grid of tiles, loaded from a text file with one character per tile.
+    class Level
+    {
+    public:
+        static constexpr int TileSize = 18; // in pixels
+        static int ToTile(float pixels) { return static_cast<int>(std::floor(pixels / TileSize)); }
+
+        void Load(const std::string& file);
+        void Tick(float deltaTime) { time += deltaTime; }
+        void Draw(Surface& screen, const Camera& camera);
+
+        char TileAt(int x, int y) const;
+        void SetTile(int x, int y, char tile);
+        bool IsSolid(int x, int y) const;
+        Body HitBox(int x, int y) const;
+        void Move(Body& body, float deltaTime) const;
+
+        float Width() const { return static_cast<float>(columns * TileSize); } // in pixels
+        float Height() const { return static_cast<float>(rows.size() * TileSize); } // in pixels
+        vec2 Size() const { return { Width(), Height() }; }
+        vec2 PlayerStart() const { return playerStart; }
+        const std::vector<EnemyStart>& EnemyStarts() const { return enemyStarts; }
+
+    private:
+        bool IsGround(int x, int y) const;
+        bool HitsSolid(const Body& body) const;
+        int Frame(int x, int y) const;
+        int GroundFrame(int x, int y) const;
+
+        std::vector<std::string> rows; // the characters of the level, one string per row of tiles
+        int columns = 0;
+        vec2 playerStart;
+        std::vector<EnemyStart> enemyStarts;
+        float time = 0; // for the animated tiles
+        Sprite tiles{ "assets/tiles.png", 20, 9 };
+    };
+}

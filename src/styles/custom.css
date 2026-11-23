@@ -338,6 +338,7 @@ dialog.lightbox img {
 /* Web builds of the tmpl8 template: the 800x512 screen (25:16). */
 .sl-markdown-content iframe.embed-tmpl8 { aspect-ratio: 25 / 16; }
 .sl-markdown-content iframe.embed-tmpl8.embed-768x512 { aspect-ratio: 3 / 2; } /* a game with a 768x512 screen */
+.sl-markdown-content iframe.embed-tmpl8.embed-480x270 { aspect-ratio: 16 / 9; } /* a game with a 480x270 screen */
 
 /* Keyboard keys: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> styles each key as its own keycap. */
 .sl-markdown-content kbd {

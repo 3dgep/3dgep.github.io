@@ -173,6 +173,7 @@ export default defineConfig({
 						{ label: 'Part 15: Physics', slug: 'cpp-fast-track-15-physics' },
 						{ label: 'Part 16: AI', slug: 'cpp-fast-track-16-ai' },
 						{ label: 'Part 17: Audio', slug: 'cpp-fast-track-17-audio' },
+						{ label: 'Part 18: Platformer', slug: 'cpp-fast-track-18-platformer' },
 					],
 				},
 				{

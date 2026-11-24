@@ -1,6 +1,6 @@
 #include "game.hpp"
 
-#include "menu_scene.hpp"
+#include "src/menu_scene.hpp"
 
 #include <SDL3/SDL_events.h>
 #include <algorithm>

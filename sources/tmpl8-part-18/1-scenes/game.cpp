@@ -1,6 +1,6 @@
 #include "game.hpp"
 
-#include "menu_scene.hpp"
+#include "src/menu_scene.hpp"
 
 #include <algorithm>
 

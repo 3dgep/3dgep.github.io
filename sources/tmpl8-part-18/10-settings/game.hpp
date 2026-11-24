@@ -2,10 +2,10 @@
 
 #include "surface.hpp"
 #include "template.hpp" // ScreenWidth/Height, Rand, vec2, fullscreen and VSync
-#include "scene.hpp"
-#include "settings.hpp"
-#include "sounds.hpp"
-#include "text.hpp"
+#include "src/scene.hpp"
+#include "src/settings.hpp"
+#include "src/sounds.hpp"
+#include "src/text.hpp"
 
 #include <SDL3/SDL_keyboard.h> // SDL_Scancode, SDL_Keycode and SDL_GetScancodeFromKey
 #include <SDL3/SDL_mouse.h>    // SDL_BUTTON_LEFT

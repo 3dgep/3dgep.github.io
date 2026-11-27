@@ -1,7 +1,8 @@
 #include "game.hpp"
 
-#include "src/menu_scene.hpp"
+#include "menu_scene.hpp"
 
+#include <SDL3/SDL_events.h>
 #include <algorithm>
 
 namespace Tmpl8
@@ -34,5 +35,12 @@ namespace Tmpl8
         if (nextScene)
             scene = std::move(nextScene);
         scene->Draw(screen);
+    }
+
+    void Game::Quit()
+    {
+        SDL_Event event{};
+        event.type = SDL_EVENT_QUIT; // the same as clicking the close button of the window
+        SDL_PushEvent(&event);
     }
 }

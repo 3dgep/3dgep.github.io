@@ -2,13 +2,11 @@
 
 #include "surface.hpp"
 #include "template.hpp" // ScreenWidth/Height, Rand, vec2, fullscreen and VSync
-#include "src/scene.hpp"
-#include "src/settings.hpp"
-#include "src/sounds.hpp"
-#include "src/text.hpp"
+#include "scene.hpp"
+#include "sounds.hpp"
+#include "text.hpp"
 
 #include <SDL3/SDL_keyboard.h> // SDL_Scancode, SDL_Keycode and SDL_GetScancodeFromKey
-#include <SDL3/SDL_mouse.h>    // SDL_BUTTON_LEFT
 #include <bitset>
 #include <memory>
 
@@ -22,8 +20,8 @@ public:
 	void Shutdown();
 	void Tick( float deltaTime );
 	void MouseUp( int button ) { /* implement if you want to detect mouse button presses */ }
-	void MouseDown( int button ) { clickEvent = clickEvent || button == SDL_BUTTON_LEFT; }
-	void MouseMove( int x, int y ) { mouseX = x; mouseY = y; moveEvent = true; }
+	void MouseDown( int button ) { /* implement if you want to detect mouse button presses */ }
+	void MouseMove( int x, int y ) { /* implement if you want to detect mouse movement (x, y is the mouse position in the window) */ }
 
 	// Keyboard: use the SDL_SCANCODE_ names for the keys, e.g. SDL_SCANCODE_A, SDL_SCANCODE_SPACE, SDL_SCANCODE_LEFT.
 	bool GetKey( SDL_Scancode key ) const { return held.test( key ); }             // true while the key is held down
@@ -43,34 +41,20 @@ public:
 		held = keys | downEvents;
 		downEvents.reset();
 		upEvents.reset();
-		clicked = clickEvent;
-		moved = moveEvent;
-		clickEvent = moveEvent = false;
 	}
 
 	// For the scenes.
 	void ChangeScene( std::unique_ptr<Scene> next ) { nextScene = std::move( next ); } // from the next frame on
-	void Quit();
-	int MouseX() const { return mouseX; }
-	int MouseY() const { return mouseY; }
-	bool MouseClicked() const { return clicked; } // true in the frame the left mouse button goes down
-	bool MouseMoved() const { return moved; }     // true in a frame in which the mouse moved
 	Text& GetText() { return text; }
-	Settings& GetSettings() { return settings; }
 	Sounds& GetSounds() { return sounds; }
 
 private:
 	Surface& screen; // the game window: draw on this
 
 	Text text;
-	Settings settings;
 	Sounds sounds;
 	std::unique_ptr<Scene> scene;     // the scene on the screen
 	std::unique_ptr<Scene> nextScene; // the scene that takes over in the next frame, or nullptr
-
-	int mouseX = 0, mouseY = 0;
-	bool clickEvent = false, moveEvent = false; // since the previous frame
-	bool clicked = false, moved = false;        // in this frame
 
 	std::bitset<SDL_SCANCODE_COUNT> keys;       // keys that are down right now (updated by the template)
 	std::bitset<SDL_SCANCODE_COUNT> downEvents; // keys that went down since the previous frame

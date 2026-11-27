@@ -10,18 +10,18 @@ lastUpdated: 2026-11-23
 In the previous parts, you learned the pieces of a game one at a time, like sprites, tiles, classes, files, physics, AI and sound. In this part, you put them together, and build a complete game from a fresh copy of the template. It's a 2D side-scrolling platformer called *Alien Jump*. You will:
 
 1. split the game into *scenes*, like a title screen and the game itself,
-2. load levels from text files, and draw them with tiles that fit together,
-3. follow the player with a camera, in front of a background that scrolls slower than the level,
-4. make an alien that runs, falls and jumps, and collides with the level,
-5. tune the jump until it feels good,
+2. load levels from text files, and draw them with a tile map,
+3. follow the player with a camera,
+4. make an alien character that runs, falls, jumps, and collides with the level,
+5. tweak the jump until it feels good,
 6. add coins, spikes, lives and a flag at the end of each level,
-7. add enemies that walk and fly, and that you can stomp on,
+7. add enemies that walk and fly,
 8. add sound effects and music,
 9. and add a main menu, a pause menu, a level picker and a settings screen.
 
-This part doesn't continue the code of an earlier part. Everything the game needs is explained here, so you only need to know the basics of C++ and classes. It's a long part, but every section ends with a game that runs, so you can take a break after any of them.
+This part doesn't continue the code of an earlier part. Everything the game needs is explained here, so you only need to know the basics of C++ and classes. It's a long journey, but every section ends with a game that runs, so you can take a break after completing one of the sections and continue later where you left off.
 
-This is what you will build:
+This is what you will build in this tutorial:
 
 <iframe class="embed embed-tmpl8 embed-480x270" src="/demos/cpp-fast-track-18-settings/index.html" title="Alien Jump: a platformer with a main menu, three levels with coins, spikes and enemies, sound and music" loading="lazy" allowfullscreen></iframe>
 
@@ -45,7 +45,7 @@ The game also needs images, levels, sounds and music. Download them here:
 
 [<img src="/images/zip1.png" alt="Download the assets of part 18 as a zip file" width="120" class="thumb" />part-18-assets.zip](/downloads/part-18-assets.zip)
 
-Extract this zip file to the `Part 18` folder. Its `assets` folder goes into the `assets` folder of the template, and adds these files to it:
+Extract this zip file to the `Part 18` folder. Its `assets` will be added to the `assets` folder of the template:
 
 ```txt
 assets
@@ -60,39 +60,43 @@ assets
 └── CREDITS.md
 ```
 
+:::note
+We will only be using the assets that come from the assets zip file above. Feel free to delete the unused assets that come from the original template.
+:::
+
 The images come from [Pixel Platformer](https://kenney.nl/assets/pixel-platformer), [UI Pack (Adventure)](https://kenney.nl/assets/ui-pack-adventure), [UI Pack (Pixel Adventure)](https://kenney.nl/assets/ui-pack-pixel-adventure) and [Kenney Fonts](https://kenney.nl/assets/kenney-fonts) by Kenney. The sound effects come from Kenney's [Digital Audio](https://kenney.nl/assets/digital-audio), [Interface Sounds](https://kenney.nl/assets/interface-sounds) and [Music Jingles](https://kenney.nl/assets/music-jingles), from [512 Sound Effects (8-bit style)](https://opengameart.org/content/512-sound-effects-8-bit-style) by Juhani Junkala, [Victory](https://opengameart.org/content/victory) by celestialghost8 and the [Chiptune SFX Pack](https://opengameart.org/content/chiptune-sfx-pack) by FrogPog. The music is from [4 Chiptunes (Adventure)](https://opengameart.org/content/4-chiptunes-adventure) by Juhani Junkala. They all share their work for free, under the [CC0](https://creativecommons.org/publicdomain/zero/1.0/) license. `CREDITS.md` lists which file came from where.
 
-Open `tmpl8.slnx` in the `Part 18` folder.
+Open `tmpl8.slnx` in the `Part 18` folder in Visual Studio.
 
 ### A Smaller Screen
 
 The template draws on a screen of 800×512 pixels. That's a lot of pixels for pixel art. The tiles of this game are only 18×18 pixels, and the characters 24×24, so they would look tiny on an 800×512 screen. So let's first make a change to the template. Let's first make the screen smaller so it fits better with the assets we're using. We'll set the screen size to 480×270 pixels, and make the window twice as large as the screen using a screen scale factor of 2, so that the pixels look larger. The pixels won't get blurry when the window is scaled up, because the template uses SDL's `SDL_SCALEMODE_PIXELART` to scale screen to the size of the window (more on that later).
 
-The size of the screen is set in the template. Open `template.hpp` in the `tmpl8` folder of the **Solution Explorer**, and change the size near the top of the file:
+The size of the screen is set in the template. Open `template.hpp` in the `template code` folder of the **Solution Explorer** (on disk, it's in `src/Tmpl8`), and change the size near the top of the file:
 
-```cpp source="tmpl8-part-18/start/tmpl8/template.hpp#L10-L18" {1-5,7}
+```cpp source="tmpl8-part-18/start/src/Tmpl8/template.hpp#L10-L18" {1-5,7}
 ```
 
 `ScreenScale` is new. We'll use it to tell the template how much larger the window is than the screen. Open `template.cpp`, and find the `ScaleWindow` function. It calculates the size of the window, so multiply the size of the screen by `ScreenScale` there:
 
-```cpp source="tmpl8-part-18/start/tmpl8/template.cpp#L144-L148" {4}
+```cpp source="tmpl8-part-18/start/src/Tmpl8/template.cpp#L144-L148" {4}
 ```
 
 Now the window is twice as wide and twice as high as the screen.
 
 Then find `SDL_CreateWindowAndRenderer` in `SDL_AppInit`, and make the window `ScreenScale` times as large as the screen there too:
 
-```cpp source="tmpl8-part-18/start/tmpl8/template.cpp#L201-L201"
+```cpp source="tmpl8-part-18/start/src/Tmpl8/template.cpp#L201-L201"
 ```
 
 You don't have to change anything else, because the template already stretches the screen to fill the window. You can see how a few lines further down in `SDL_AppInit`:
 
-```cpp source="tmpl8-part-18/start/tmpl8/template.cpp#L212-L215"
+```cpp source="tmpl8-part-18/start/src/Tmpl8/template.cpp#L212-L215"
 ```
 
 `SDL_SetRenderLogicalPresentation` tells SDL that the game draws on a screen of `ScreenWidth`×`ScreenHeight` pixels, whatever the size of the window. SDL scales that screen up to fill the window, and adds black bars at the sides if the window has a different shape (that's what `LETTERBOX` means). Every frame, the template copies the screen into the `frameBuffer` texture, and SDL draws that texture over the window. `SDL_SetTextureScaleMode` tells SDL how to scale the texture. By default, SDL mixes the colours of neighbouring pixels when it scales a texture up, and that makes pixel art look blurry. With `SDL_SCALEMODE_PIXELART`, every pixel stays a sharp square, even when the window isn't an exact multiple of the screen, like in fullscreen on most monitors.
 
-The window is now twice as wide and twice as high as the screen, so every pixel of the screen becomes a sharp block of 2×2 pixels in the window. Press <kbd>F5</kbd>, and you see that the spinning gun turret and the text of the template are twice as large now. Try making the game fullscreen with the <kbd>F11</kbd> (or <kbd>Alt</kbd>+<kbd>Enter</kbd>) shortcuts. The text and the spinning turret should stay sharp (well, maybe the spinning turret gets blurry because its spinning so fast).
+The window is now twice as wide and twice as high as the screen, so every pixel of the screen becomes a sharp block of 2×2 pixels in the window. Press <kbd>F5</kbd>, and you see that the spinning gun turret and the text of the template are twice as large now. Try making the game fullscreen with the <kbd>F11</kbd> (or <kbd>Alt</kbd>+<kbd>Enter</kbd>) shortcuts. The text and the spinning turret should stay sharp (well, maybe the spinning turret gets blurry because its spinning so fast, depending on the frame-rate).
 
 <iframe class="embed embed-tmpl8 embed-480x270" src="/demos/cpp-fast-track-18-template/index.html" title="The template's spinning gun turret, on a screen of 480×270 pixels that is shown twice as large" loading="lazy" allowfullscreen></iframe>
 
@@ -104,17 +108,41 @@ The template on a screen of 480×270 pixels, shown twice as large. Every pixel i
 
 ### Adding Files
 
-This game will have more code than the earlier parts, but we're not going to clutter up `game.cpp` with global variables. Every class gets its own header file (`.hpp`) and source file (`.cpp`). That's a lot of files, so they go in a folder of their own, `src` (short for *source*), in the `Part 18` folder. `game.cpp` and `game.hpp` stay where they are, next to the `tmpl8` folder.
+This game will have more code than the earlier parts, but this time, we're not going to clutter up `game.cpp` with global variables like we did in the previous parts. Every class gets its own header file (`.hpp`) and source file (`.cpp`). There's going to be a lot of files, and they all go into the `src` folder (short for *source*) of the `Part 18` folder, next to `game.cpp` and `game.hpp`. The template's own files are in `src/Tmpl8`, a folder named after the template's namespace.
 
-To add a file, right-click the `tmpl8` project in the **Solution Explorer**, and select **Add** > **New Item...**. Choose **C++ File (.cpp)** for a source file, or **Header File (.h)** for a header file, and type the name, like `scene.hpp`. Now check the **Location** at the bottom of the window. Visual Studio puts new files in the folder of the project file, which is the `tmpl8` folder, where the template's own files are. Click **Browse...** next to the location, go one folder up to the `Part 18` folder, and make a new folder `src` there (with **New folder**). Select the `src` folder, and click **Add**.
+To add a file to the project, right-click the `tmpl8` project in the **Solution Explorer**, and select **Add** > **New Item...**. Choose **C++ File (.cpp)** for a source file, or **Header File (.h)** for a header file, and type the name with the `src` folder in front of it, like `src\scene.hpp`. Visual Studio puts new files in the folder of the project file (`tmpl8.vcxproj`), which is the `Part 18` folder, so without `src\` the file would end up next to `tmpl8.slnx`. You can also click **Browse...** next to the **Location**, and select the `src` folder.
 
 :::tip
-Visual Studio remembers the location, so you only have to change it for your first file.
+If you change the **Location**, Visual Studio remembers it, so you only have to change it for your first file.
 :::
 
-A file in `src` includes another file in `src` by its name, like `#include "scene.hpp"`, because the compiler first looks for an included file in the folder of the file that includes it. It also finds `game.hpp` with `#include "game.hpp"`, because the project already looks for header files in the `Part 18` folder. `game.cpp` and `game.hpp` aren't in `src`, so they include a file in `src` with the name of the folder in front of it, like `#include "src/scene.hpp"`.
+:::note
+When adding a new item to a Visual Studio Project, you may either see the **Add New Item** dialog box:
 
-The template's `build-web.bat`, which builds your game for the web, also compiles every `.cpp` file in the `src` folder.
+<img src="/images/cpp-fast-track-18/01-add-new-item.png" alt="The Add New Item dialog box of the tmpl8 project, with C++ File (.cpp) selected. Below the list are the Name field (Source.cpp), the Location field (D:\Projects\C++ Fast Track\Part 18\src\) with a Browse... button next to it, and the Show Compact View button." width="1415" height="981" class="screenshot" />
+
+<div class="caption">
+
+The **Add New Item** dialog box, with the **Location** and the **Browse...** button below the list of item templates.
+
+</div>
+
+or you might see the compact view, which has no **Location**:
+
+<img src="/images/cpp-fast-track-18/02-add-new-item-compact.png" alt="The compact Add new item dialog box, with tmpl8\ in front of the name field, which says src\scene.hpp. Below it are a Show all templates link and the Add and Cancel buttons." width="661" height="219" class="screenshot" />
+
+<div class="caption">
+
+The compact view of the **Add new item** dialog box, with `src\` in front of the name of the new file.
+
+</div>
+
+In both, typing `src\` in front of the name puts the file in the `src` folder. Press the **Show Compact View** button in the **Add New Item** dialog box to switch to the compact view, or press the **Show all templates** link in the compact view to switch back.
+:::
+
+A file in the `src` folder can include another file in the `src` folder by its name, using double quotes like this: `#include "scene.hpp"`. With double quotes, the compiler first looks for the included file in the folder of the file that includes it. The template's headers, like `surface.hpp`, are in `src/Tmpl8`. The compiler finds them too, because the project has that folder in its **Additional Include Directories**.
+
+The `CMakeLists.txt` file and the `build-web.bat` script, which builds your game for the web, already include every `.cpp` file in the `src` folder.
 
 ## Scenes
 
@@ -166,14 +194,14 @@ Below `Print`, add `Centre`:
 
 The game owns the scene on the screen, and a scene can ask it to switch to another scene. Open `game.hpp`, and include the new headers at the top:
 
-```cpp source="tmpl8-part-18/1-scenes/game.hpp#L1-L10" {5-6,10}
+```cpp source="tmpl8-part-18/1-scenes/src/game.hpp#L1-L10" {5-6,10}
 ```
 
-`scene.hpp` and `text.hpp` are the headers that you just wrote. They're in the `src` folder, so their names start with `src/`. `<memory>` is the header of `std::unique_ptr`, which you'll use in a moment.
+`scene.hpp` and `text.hpp` are the headers that you just wrote. They're in the same folder as `game.hpp`, so their names are enough. `<memory>` is the header of `std::unique_ptr`, which you'll use in a moment.
 
 At the bottom of the class, remove the example of the template, the `rotatingGun` sprite and `frame`. Then add these members:
 
-```cpp source="tmpl8-part-18/1-scenes/game.hpp#L45-L54" {1-3,8-10}
+```cpp source="tmpl8-part-18/1-scenes/src/game.hpp#L45-L54" {1-3,8-10}
 ```
 
 A scene is an object of a class that derives from `Scene`, so the game can't store it as a `Scene` (that's an abstract class). It stores a *pointer* to it instead. A `std::unique_ptr` is a pointer that *owns* the object it points to. When the `unique_ptr` is destroyed, or gets another object, it deletes its object. You never have to call `delete` yourself, and the object can never be forgotten.
@@ -184,14 +212,14 @@ The game also owns the `Text`, so that all the scenes can use the same font. `Ge
 
 Now open `game.cpp`. Remove all the code in `Tick`, and the `#include <iostream>` at the top. Include the header of the title screen (which you will write in a moment), and `<algorithm>` for `std::min`. `Init` starts the game with the title screen:
 
-```cpp source="tmpl8-part-18/1-scenes/game.cpp#L1-L15" {3,5,14}
+```cpp source="tmpl8-part-18/1-scenes/src/game.cpp#L1-L15" {3,5,14}
 ```
 
 `std::make_unique<MenuScene>(*this)` makes a `MenuScene` object, and gives it to a `unique_ptr`. The scene needs the game (for the keys, the text and to switch scenes), so it gets a reference to the game. `*this` is the `Game` object whose `Init` runs.
 
 `Tick` passes the frame on to the scene:
 
-```cpp source="tmpl8-part-18/1-scenes/game.cpp#L27-L37" {3-10}
+```cpp source="tmpl8-part-18/1-scenes/src/game.cpp#L27-L37" {3-10}
 ```
 
 The template gives `Tick` the time since the previous frame in milliseconds. The scenes work in seconds, which makes speeds like "120 pixels per second" easy to read. But when a frame takes very long (for example, when you were in the debugger, or the window was dragged around), everything would jump a long way in one frame, and the player could fall right through the floor. `std::min` makes sure that a frame counts as 1/30 of a second at most. The game slows down a bit when frames are that slow, but nothing goes wrong.
@@ -1133,12 +1161,12 @@ The volumes are in percent, from 0 to 100, and the library wants a number from 0
 
 The game owns the sounds, like the text. In `game.hpp`, include `sounds.hpp`:
 
-```cpp source="tmpl8-part-18/8-sound/game.hpp#L1-L11" {6}
+```cpp source="tmpl8-part-18/8-sound/src/game.hpp#L1-L11" {6}
 ```
 
 The game has a `Sounds` member, so it needs the whole class, not only a forward declaration. Then add the sounds below the text, and `GetSounds` below `GetText`:
 
-```cpp source="tmpl8-part-18/8-sound/game.hpp#L46-L57" {4,10}
+```cpp source="tmpl8-part-18/8-sound/src/game.hpp#L46-L57" {4,10}
 ```
 
 The game loads all the sounds once, when it starts, and every scene plays them through `GetSounds`. That way, the music can keep playing when the game switches to another scene.
@@ -1221,36 +1249,36 @@ All these screens have the same kind of menu, a column of buttons. You choose a 
 
 The template tells the game when the mouse moves, or when a button of the mouse goes down. In `game.hpp`, include the SDL header for the mouse:
 
-```cpp source="tmpl8-part-18/9-menus/game.hpp#L1-L12" {10}
+```cpp source="tmpl8-part-18/9-menus/src/game.hpp#L1-L12" {10}
 ```
 
 It has `SDL_BUTTON_LEFT`, the number of the left mouse button. Then fill in `MouseDown` and `MouseMove`:
 
-```cpp source="tmpl8-part-18/9-menus/game.hpp#L23-L25" {2-3}
+```cpp source="tmpl8-part-18/9-menus/src/game.hpp#L23-L25" {2-3}
 ```
 
 `MouseMove` remembers where the mouse is (in pixels on the screen, the template takes care of the scaling), and that it moved. `MouseDown` remembers a click of the left button. These are *events*. They can happen at any time between two frames, so the game keeps them until the next frame starts, in the same way as the keys. In `ProcessInput`, which runs before every frame, the events become the state of this frame:
 
-```cpp source="tmpl8-part-18/9-menus/game.hpp#L37-L48" {9-11}
+```cpp source="tmpl8-part-18/9-menus/src/game.hpp#L37-L48" {9-11}
 ```
 
 `clicked` and `moved` are only true in the frame after the event, just like a key in `pressed`. Then the events are cleared, ready for the next frame.
 
 Add the functions that the scenes use, and the members for the mouse:
 
-```cpp source="tmpl8-part-18/9-menus/game.hpp#L50-L70" {3-7,19-21}
+```cpp source="tmpl8-part-18/9-menus/src/game.hpp#L50-L70" {3-7,19-21}
 ```
 
 The scenes read the mouse with `MouseX`, `MouseY`, `MouseClicked` and `MouseMoved`. `Quit` is for the QUIT button of the main menu.
 
 In `game.cpp`, include `SDL_events.h`:
 
-```cpp source="tmpl8-part-18/9-menus/game.cpp#L1-L6" {5}
+```cpp source="tmpl8-part-18/9-menus/src/game.cpp#L1-L6" {5}
 ```
 
 That's the header of SDL's events, which `Quit` needs. Add `Quit` at the bottom of the file:
 
-```cpp source="tmpl8-part-18/9-menus/game.cpp#L40-L45"
+```cpp source="tmpl8-part-18/9-menus/src/game.cpp#L40-L45"
 ```
 
 `SDL_PushEvent` puts an event in the queue of SDL, as if it came from the operating system. `SDL_EVENT_QUIT` is the event that SDL sends when you close the window, so the template ends the game in the same way.
@@ -1466,19 +1494,19 @@ The file is saved in the *working directory* of the game, the folder that the ga
 
 The game owns the settings. In `game.hpp`, include `settings.hpp`:
 
-```cpp source="tmpl8-part-18/10-settings/game.hpp#L1-L8" {6}
+```cpp source="tmpl8-part-18/10-settings/src/game.hpp#L1-L8" {6}
 ```
 
 Like the sounds, the settings are a member of the game, so `game.hpp` needs the whole `struct`. Then add the settings above the sounds, and `GetSettings` above `GetSounds`:
 
-```cpp source="tmpl8-part-18/10-settings/game.hpp#L51-L67" {9,16}
+```cpp source="tmpl8-part-18/10-settings/src/game.hpp#L51-L67" {9,16}
 ```
 
 `GetSettings` returns a reference, so the settings screen changes the settings of the game itself, not a copy of them.
 
 In `game.cpp`, `Init` loads the settings, and uses them before the first scene starts:
 
-```cpp source="tmpl8-part-18/10-settings/game.cpp#L13-L21" {3-7}
+```cpp source="tmpl8-part-18/10-settings/src/game.cpp#L13-L21" {3-7}
 ```
 
 `SetFullscreen` is a function of the template. It does the same as <kbd>F11</kbd>.

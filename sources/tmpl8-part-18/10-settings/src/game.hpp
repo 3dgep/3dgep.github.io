@@ -2,9 +2,10 @@
 
 #include "surface.hpp"
 #include "template.hpp" // ScreenWidth/Height, Rand, vec2, fullscreen and VSync
-#include "src/scene.hpp"
-#include "src/sounds.hpp"
-#include "src/text.hpp"
+#include "scene.hpp"
+#include "settings.hpp"
+#include "sounds.hpp"
+#include "text.hpp"
 
 #include <SDL3/SDL_keyboard.h> // SDL_Scancode, SDL_Keycode and SDL_GetScancodeFromKey
 #include <SDL3/SDL_mouse.h>    // SDL_BUTTON_LEFT
@@ -55,12 +56,14 @@ public:
 	bool MouseClicked() const { return clicked; } // true in the frame the left mouse button goes down
 	bool MouseMoved() const { return moved; }     // true in a frame in which the mouse moved
 	Text& GetText() { return text; }
+	Settings& GetSettings() { return settings; }
 	Sounds& GetSounds() { return sounds; }
 
 private:
 	Surface& screen; // the game window: draw on this
 
 	Text text;
+	Settings settings;
 	Sounds sounds;
 	std::unique_ptr<Scene> scene;     // the scene on the screen
 	std::unique_ptr<Scene> nextScene; // the scene that takes over in the next frame, or nullptr

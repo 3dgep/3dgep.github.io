@@ -2,7 +2,7 @@
 title: "C++ Fast Track for Games Programming Part 2: The Template"
 description: "Download the tmpl8 template, explore the project, and draw lines and text on the screen."
 slug: cpp-fast-track-2-template
-lastUpdated: 2026-11-14
+lastUpdated: 2026-11-27
 ---
 
 <img src="/images/cpp-logo.png" alt="C++ Fast Track" width="150" class="thumb" />
@@ -49,7 +49,7 @@ The tmpl8 solution in Visual Studio.
 
 </div>
 
-The files that you will work on are `game.hpp` and `game.cpp`. The template itself is in the *template code* folder: `surface.hpp` and `surface.cpp` (images, sprites and text), `template.hpp` and `template.cpp` (the window, the keyboard and the mouse, and some math), and `web-shell.html` (for web builds, more about that later).
+The files that you will work on are `game.hpp` and `game.cpp`. The template itself is in the *template code* folder (on disk, it's the `src/Tmpl8` folder): `surface.hpp` and `surface.cpp` (images, sprites and text), `template.hpp` and `template.cpp` (the window, the keyboard and the mouse, and some math), and `web-shell.html` (for web builds, more about that later).
 
 If you click the *Local Windows Debugger* button (<img src="/images/cpp-fast-track-2/local-windows-debugger.png" alt="Local Windows Debugger" width="183" height="25" class="inline-ui" />) or press <kbd>F5</kbd>, you should see a beautiful window with the text "HELLO WORLD" printed in the top-left corner. To emphasise the magnitude of this accomplishment, there is a spinning gun turret drawn on the screen as well.
 

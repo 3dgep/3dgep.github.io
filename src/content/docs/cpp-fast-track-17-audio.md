@@ -2,7 +2,7 @@
 title: "C++ Fast Track for Games Programming Part 17: Audio"
 description: "Audio: add a sound library to your project, learn what sound is, and give the tank battle sound effects, 3D sound, engines that hum, music, and jingles."
 slug: cpp-fast-track-17-audio
-lastUpdated: 2026-11-21
+lastUpdated: 2026-11-27
 ---
 
 <img src="/images/cpp-logo.png" alt="C++ Fast Track" width="150" class="thumb" />
@@ -72,10 +72,12 @@ Part 17
 │   │           └── Audio.lib
 │   ├── SDL3
 │   └── stb
-├── tmpl8
-├── game.cpp
-├── game.hpp
+├── src
+│   ├── Tmpl8
+│   ├── game.cpp
+│   └── game.hpp
 ├── tmpl8.slnx
+├── tmpl8.vcxproj
 └── ...
 ```
 
@@ -101,7 +103,7 @@ At the top of the **Property Pages** window that opens, set **Configuration** to
    $(SolutionDir)lib\Audio\include
    ```
 
-   `$(SolutionDir)` is a *macro* of Visual Studio. It evaluates to the folder of the solution (the `Part 17` folder, where the `tmpl8.slnx` file is). Using a macro instead of the full path to the folder, these settings will keep working regardless of where your project and solution files are.
+   `$(SolutionDir)` is a *macro* of Visual Studio. It evaluates to the folder of the solution (the `Part 17` folder, where the `tmpl8.slnx` and `tmpl8.vcxproj` files are). Using a macro instead of the full path to the folder, these settings will keep working regardless of where your project and solution files are.
 
    :::tip
    Click **Macros>>** in the edit window to see all the macros and what they stand for.

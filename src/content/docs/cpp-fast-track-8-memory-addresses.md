@@ -2,7 +2,7 @@
 title: "C++ Fast Track for Games Programming Part 8: Memory Addresses"
 description: "Memory addresses and pointers: how variables live in memory, and how C++ lets you work with that memory directly."
 slug: cpp-fast-track-8-memory-addresses
-lastUpdated: 2026-11-14
+lastUpdated: 2026-11-27
 ---
 
 <img src="/images/cpp-logo.png" alt="C++ Fast Track" width="150" class="thumb" />
@@ -133,7 +133,7 @@ In the picture, `c[1]` would be `b`. In a real program, the compiler decides whe
 
 ## Back to the Screen
 
-Have a look at the `Surface::Bar` function in `surface.cpp` (in the `tmpl8` folder of your project):
+Have a look at the `Surface::Bar` function in `surface.cpp` (in the `src/Tmpl8` folder of your project):
 
 ```cpp source="tmpl8-part-08/tmpl8/surface.cpp#L285-L293" {3}
 ```

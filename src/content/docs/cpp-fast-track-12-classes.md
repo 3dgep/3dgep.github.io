@@ -2,7 +2,7 @@
 title: "C++ Fast Track for Games Programming Part 12: Classes"
 description: "Classes: restructure the tank code into reusable, easier to understand objects."
 slug: cpp-fast-track-12-classes
-lastUpdated: 2026-11-15
+lastUpdated: 2026-11-27
 ---
 
 <img src="/images/cpp-logo.png" alt="C++ Fast Track" width="150" class="thumb" />
@@ -181,7 +181,7 @@ The result: six enemies that follow the three rules.
 ### Intermediate
 
 1. Make sure that no two tanks start on the same tile.
-2. Move the `Tank` class to its own files: a `tank.hpp` for the class (with the declarations of its methods), and a `tank.cpp` for the definitions of the methods.
+2. Move the `Tank` class to its own files: a `tank.hpp` for the class (with the declarations of its methods), and a `tank.cpp` for the definitions of the methods. Put them in the `src` folder, next to `game.cpp`, by typing `src\tank.hpp` as the name in the **Add New Item** dialog box.
 
     :::tip[Hint]
     The methods use a few things from `game.cpp`. Move the `tank` and `barrel` sprites to `tank.cpp`: only `Draw` uses them. `Move` needs `TankFits`, which can stay in `game.cpp`: add a *forward declaration* of it to `tank.cpp`, `bool TankFits(float x, float y);` (inside `namespace Tmpl8`, like everything else), just like the declarations of the methods in the class. And `Update` needs the size of the map: use `ScreenWidth` from `template.hpp`, or move the constants to a header that both files include. Put the new files next to `game.cpp`.

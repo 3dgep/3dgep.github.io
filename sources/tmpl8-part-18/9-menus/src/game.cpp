@@ -31,10 +31,10 @@ namespace Tmpl8
         // in one frame (like after a break in the debugger).
         const float seconds = std::min(deltaTime / 1000, 1.0f / 30);
         scene->Tick(seconds);
-        // A scene can't replace itself while its Tick runs: that would delete it. So the switch happens here.
+        scene->Draw(screen);
+        // A scene can't replace itself during its Tick (that would delete it), so the switch happens after Draw.
         if (nextScene)
             scene = std::move(nextScene);
-        scene->Draw(screen);
     }
 
     void Game::Quit()

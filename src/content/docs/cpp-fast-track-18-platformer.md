@@ -119,7 +119,7 @@ If you change the **Location**, Visual Studio remembers it, so you only have to 
 :::note
 When adding a new item to a Visual Studio Project, you may either see the **Add New Item** dialog box:
 
-<img src="/images/cpp-fast-track-18/01-add-new-item.png" alt="The Add New Item dialog box of the tmpl8 project, with C++ File (.cpp) selected. Below the list are the Name field (Source.cpp), the Location field (D:\Projects\C++ Fast Track\Part 18\src\) with a Browse... button next to it, and the Show Compact View button." width="1415" height="981" class="screenshot" />
+<img src="/images/cpp-fast-track-18/01-add-new-item.png" alt="The Add New Item dialog box of the tmpl8 project, with Header File (.h) selected. Below the list are the Name field (scene.hpp), the Location field (C:\Projects\C++ Fast Track\Part 18\src\) with a Browse... button next to it, and the Show Compact View button." width="1415" height="981" class="screenshot" />
 
 <div class="caption">
 
@@ -129,7 +129,7 @@ The **Add New Item** dialog box, with the **Location** and the **Browse...** but
 
 or you might see the compact view, which has no **Location**:
 
-<img src="/images/cpp-fast-track-18/02-add-new-item-compact.png" alt="The compact Add new item dialog box, with tmpl8\ in front of the name field, which says src\scene.hpp. Below it are a Show all templates link and the Add and Cancel buttons." width="661" height="219" class="screenshot" />
+<img src="/images/cpp-fast-track-18/02-add-new-item-compact.png" alt="The compact Add new item dialog box, with Part 18\ in front of the name field, which says src\scene.hpp. Below it are a Show all templates link and the Add and Cancel buttons." width="661" height="221" class="screenshot" />
 
 <div class="caption">
 
@@ -138,6 +138,18 @@ The compact view of the **Add new item** dialog box, with `src\` in front of the
 </div>
 
 In both, typing `src\` in front of the name puts the file in the `src` folder. Press the **Show Compact View** button in the **Add New Item** dialog box to switch to the compact view, or press the **Show all templates** link in the compact view to switch back.
+
+The compact view may show this error when the name starts with a folder:
+
+<img src="/images/cpp-fast-track-18/03-add-new-item-error.png" alt="A Microsoft Visual Studio message box for Add new item that says: Failed to create file 'src\scene.hpp': The method or operation is not implemented." width="651" height="293" class="screenshot" />
+
+<div class="caption">
+
+The error of the compact view, after typing `src\scene.hpp` as the name.
+
+</div>
+
+Despite the message, Visual Studio did create the file in the `src` folder. It just didn't add it to the project. Right-click the `tmpl8` project in the **Solution Explorer**, select **Add** > **Existing Item...**, and select the new file in the `src` folder to add it.
 :::
 
 A file in the `src` folder can include another file in the `src` folder by its name, using double quotes like this: `#include "scene.hpp"`. With double quotes, the compiler first looks for the included file in the folder of the file that includes it. The template's headers, like `surface.hpp`, are in `src/Tmpl8`. The compiler finds them too, because the project has that folder in its **Additional Include Directories**.
@@ -146,9 +158,9 @@ The `CMakeLists.txt` file and the `build-web.bat` script, which builds your game
 
 ## Scenes
 
-A game is more than its gameplay. Alien Jump has a title screen, a main menu, a settings screen, the levels, and a screen that says GAME OVER. Each of them draws something different, and reacts to the keys in a different way. If all of that were in `Game::Tick`, it would be one huge function full of `if` statements that check which screen is showing.
+Our game will have multiple scenes. A title screen with a main menu, a settings screen, a level scene, and a game over screen. Each scene draws something different, and reacts to the keys in a different way. If everything was in `Game::Tick`, it would be one huge function full of `if` statements that check which screen is showing.
 
-Instead, each screen is a *scene*, an object of its own class, with its own `Tick` and `Draw`. The game shows one scene at a time, and a scene can tell the game to switch to another scene.
+Instead, each screen is a *scene*, an object of its own class, with its own `Tick` and `Draw` methods. The game shows one scene at a time, and a scene can tell the game to switch to another scene.
 
 ### The Scene Class
 
@@ -157,74 +169,94 @@ Add a new header file `scene.hpp`:
 ```cpp source="tmpl8-part-18/1-scenes/src/scene.hpp#L1-L15"
 ```
 
-`Scene` is a *base class*. It says which functions every scene has, but it doesn't do anything itself. The `virtual` in front of `Tick` and `Draw` means that a class that *derives* from `Scene` can give the function its own code, and that the game calls that code even when it only knows that the object is a `Scene`. The `= 0` makes them *pure virtual* functions. `Scene` has no code for them, so every scene must have its own. A class with a pure virtual function is *abstract*, which means that you can't make a `Scene` object, only objects of the classes that derive from it.
+The `Scene` is a *base class*. It says which functions every scene has, but it doesn't do anything itself. The `virtual` in front of `Tick` and `Draw` means that a class that *derives* from `Scene` can give the function its own code, and that the game calls that code for the correct method, even when it only knows that the object is a `Scene`. The `= 0` at the end, makes them *pure virtual* functions. The `Scene` is an *abstract class* and can't be instantiated directly. You need to create a concrete class that derives from `Scene` and implements the pure-virtual functions before you can create a `Scene` object.
 
 The *destructor* `~Scene` is virtual too. When the game deletes a scene, through a pointer to `Scene`, the virtual destructor makes sure that the destructor of the real class runs (and with it, the destructors of its members).
 
-`class Surface;` is a *forward declaration*. It tells the compiler that `Surface` is a class, without including `surface.hpp`. That's enough for a function that only takes a reference to a `Surface`.
+`class Surface;` on line 5 is a *forward declaration*. It tells the compiler that `Surface` is a class, without needing to include `surface.hpp`. That's enough for a function that only takes a reference or a pointer to a `Surface`, but if we want to actually use an object of type `Surface`, then we need to include `surface.hpp`. [Forward declarations and definitions](https://www.learncpp.com/cpp-tutorial/forward-declarations/) on Learn C++ explains the idea with functions, and the [forward declaration](https://en.cppreference.com/cpp/language/class#Forward_declaration) of a class is described on cppreference.com.
 
 ### Text
 
-The scenes show text, like PRESS ENTER TO PLAY. The template's `Surface::Print` uses a tiny font, which would be hard to read in a game with large pixels. The assets contain a pixel font that matches the art. `font.png` is a sprite with a frame for every character from the space to the `~`, in the order of their ASCII codes (16 characters on a row, and 6 rows).
+The scenes show text on the screen, like "PRESS ENTER TO PLAY". The template's `Surface::Print` method uses a tiny font, which is fine for debugging, but would be hard to read for someone playing our game. The assets contain a pixel font that matches the art used in our game. `font.png` is a sprite with a frame for every character from the space to the `~`, in the order of their ASCII codes (16 characters on a row, and 6 rows).
 
 Add a header file `text.hpp` for a class that prints with it:
 
 ```cpp source="tmpl8-part-18/1-scenes/src/text.hpp#L1-L23"
 ```
 
-`std::string_view` is a view of characters that are stored somewhere else, like a `std::string` or text between quotes. It can't change the text, but it doesn't make a copy of it either, so it's the type to use for a function that only reads text. Every character is equally wide (the font is *monospace*), so `Width` multiplies the number of characters by the distance from one character to the next.
+`Print` draws `text` on the `screen`, with the top-left corner of the first character at `x` and `y`. `Centre` draws it in the middle of the screen, so it only needs the `y` coordinate of the text in the screen. The `font` member variable is a sprite of `font.png`, with 16 columns and 6 rows of characters. Every character in `font.png` is equally wide (the font is *monospace*), so the `Width` method multiplies the number of characters by the distance from one character to the next. This works for single-line strings. You will need to modify this function if you ever want to use it with multi-line strings.
 
-`Advance` and `Height` are `static constexpr` members. `static` means that they belong to the class instead of to each object (`Text::Height` doesn't need a `Text`), and `constexpr` that their value is known while the program is compiled.
+Both the `Print` and `Center` functions take an [`std::string_view`](https://en.cppreference.com/cpp/string/basic_string_view) argument for the text to print on the screen. An `std::string_view` is a *view* of a string that just stores a pointer to the first character in the string and the length of the string. An `std::string_view` can be constructed from a string literal like `"Hello, World"` or from an `std::string`. Since it just stores a pointer to the text, it doesn't need to copy anything so it's very cheap to construct an `string_view`. A `string_view` is a *view* (it's view-only, or read-only). It can't be used to modify the original string, so you should prefer to pass strings to functions using an `std::string_view` (by value) instead of using `const char*` or `const std::string&`.
+
+`Advance` and `Height` are `static constexpr` members. `static` means that they belong to the class instead of to each object (`Text::Height` doesn't need a `Text`), and `constexpr` that their value is known at compile time.
 
 Add a source file `text.cpp`, with `Print`:
 
 ```cpp source="tmpl8-part-18/1-scenes/src/text.cpp#L1-L16"
 ```
 
-`Print` draws the characters one by one, from left to right. The frame of a character is its code minus the code of the space, because the first frame is the space. A space has nothing to draw, so it's skipped, but it still moves `x` on to the next character.
+`Print` draws characters one by one, from left to right. The frame of a character is its code minus the code of the space, because frame 0 is the space. A space (or any character not in `font.png`) has nothing to draw, so it's just skipped, but it still moves `x` forward to the next character.
 
-Below `Print`, add `Centre`:
+The `Centre` method centers the text on screen:
 
 ```cpp source="tmpl8-part-18/1-scenes/src/text.cpp#L18-L22"
 ```
 
-`Centre` prints the text in the middle of the screen, which is handy for titles and menus. The left edge of the text is half of the space that's left over next to it.
+`Centre` uses the `Print` method to print the text in the middle of the screen, which is handy for titles and menus. The middle of the screen is at half the screen width ($s_w/2$). The x-coordinate is shifted to the left by half of the width of the text ($w/2$) using the following formula:
+
+$$
+x = \frac{s_w}{2} - \frac{w}{2}
+$$
+
+which is equivalent to:
+
+$$
+x = \frac{s_w - w}{2}
+$$
 
 ### The Game Switches Scenes
 
-The game owns the scene on the screen, and a scene can ask it to switch to another scene. Open `game.hpp`, and include the new headers at the top:
+The game owns the scene that is currently being shown on the screen, and a scene can ask for it to switch to another scene. Open `game.hpp`, and include the new headers at the top:
 
 ```cpp source="tmpl8-part-18/1-scenes/src/game.hpp#L1-L10" {5-6,10}
 ```
 
-`scene.hpp` and `text.hpp` are the headers that you just wrote. They're in the same folder as `game.hpp`, so their names are enough. `<memory>` is the header of `std::unique_ptr`, which you'll use in a moment.
+`scene.hpp` and `text.hpp` are the headers that you just wrote. They're in the same folder as `game.hpp`, so their names are enough. `<memory>` is a header in the Standard Template Library (STL). It includes `std::unique_ptr` which we'll use to store a pointer to the current scene, and the next scene.
 
 At the bottom of the class, remove the example of the template, the `rotatingGun` sprite and `frame`. Then add these members:
 
 ```cpp source="tmpl8-part-18/1-scenes/src/game.hpp#L45-L54" {1-3,8-10}
 ```
 
-A scene is an object of a class that derives from `Scene`, so the game can't store it as a `Scene` (that's an abstract class). It stores a *pointer* to it instead. A `std::unique_ptr` is a pointer that *owns* the object it points to. When the `unique_ptr` is destroyed, or gets another object, it deletes its object. You never have to call `delete` yourself, and the object can never be forgotten.
+A scene is an object of a class that is derived from `Scene`. The game doesn't need to know about the different scenes it needs to show. Instead, we only need to give the `Game` class a pointer to a `Scene` and the concrete scene classes will implement the `Tick` and `Draw` functions to update and render the scene. An `std::unique_ptr` is a pointer that takes unique *ownershop* of the object it points to. When the `unique_ptr` is destroyed, or another object is assigned to it, it deletes the object it points to. You never have to call `delete` yourself, and the object can never be forgotten nor can the memory "leak".
 
-There are two pointers, one for the scene on the screen and one for the next scene. A scene calls `ChangeScene` while its own `Tick` runs. If `ChangeScene` replaced the scene right away, the `unique_ptr` would delete the scene whose `Tick` is still running, and the program would crash. So `ChangeScene` only remembers the next scene, and the game switches after the `Tick`. `std::move` moves the pointer into `nextScene`, because a `unique_ptr` can't be copied. Only one pointer can own an object.
+The Game stores two pointers: one for the current scene on the screen and one for the next scene. A scene calls `ChangeScene` while its own `Tick` runs. If `ChangeScene` replaced the scene right away, the `unique_ptr` would delete the scene whose `Tick` is still running, and the program would crash. So `ChangeScene` only remembers the next scene, and the game switches after the `Tick`. Since an `std::unique_ptr` can't be copied (if it could, it wouldn't be very unique now would it?), we'll use the `std::move` utility function to *move* the pointer into `nextScene`.
 
-The game also owns the `Text`, so that all the scenes can use the same font. `GetText` gives a scene a reference to it.
+The game also owns a `Text` object, so that all the scenes can use the same `font.png` file. The `GetText` method can be used by the scene to get a reference to the game's `Text` object.
 
-Now open `game.cpp`. Remove all the code in `Tick`, and the `#include <iostream>` at the top. Include the header of the title screen (which you will write in a moment), and `<algorithm>` for `std::min`. `Init` starts the game with the title screen:
+Now open `game.cpp` and replace it with this:
 
-```cpp source="tmpl8-part-18/1-scenes/src/game.cpp#L1-L15" {3,5,14}
+```cpp source="tmpl8-part-18/1-scenes/src/game.cpp#L1-L22" {3,5,14}
 ```
 
-`std::make_unique<MenuScene>(*this)` makes a `MenuScene` object, and gives it to a `unique_ptr`. The scene needs the game (for the keys, the text and to switch scenes), so it gets a reference to the game. `*this` is the `Game` object whose `Init` runs.
+:::caution
+We haven't made the `MenuScene` class yet, so this won't compile yet. We'll make the first scene class in the next section.
+:::
 
-`Tick` passes the frame on to the scene:
+The `std::make_unique<MenuScene>(*this)` function makes a `MenuScene` object, and assigns it to the `scene` variable. The menu scene needs a reference to the game (for the keys, and text and to switch scenes using the game's `ChangeScene` method). `this` is a special pointer to the instance of the class that the function is invoked on (in this case, a pointer the the `Game` instance), so `*this` dereferences the pointer to the game and passes it as a reference to the `MenuScenes` constructor.
 
-```cpp source="tmpl8-part-18/1-scenes/src/game.cpp#L27-L37" {3-10}
+:::note
+You could also write `scene = std::unique_ptr<MenuScene>(new MenuScene(*this));`, which does the same thing as [`std::make_unique`](https://en.cppreference.com/cpp/memory/unique_ptr/make_unique). `std::make_unique` is shorter, and it keeps `new` out of your code. Every `new` needs a matching `delete`. A `unique_ptr` deletes the object for you so you don't need to use `delete` to delete the object that a `unique_ptr` points to, and with `std::make_unique`, the object is in a `unique_ptr` from the moment it exists. So there's never a moment where you could forget to delete it. The rule of thumb in modern C++ is to avoid using `new` or `delete` directly, and to use `std::make_unique` (or `std::make_shared` for a `std::shared_ptr`) instead.
+:::
+
+The game's `Tick` function just `Tick`s and `Draw`s the scene:
+
+```cpp source="tmpl8-part-18/1-scenes/src/game.cpp#L24-L38" {6-13}
 ```
 
-The template gives `Tick` the time since the previous frame in milliseconds. The scenes work in seconds, which makes speeds like "120 pixels per second" easy to read. But when a frame takes very long (for example, when you were in the debugger, or the window was dragged around), everything would jump a long way in one frame, and the player could fall right through the floor. `std::min` makes sure that a frame counts as 1/30 of a second at most. The game slows down a bit when frames are that slow, but nothing goes wrong.
+The template gives `Game::Tick` the time since the previous frame in milliseconds. The scenes work in seconds, which makes speeds like "120 pixels per second" easy to read and reason about. But when a frame takes very long time (for example, when you're debugging, or the window was dragged around), everything would jump a long way in one frame, and the player could fall right out of the world. `std::min` makes sure that a frame never has a time delta of more than 1/30 of a second. It's better to let the game run slower than to let the physics explode with a huge delta time value! The [Game Loop](https://gameprogrammingpatterns.com/game-loop.html) chapter of *Game Programming Patterns* by Robert Nystrom explains the different ways a game can deal with the time between frames.
 
-After the `Tick`, the next scene takes over, if there is one. `scene = std::move(nextScene)` deletes the old scene, and leaves `nextScene` empty (a `nullptr`) again.
+After the scene is `Tick`ed, it gets `Draw`n. If the current scene requested a scene change, the next scene takes over. `scene = std::move(nextScene)` deletes the current scene, and leaves `nextScene` empty (a `nullptr`) again.
 
 ### The Title Screen and the Play Scene
 

@@ -1,0 +1,28 @@
+add_library(rast STATIC
+    include/rast/Color.hpp
+    include/rast/Rasterizer.hpp
+    include/rast/Rect.hpp
+    include/rast/Sampler.hpp
+    include/rast/Surface.hpp
+    include/rast/Vec2.hpp
+    include/rast/Vertex.hpp
+    include/rast/Window.hpp
+    src/Rasterizer.cpp
+    src/Sampler.cpp
+    src/Surface.cpp
+    src/Window.cpp
+)
+
+target_include_directories(rast PUBLIC include)
+
+# SDL3 and stb_image are implementation details:
+# only Window.cpp includes SDL, and only Surface.cpp includes stb_image.
+target_link_libraries(rast PRIVATE SDL3::SDL3 stb)
+
+rast_set_warnings(rast)
+
+if(EMSCRIPTEN)
+    # Window::Present yields to the browser with emscripten_sleep,
+    # so every program that links rast needs Asyncify.
+    target_link_options(rast PUBLIC -sASYNCIFY)
+endif()

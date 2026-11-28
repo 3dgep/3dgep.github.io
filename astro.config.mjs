@@ -185,6 +185,7 @@ export default defineConfig({
 						{ label: 'Part 4: Circles', slug: '2d-software-rasterizer-4-circles' },
 						{ label: 'Part 5: Triangles', slug: '2d-software-rasterizer-5-triangles' },
 						{ label: 'Part 6: Barycentric Coordinates', slug: '2d-software-rasterizer-6-barycentric' },
+						{ label: 'Part 7: Texturing', slug: '2d-software-rasterizer-7-texturing' },
 					],
 				},
 				{

@@ -275,7 +275,7 @@ The example of part 6. Click the demo first, so that it gets the keys. <kbd>F1</
 
 ## What's Next
 
-Every pixel of a triangle can get its own color now. In part 7, the colors come from an image. We load images with `stb_image`, give every vertex a *texture coordinate*, interpolate the texture coordinates with barycentric coordinates, and look up the color of every pixel in the image.
+Every pixel of a triangle can get its own color now. In [part 7](/2d-software-rasterizer-7-texturing/), the colors come from an image. We load images with `stb_image`, give every vertex a *texture coordinate*, interpolate the texture coordinates with barycentric coordinates, and look up the color of every pixel in the image.
 
 ## References
 

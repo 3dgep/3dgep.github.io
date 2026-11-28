@@ -183,6 +183,7 @@ export default defineConfig({
 						{ label: 'Part 2: Clipping', slug: '2d-software-rasterizer-2-clipping' },
 						{ label: 'Part 3: Lines', slug: '2d-software-rasterizer-3-lines' },
 						{ label: 'Part 4: Circles', slug: '2d-software-rasterizer-4-circles' },
+						{ label: 'Part 5: Triangles', slug: '2d-software-rasterizer-5-triangles' },
 					],
 				},
 				{

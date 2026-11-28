@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Triangle Rasterization</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--grid: #262c39;
+		--a: #5fb8ff;
+		--b: #e8a23c;
+		--bad: #ff4d4d;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		--grid: #e2e5ec;
+		--a: #1f6fc2;
+		--b: #b86a00;
+		--bad: #d1242f;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+	#controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 6px 10px 0; border-top: 1px solid var(--border); background: var(--panel); }
+	.group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+	.group > span { color: var(--muted); margin-right: 2px; }
+	button {
+		font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border);
+		border-radius: 5px; padding: 2px 7px; cursor: pointer; user-select: none;
+	}
+	button:hover { border-color: var(--accent); }
+	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+	#bar { display: flex; align-items: flex-start; gap: 10px; padding: 4px 10px 6px; background: var(--panel); }
+	/* Always four lines high, so the grid doesn't change size. Lines wrap between pieces, never inside one. */
+	#info { flex: 1; min-width: 0; min-height: 6em; font: 12.5px/1.5 ui-monospace, Consolas, 'Cascadia Mono', monospace; }
+	#info > div { display: flex; flex-wrap: wrap; column-gap: 2.2ch; }
+	#info > div > span { white-space: pre; }
+	.m { color: var(--muted); } .a { color: var(--a); } .b { color: var(--b); } .bad { color: var(--bad); }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { align-self: flex-end; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="A grid of pixels with two triangles, a and b, that share an edge. Their four vertices can be dragged. Pixels covered by both triangles are red, and pixel centers on the shared edge that neither covers get a red ring. The buttons switch the fill rule, the front face and the cull mode."></canvas>
+	</div>
+	<div id="controls">
+		<div class="group" role="group" aria-label="Fill rule"><span>edges</span>
+			<button data-rule="topleft" type="button">top-left rule</button>
+			<button data-rule="include" type="button">include all</button>
+			<button data-rule="exclude" type="button">exclude all</button>
+		</div>
+		<div class="group" role="group" aria-label="Front face"><span>front face</span>
+			<button data-front="cw" type="button">clockwise</button>
+			<button data-front="ccw" type="button">counter-clockwise</button>
+		</div>
+		<div class="group" role="group" aria-label="Cull mode"><span>cull</span>
+			<button data-cull="none" type="button">none</button>
+			<button data-cull="front" type="button">front</button>
+			<button data-cull="back" type="button">back</button>
+		</div>
+	</div>
+	<div id="bar">
+		<div id="info" aria-live="polite"></div>
+		<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+	</div>
+</div>
+<script>
+'use strict';
+const FieldW = 18, FieldH = 13;
+const S = 256; // fixed point: 1/256 of a pixel
+// Four vertices: triangle a is (v0, v1, v2), triangle b is (v1, v3, v2). They share the edge v1 - v2,
+// which starts on a diagonal through pixel centers, so many centers lie exactly on it.
+const verts = [{ x: 2.2, y: 2.4 }, { x: 11.5, y: 2.5 }, { x: 4.5, y: 9.5 }, { x: 14.6, y: 10.7 }];
+const triangles = [{ name: 'a', idx: [0, 1, 2] }, { name: 'b', idx: [1, 3, 2] }];
+let rule = 'topleft', front = 'cw', cull = 'none', hover = null;
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const info = document.getElementById('info');
+let W = 1, H = 1, DPR = 1, cell = 1, ox = 0, oy = 0;
+
+// ---- The rasterizer, exactly as FillTriangle ----
+const snap = (v) => ({ x: Math.round(v.x * S), y: Math.round(v.y * S) });
+const edgeFn = (a, b, p) => (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+const center = (x, y) => ({ x: x * S + S / 2, y: y * S + S / 2 });
+
+// Everything about one triangle: winding, facing, culled, its edges (opposite each vertex) and its pixels.
+function rasterize(t) {
+	let [p0, p1, p2] = t.idx.map((i) => snap(verts[i]));
+	const area = edgeFn(p0, p1, p2);
+	const clockwise = area > 0;
+	const frontFacing = clockwise === (front === 'cw');
+	const culled = area !== 0 && ((cull === 'front' && frontFacing) || (cull === 'back' && !frontFacing));
+	const r = { ...t, area, clockwise, frontFacing, culled, pixels: new Set(), edges: [] };
+	if (area === 0) return r;
+	if (!clockwise) [p1, p2] = [p2, p1];
+	// Edge i is opposite vertex i, and goes clockwise.
+	const pairs = [[p1, p2], [p2, p0], [p0, p1]];
+	r.edges = pairs.map(([a, b]) => {
+		const dx = b.x - a.x, dy = b.y - a.y;
+		const kind = dy === 0 && dx > 0 ? 'top' : dy < 0 ? 'left' : '';
+		return { a, b, kind };
+	});
+	r.box = {
+		left: Math.floor(Math.min(p0.x, p1.x, p2.x) / S), top: Math.floor(Math.min(p0.y, p1.y, p2.y) / S),
+		right: Math.ceil(Math.max(p0.x, p1.x, p2.x) / S), bottom: Math.ceil(Math.max(p0.y, p1.y, p2.y) / S),
+	};
+	if (culled) return r;
+	for (let y = Math.max(0, r.box.top); y < Math.min(FieldH, r.box.bottom); ++y)
+		for (let x = Math.max(0, r.box.left); x < Math.min(FieldW, r.box.right); ++x)
+			if (r.edges.every((e) => inside(e, center(x, y)))) r.pixels.add(x + ',' + y);
+	return r;
+}
+function inside(e, p) {
+	const v = edgeFn(e.a, e.b, p);
+	if (rule === 'include') return v >= 0;
+	if (rule === 'exclude') return v > 0;
+	return v > 0 || (v === 0 && e.kind !== ''); // the top-left rule
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--grid', '--a', '--b', '--bad']) colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+function withAlpha(color, alpha) {
+	const n = parseInt(color.slice(1), 16);
+	return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	cell = Math.max(4, Math.floor(Math.min((W - 16) / FieldW, (H - 16) / FieldH)));
+	ox = Math.round((W - FieldW * cell) / 2);
+	oy = Math.round((H - FieldH * cell) / 2);
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+const X = (x) => ox + x * cell;
+const Y = (y) => oy + y * cell;
+
+let results = [];
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg'];
+	ctx.fillRect(0, 0, W, H);
+	results = triangles.map(rasterize);
+	const [ra, rb] = results;
+
+	// The pixels: a, b, or red where both cover a pixel.
+	for (let y = 0; y < FieldH; ++y)
+		for (let x = 0; x < FieldW; ++x) {
+			const k = x + ',' + y, inA = ra.pixels.has(k), inB = rb.pixels.has(k);
+			if (!inA && !inB) continue;
+			ctx.fillStyle = inA && inB ? withAlpha(colors['--bad'], 0.85) : withAlpha(inA ? colors['--a'] : colors['--b'], 0.45);
+			ctx.fillRect(X(x) + 1, Y(y) + 1, cell - 1, cell - 1);
+		}
+
+	// The grid and the pixel centers.
+	ctx.strokeStyle = colors['--grid'];
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	for (let x = 0; x <= FieldW; ++x) { ctx.moveTo(X(x) + 0.5, Y(0)); ctx.lineTo(X(x) + 0.5, Y(FieldH)); }
+	for (let y = 0; y <= FieldH; ++y) { ctx.moveTo(X(0), Y(y) + 0.5); ctx.lineTo(X(FieldW), Y(y) + 0.5); }
+	ctx.stroke();
+	ctx.fillStyle = colors['--muted'];
+	for (let y = 0; y < FieldH; ++y)
+		for (let x = 0; x < FieldW; ++x) { ctx.beginPath(); ctx.arc(X(x + 0.5), Y(y + 0.5), 1.4, 0, Math.PI * 2); ctx.fill(); }
+
+	// Gaps: pixel centers exactly on the shared edge that neither triangle covers.
+	const s1 = snap(verts[1]), s2 = snap(verts[2]);
+	ctx.strokeStyle = colors['--bad'];
+	ctx.lineWidth = 2;
+	for (let y = 0; y < FieldH; ++y)
+		for (let x = 0; x < FieldW; ++x) {
+			const c = center(x, y);
+			if (edgeFn(s1, s2, c) !== 0) continue;
+			// Strictly between the two shared vertices: a vertex itself is on the outside of the pair.
+			const along = (c.x - s1.x) * (s2.x - s1.x) + (c.y - s1.y) * (s2.y - s1.y);
+			const length2 = (s2.x - s1.x) ** 2 + (s2.y - s1.y) ** 2;
+			if (along <= 0 || along >= length2) continue;
+			const k = x + ',' + y;
+			if (!ra.culled && !rb.culled && ra.area && rb.area && !ra.pixels.has(k) && !rb.pixels.has(k)) {
+				ctx.beginPath(); ctx.arc(X(x + 0.5), Y(y + 0.5), cell * 0.3, 0, Math.PI * 2); ctx.stroke();
+			}
+		}
+
+	// The triangles' edges, with their kind (top, left), and the bounding boxes.
+	for (const r of results) {
+		const color = colors['--' + r.name];
+		const pts = r.idx.map((i) => verts[i]);
+		ctx.strokeStyle = color;
+		ctx.lineWidth = 1.5;
+		ctx.setLineDash(r.culled ? [4, 4] : []);
+		ctx.beginPath();
+		ctx.moveTo(X(pts[0].x), Y(pts[0].y)); ctx.lineTo(X(pts[1].x), Y(pts[1].y)); ctx.lineTo(X(pts[2].x), Y(pts[2].y)); ctx.closePath();
+		ctx.stroke();
+		ctx.setLineDash([]);
+		if (r.box && !r.culled) {
+			ctx.strokeStyle = withAlpha(color, 0.5);
+			ctx.setLineDash([2, 3]);
+			ctx.strokeRect(X(r.box.left) + 0.5, Y(r.box.top) + 0.5, (r.box.right - r.box.left) * cell, (r.box.bottom - r.box.top) * cell);
+			ctx.setLineDash([]);
+		}
+		// Edge labels, at the middle of each edge, on the inside.
+		ctx.font = '600 11px system-ui, sans-serif';
+		ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+		const cx = (pts[0].x + pts[1].x + pts[2].x) / 3, cy = (pts[0].y + pts[1].y + pts[2].y) / 3;
+		for (const e of r.edges) {
+			if (!e.kind) continue;
+			const mx = (e.a.x + e.b.x) / 2 / S, my = (e.a.y + e.b.y) / 2 / S;
+			ctx.fillStyle = color;
+			ctx.fillText(e.kind, X(mx + (cx - mx) * 0.18), Y(my + (cy - my) * 0.18));
+		}
+		// The name of the triangle, and its winding as an arrow from v0 towards v1.
+		ctx.font = '700 14px system-ui, sans-serif';
+		ctx.fillStyle = color;
+		ctx.fillText(r.name, X(cx), Y(cy));
+	}
+	// The vertices.
+	verts.forEach((v, i) => {
+		ctx.fillStyle = colors['--text'];
+		ctx.beginPath(); ctx.arc(X(v.x), Y(v.y), Math.max(4, cell * 0.17), 0, Math.PI * 2); ctx.fill();
+		ctx.font = '600 11px system-ui, sans-serif';
+		ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+		ctx.fillText('v' + i, X(v.x) + 6, Y(v.y) - 3);
+	});
+	if (hover) {
+		ctx.strokeStyle = colors['--text'];
+		ctx.lineWidth = 1.5;
+		ctx.strokeRect(X(hover.x) + 0.5, Y(hover.y) + 0.5, cell, cell);
+	}
+	showInfo();
+}
+
+const line = (...pieces) => `<div>${pieces.map((p) => `<span>${p}</span>`).join('')}</div>`;
+function describe(r) {
+	if (!r.area) return `<span class="${r.name}">${r.name}: no area</span>`;
+	return `<span class="${r.name}">${r.name}: ${r.clockwise ? 'clockwise' : 'counter-clockwise'}, ${r.frontFacing ? 'front' : 'back'}-facing${r.culled ? ', culled' : ''}</span>`;
+}
+// Edge functions in square pixels (the fixed-point value divided by 256 * 256).
+const px2 = (v) => (v === 0 ? '0' : (v / (S * S)).toFixed(3));
+function showInfo() {
+	const [ra, rb] = results;
+	const overlap = [...ra.pixels].filter((k) => rb.pixels.has(k)).length;
+	let html = line(describe(ra), describe(rb));
+	html += line(`<span class="m">${ra.pixels.size} + ${rb.pixels.size} pixels</span>`,
+		overlap ? `<span class="bad">${overlap} drawn twice</span>` : '<span class="m">none drawn twice</span>');
+	let d1 = '<span class="m">hover over a pixel for the edge functions at its center</span>', d2 = '';
+	if (hover) {
+		const c = center(hover.x, hover.y);
+		const fmt = (r) => r.edges.length
+			? `<span class="${r.name}">${r.name}: E0 = ${px2(edgeFn(r.edges[0].a, r.edges[0].b, c))}, E1 = ${px2(edgeFn(r.edges[1].a, r.edges[1].b, c))}, E2 = ${px2(edgeFn(r.edges[2].a, r.edges[2].b, c))}${r.pixels.has(hover.x + ',' + hover.y) ? ' → covered' : ''}</span>`
+			: '';
+		d1 = fmt(ra); d2 = fmt(rb);
+	}
+	info.innerHTML = html + line(d1) + line(d2);
+}
+
+// ---- Buttons ----
+function setPressed(attr, value) {
+	document.querySelectorAll(`[data-${attr}]`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset[attr] === value)));
+}
+document.querySelectorAll('[data-rule]').forEach((b) => b.addEventListener('click', () => { rule = b.dataset.rule; setPressed('rule', rule); draw(); }));
+document.querySelectorAll('[data-front]').forEach((b) => b.addEventListener('click', () => { front = b.dataset.front; setPressed('front', front); draw(); }));
+document.querySelectorAll('[data-cull]').forEach((b) => b.addEventListener('click', () => { cull = b.dataset.cull; setPressed('cull', cull); draw(); }));
+const params = new URLSearchParams(location.search);
+if (['topleft', 'include', 'exclude'].includes(params.get('rule'))) rule = params.get('rule');
+setPressed('rule', rule); setPressed('front', front); setPressed('cull', cull);
+
+// ---- Dragging the vertices (snapped to 1/16 of a pixel, so they can land exactly on pixel centers) ----
+let drag = -1;
+function pointAt(e) {
+	const rc = canvas.getBoundingClientRect();
+	return { x: (e.clientX - rc.left - ox) / cell, y: (e.clientY - rc.top - oy) / cell };
+}
+const vertexAt = (p) => verts.findIndex((v) => Math.hypot(v.x - p.x, v.y - p.y) < 0.5);
+canvas.addEventListener('pointerdown', (e) => {
+	drag = vertexAt(pointAt(e));
+	if (drag < 0) return;
+	canvas.setPointerCapture(e.pointerId);
+	canvas.style.cursor = 'grabbing';
+});
+canvas.addEventListener('pointermove', (e) => {
+	const p = pointAt(e);
+	if (drag >= 0) {
+		verts[drag] = { x: Math.min(FieldW, Math.max(0, Math.round(p.x * 16) / 16)), y: Math.min(FieldH, Math.max(0, Math.round(p.y * 16) / 16)) };
+	} else {
+		canvas.style.cursor = vertexAt(p) >= 0 ? 'grab' : 'default';
+	}
+	const px = Math.floor(p.x), py = Math.floor(p.y);
+	hover = drag < 0 && px >= 0 && px < FieldW && py >= 0 && py < FieldH ? { x: px, y: py } : null;
+	draw();
+});
+canvas.addEventListener('pointerleave', () => { if (drag < 0) { hover = null; draw(); } });
+const endDrag = () => { drag = -1; canvas.style.cursor = 'default'; };
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+
+applyTheme();
+resize();
+</script>
+</body>
+</html>

@@ -147,6 +147,9 @@
 .sl-markdown-content iframe.embed-line-octants { aspect-ratio: auto; height: 470px; min-height: 0; }
 /* 2D Software Rasterizer part 4: the midpoint circle algorithm. */
 .sl-markdown-content iframe.embed-midpoint-circle { aspect-ratio: auto; height: 480px; min-height: 0; }
+/* 2D Software Rasterizer part 5: edge functions and the top-left rule. */
+.sl-markdown-content iframe.embed-triangle-rasterization { aspect-ratio: auto; height: 560px; min-height: 0; }
+.sl-markdown-content iframe.embed-edge-function { aspect-ratio: auto; height: 470px; min-height: 0; }
 
 
 /* Theme-specific images: <img class="light-only"> / <img class="dark-only"> (e.g. the GitHub mark). */

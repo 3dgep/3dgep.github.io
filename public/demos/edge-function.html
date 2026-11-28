@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Edge Function</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--grid: #222836;
+		--pos: #56d364;
+		--neg: #ff7b72;
+		--a: #5fb8ff;
+		--b: #e8a23c;
+		--p: #d2a8ff;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		--grid: #e6e9ef;
+		--pos: #1a7f37;
+		--neg: #cf222e;
+		--a: #1f6fc2;
+		--b: #b86a00;
+		--p: #8250df;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+	#bar { display: flex; align-items: flex-start; gap: 10px 14px; padding: 6px 10px; border-top: 1px solid var(--border); background: var(--panel); }
+	button {
+		flex: none; font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border);
+		border-radius: 5px; padding: 3px 8px; cursor: pointer; user-select: none;
+	}
+	button:hover { border-color: var(--accent); }
+	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+	/* Always four lines high, so the drawing doesn't change size. Lines wrap between pieces, never inside one. */
+	#info { flex: 1; min-width: 0; min-height: 6em; font: 12.5px/1.5 ui-monospace, Consolas, 'Cascadia Mono', monospace; }
+	#info > div { display: flex; flex-wrap: wrap; column-gap: 2.2ch; }
+	#info > div > span { white-space: pre; }
+	.m { color: var(--muted); } .pos { color: var(--pos); } .neg { color: var(--neg); }
+	.a { color: var(--a); } .b { color: var(--b); } .p { color: var(--p); }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { align-self: flex-end; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="A line through two points a and b divides the plane into a positive half (on the right, looking from a to b, with the y-axis pointing down) and a negative half, shaded in two colors. Drag a, b and the point p. The parallelogram spanned by b minus a and p minus a is drawn; its signed area is the edge function of p."></canvas>
+	</div>
+	<div id="bar">
+		<button id="centers" type="button" aria-pressed="true">pixel centers</button>
+		<div id="info" aria-live="polite"></div>
+		<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+	</div>
+</div>
+<script>
+'use strict';
+// A field of FieldW x FieldH pixels. Coordinates are in pixels, with the y-axis pointing down.
+const FieldW = 20, FieldH = 12;
+const pts = { a: { x: 4, y: 8.5 }, b: { x: 15, y: 3 }, p: { x: 12, y: 8 } };
+let showCenters = true;
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const info = document.getElementById('info');
+let W = 1, H = 1, DPR = 1, cell = 1, ox = 0, oy = 0;
+
+// The edge function of the edge from a to b, at p: positive on the right of the edge, looking from a to b.
+const edge = (a, b, p) => (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--grid', '--pos', '--neg', '--a', '--b', '--p']) colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+function withAlpha(color, alpha) {
+	const n = parseInt(color.slice(1), 16);
+	return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	cell = Math.max(4, Math.min((W - 36) / FieldW, (H - 28) / FieldH));
+	ox = Math.round(26 + (W - 36 - FieldW * cell) / 2);
+	oy = Math.round(20 + (H - 28 - FieldH * cell) / 2);
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+const X = (x) => ox + x * cell;
+const Y = (y) => oy + y * cell;
+
+function arrow(from, to, color, width) {
+	const ang = Math.atan2(Y(to.y) - Y(from.y), X(to.x) - X(from.x));
+	const head = Math.max(8, cell * 0.45);
+	ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width;
+	ctx.beginPath(); ctx.moveTo(X(from.x), Y(from.y));
+	ctx.lineTo(X(to.x) - Math.cos(ang) * head * 0.8, Y(to.y) - Math.sin(ang) * head * 0.8); ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(X(to.x), Y(to.y));
+	ctx.lineTo(X(to.x) - Math.cos(ang - 0.4) * head, Y(to.y) - Math.sin(ang - 0.4) * head);
+	ctx.lineTo(X(to.x) - Math.cos(ang + 0.4) * head, Y(to.y) - Math.sin(ang + 0.4) * head);
+	ctx.closePath(); ctx.fill();
+}
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg'];
+	ctx.fillRect(0, 0, W, H);
+	const { a, b, p } = pts;
+	const degenerate = a.x === b.x && a.y === b.y;
+
+	ctx.save();
+	ctx.beginPath(); ctx.rect(X(0), Y(0), FieldW * cell, FieldH * cell); ctx.clip();
+
+	// The two half-planes: the polygon on the positive side of the line, and the rest.
+	ctx.fillStyle = withAlpha(colors['--neg'], 0.13);
+	ctx.fillRect(X(0), Y(0), FieldW * cell, FieldH * cell);
+	if (!degenerate) {
+		const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+		const ux = dx / len, uy = dy / len, far = FieldW + FieldH;
+		// The right of the direction (ux, uy) on a y-down screen is (-uy, ux).
+		const nx = -uy, ny = ux;
+		const p1 = { x: a.x - ux * far, y: a.y - uy * far }, p2 = { x: a.x + ux * far, y: a.y + uy * far };
+		ctx.fillStyle = colors['--bg'];
+		ctx.beginPath();
+		ctx.moveTo(X(p1.x), Y(p1.y)); ctx.lineTo(X(p2.x), Y(p2.y));
+		ctx.lineTo(X(p2.x + nx * far), Y(p2.y + ny * far)); ctx.lineTo(X(p1.x + nx * far), Y(p1.y + ny * far));
+		ctx.closePath(); ctx.fill();
+		ctx.fillStyle = withAlpha(colors['--pos'], 0.16);
+		ctx.fill();
+	}
+
+	// The pixel grid.
+	ctx.strokeStyle = colors['--grid'];
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	for (let x = 0; x <= FieldW; ++x) { ctx.moveTo(X(x) + 0.5, Y(0)); ctx.lineTo(X(x) + 0.5, Y(FieldH)); }
+	for (let y = 0; y <= FieldH; ++y) { ctx.moveTo(X(0), Y(y) + 0.5); ctx.lineTo(X(FieldW), Y(y) + 0.5); }
+	ctx.stroke();
+
+	// The pixel centers, in the color of their half (or white when exactly on the line).
+	if (showCenters && !degenerate) {
+		for (let y = 0; y < FieldH; ++y)
+			for (let x = 0; x < FieldW; ++x) {
+				const e = edge(a, b, { x: x + 0.5, y: y + 0.5 });
+				ctx.fillStyle = e > 0 ? colors['--pos'] : e < 0 ? colors['--neg'] : colors['--text'];
+				ctx.beginPath(); ctx.arc(X(x + 0.5), Y(y + 0.5), Math.max(2, cell * 0.09), 0, Math.PI * 2); ctx.fill();
+			}
+	}
+
+	if (!degenerate) {
+		// The line through a and b, beyond the edge.
+		const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy), far = FieldW + FieldH;
+		ctx.strokeStyle = colors['--muted'];
+		ctx.setLineDash([5, 5]);
+		ctx.lineWidth = 1.5;
+		ctx.beginPath();
+		ctx.moveTo(X(a.x - dx / len * far), Y(a.y - dy / len * far)); ctx.lineTo(X(a.x + dx / len * far), Y(a.y + dy / len * far));
+		ctx.stroke();
+		ctx.setLineDash([]);
+
+		// The parallelogram spanned by b - a and p - a. Its signed area is the edge function at p.
+		const e = edge(a, b, p);
+		const color = e > 0 ? colors['--pos'] : e < 0 ? colors['--neg'] : colors['--text'];
+		const q = { x: b.x + p.x - a.x, y: b.y + p.y - a.y };
+		ctx.fillStyle = withAlpha(color, 0.28);
+		ctx.strokeStyle = color;
+		ctx.lineWidth = 1.5;
+		ctx.beginPath();
+		ctx.moveTo(X(a.x), Y(a.y)); ctx.lineTo(X(b.x), Y(b.y)); ctx.lineTo(X(q.x), Y(q.y)); ctx.lineTo(X(p.x), Y(p.y)); ctx.closePath();
+		ctx.fill();
+		ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+
+		// The vectors: the edge from a to b, and from a to p.
+		arrow(a, p, colors['--p'], 2);
+		arrow(a, b, colors['--text'], 3);
+
+		// The labels of the two halves, on both sides of the edge, beyond b (away from the arrow to p).
+		const mid = { x: a.x + dx * 1.15, y: a.y + dy * 1.15 };
+		const nx = -dy / len, ny = dx / len, off = Math.min(1.6, FieldH * 0.14);
+		ctx.font = '600 13px system-ui, sans-serif';
+		ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+		ctx.fillStyle = colors['--pos'];
+		ctx.fillText('E > 0 (right)', X(mid.x + nx * off), Y(mid.y + ny * off));
+		ctx.fillStyle = colors['--neg'];
+		ctx.fillText('E < 0 (left)', X(mid.x - nx * off), Y(mid.y - ny * off));
+	}
+	ctx.restore();
+
+	// The axes' numbers: x to the right, y down.
+	ctx.fillStyle = colors['--muted'];
+	ctx.font = '11px system-ui, sans-serif';
+	ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+	for (let x = 0; x <= FieldW; x += 2) ctx.fillText(x, X(x), Y(0) - 3);
+	ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+	for (let y = 0; y <= FieldH; y += 2) ctx.fillText(y, X(0) - 5, Y(y));
+
+	// The handles.
+	for (const name of ['a', 'b', 'p']) {
+		const v = pts[name];
+		ctx.fillStyle = colors['--' + name];
+		ctx.beginPath(); ctx.arc(X(v.x), Y(v.y), Math.max(5, cell * 0.2), 0, Math.PI * 2); ctx.fill();
+		ctx.font = '700 13px system-ui, sans-serif';
+		ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+		ctx.fillText(name, X(v.x) + 7, Y(v.y) - 4);
+	}
+	showInfo();
+}
+
+const line = (...pieces) => `<div>${pieces.map((p) => `<span>${p}</span>`).join('')}</div>`;
+const n = (v) => (Number.isInteger(v) ? String(v) : v.toFixed(2).replace(/0$/, ''));
+const par = (v) => (v < 0 ? `(${n(v)})` : n(v));
+function showInfo() {
+	const { a, b, p } = pts;
+	const dx = b.x - a.x, dy = b.y - a.y, px = p.x - a.x, py = p.y - a.y, e = edge(a, b, p);
+	let html = line(`<span class="a">a</span> = (${n(a.x)}, ${n(a.y)})`, `<span class="b">b</span> = (${n(b.x)}, ${n(b.y)})`, `<span class="p">p</span> = (${n(p.x)}, ${n(p.y)})`);
+	html += line(`E(p) = (b.x - a.x)(p.y - a.y) - (b.y - a.y)(p.x - a.x)`);
+	const cls = e > 0 ? 'pos' : e < 0 ? 'neg' : '';
+	html += line(`     = ${par(dx)} · ${par(py)} - ${par(dy)} · ${par(px)} = <span class="${cls}">${n(e)}</span>`);
+	const side = dx === 0 && dy === 0 ? '<span class="m">a = b: there is no edge, so E is 0 everywhere</span>'
+		: e > 0 ? '<span class="pos">positive: p is on the right of the edge, looking from a to b</span>'
+		: e < 0 ? '<span class="neg">negative: p is on the left of the edge, looking from a to b</span>'
+		: '<span>zero: p is exactly on the line through a and b</span>';
+	html += line(side, `<span class="m">|E| = area of the parallelogram = 2 × area of triangle a, b, p</span>`);
+	info.innerHTML = html;
+}
+
+document.getElementById('centers').addEventListener('click', (e) => {
+	showCenters = !showCenters;
+	e.currentTarget.setAttribute('aria-pressed', String(showCenters));
+	draw();
+});
+
+// ---- Dragging a, b and p (snapped to a quarter pixel) ----
+let drag = null;
+function pointAt(e) {
+	const rc = canvas.getBoundingClientRect();
+	return { x: (e.clientX - rc.left - ox) / cell, y: (e.clientY - rc.top - oy) / cell };
+}
+const handleAt = (q) => ['p', 'b', 'a'].find((k) => Math.hypot(pts[k].x - q.x, pts[k].y - q.y) < 0.6) || null;
+canvas.addEventListener('pointerdown', (e) => {
+	drag = handleAt(pointAt(e));
+	if (!drag) return;
+	canvas.setPointerCapture(e.pointerId);
+	canvas.style.cursor = 'grabbing';
+});
+canvas.addEventListener('pointermove', (e) => {
+	const q = pointAt(e);
+	if (!drag) { canvas.style.cursor = handleAt(q) ? 'grab' : 'default'; return; }
+	pts[drag] = { x: Math.min(FieldW, Math.max(0, Math.round(q.x * 4) / 4)), y: Math.min(FieldH, Math.max(0, Math.round(q.y * 4) / 4)) };
+	draw();
+});
+const endDrag = () => { drag = null; canvas.style.cursor = 'default'; };
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+
+applyTheme();
+resize();
+</script>
+</body>
+</html>

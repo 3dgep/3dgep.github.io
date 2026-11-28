@@ -1,0 +1,40 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build/${presetName}"
+        },
+        {
+            "name": "windows",
+            "displayName": "Windows (Visual Studio 2026)",
+            "inherits": "base",
+            "generator": "Visual Studio 18 2026",
+            "architecture": "x64",
+            "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+        },
+        {
+            "name": "unix",
+            "displayName": "Linux / macOS (Ninja)",
+            "inherits": "base",
+            "generator": "Ninja Multi-Config",
+            "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+        },
+        {
+            "name": "web",
+            "displayName": "Web (Emscripten)",
+            "inherits": "base",
+            "generator": "Ninja",
+            "toolchainFile": "${sourceDir}/cmake/EmscriptenToolchain.cmake",
+            "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+        }
+    ],
+    "buildPresets": [
+        { "name": "windows-debug", "configurePreset": "windows", "configuration": "Debug" },
+        { "name": "windows-release", "configurePreset": "windows", "configuration": "Release" },
+        { "name": "unix-debug", "configurePreset": "unix", "configuration": "Debug" },
+        { "name": "unix-release", "configurePreset": "unix", "configuration": "Release" },
+        { "name": "web", "configurePreset": "web" }
+    ]
+}

@@ -201,7 +201,7 @@ The example of part 4. Click the demo first, so that it gets the keys, and press
 
 ## What's Next
 
-We can draw rectangles, lines and circles now, each with its own algorithm. In part 5, we draw the shape that everything else in this series is built from, the triangle. We decide which pixels it covers with *edge functions*, and make sure that triangles that share an edge never leave a gap between them, and never draw a pixel twice.
+We can draw rectangles, lines and circles now, each with its own algorithm. In [part 5](/2d-software-rasterizer-5-triangles/), we draw the shape that everything else in this series is built from, the triangle. We decide which pixels it covers with *edge functions*, and make sure that triangles that share an edge never leave a gap between them, and never draw a pixel twice.
 
 ## References
 

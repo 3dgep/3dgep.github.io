@@ -339,6 +339,9 @@ dialog.lightbox img {
 .sl-markdown-content iframe.embed-tmpl8 { aspect-ratio: 25 / 16; }
 .sl-markdown-content iframe.embed-tmpl8.embed-768x512 { aspect-ratio: 3 / 2; } /* a game with a 768x512 screen */
 
+/* Web builds of the 2D software rasterizer examples: a 640x360 surface (16:9). */
+.sl-markdown-content iframe.embed-rast { aspect-ratio: 16 / 9; }
+
 /* Keyboard keys: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> styles each key as its own keycap. */
 .sl-markdown-content kbd {
 	padding: 0.1em 0.4em 0;

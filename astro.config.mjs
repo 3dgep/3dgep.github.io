@@ -176,6 +176,13 @@ export default defineConfig({
 					],
 				},
 				{
+					label: '2D Software Rasterizer',
+					collapsed: true,
+					items: [
+						{ label: 'Part 1: The Framebuffer', slug: '2d-software-rasterizer-1-framebuffer' },
+					],
+				},
+				{
 					label: 'C++',
 					items: [
 						{ label: 'C++ Template Programming', slug: 'beginning-cpp-template-programming' },

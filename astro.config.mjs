@@ -180,6 +180,7 @@ export default defineConfig({
 					collapsed: true,
 					items: [
 						{ label: 'Part 1: The Framebuffer', slug: '2d-software-rasterizer-1-framebuffer' },
+						{ label: 'Part 2: Clipping', slug: '2d-software-rasterizer-2-clipping' },
 					],
 				},
 				{

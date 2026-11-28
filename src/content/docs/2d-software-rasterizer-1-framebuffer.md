@@ -489,4 +489,4 @@ The surface has 640 × 360 = 230,400 pixels, so the loop computes a sine more th
 
 ## What's Next
 
-We now have a surface that we can write pixels to, and a window that shows it. In part 2, we look at what happens when we draw outside of the surface. We add a fast `Clear`, keep every drawing operation inside the surface, and add *scissor rectangles*, which limit drawing to a part of the screen.
+We now have a surface that we can write pixels to, and a window that shows it. In [part 2](/2d-software-rasterizer-2-clipping/), we look at what happens when we draw outside of the surface. We add a fast `Clear`, keep every drawing operation inside the surface, and add *scissor rectangles*, which limit drawing to a part of the screen.

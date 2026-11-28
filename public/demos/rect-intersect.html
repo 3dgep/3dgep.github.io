@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rectangle Intersection</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--grid: #262c39;
+		--a: #5fb8ff;
+		--b: #e8a23c;
+		--result: #56d364;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--grid: #e2e5ec;
+		--a: #1f6fc2;
+		--b: #b86a00;
+		--result: #1a7f37;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: default; }
+	#bar {
+		display: flex; align-items: center; gap: 12px;
+		padding: 6px 10px; border-top: 1px solid var(--border); background: var(--panel);
+	}
+	/* Each line wraps between its pieces (never inside one), so a narrow demo gets more lines instead of a scroll bar. */
+	#code { min-width: 0; font: 12.5px/1.5 ui-monospace, Consolas, 'Cascadia Mono', monospace; }
+	#code > div { display: flex; flex-wrap: wrap; column-gap: 2.2ch; }
+	#code > div > span { white-space: pre; }
+	.a { color: var(--a); } .b { color: var(--b); } .r { color: var(--result); } .m { color: var(--muted); }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { margin-left: auto; align-self: flex-end; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="A grid of pixels with two rectangles, a and b. Drag a rectangle to move it, or drag its bottom-right corner to resize it. The pixels inside both are the intersection; its four edges are shown as dashed lines."></canvas>
+	</div>
+	<div id="bar">
+		<div id="code" aria-live="polite"></div>
+		<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+	</div>
+</div>
+<script>
+'use strict';
+// A field of FieldW x FieldH pixels. Rectangles use half-open edges, like rast::Rect: left and top are
+// inside, right and bottom are just outside.
+const FieldW = 24, FieldH = 13;
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const code = document.getElementById('code');
+let W = 1, H = 1, DPR = 1, cell = 1, ox = 0, oy = 0;
+
+const rects = {
+	a: { left: 3, top: 2, right: 12, bottom: 9 },
+	b: { left: 8, top: 5, right: 19, bottom: 11 },
+};
+
+function intersect(a, b) {
+	return {
+		left: Math.max(a.left, b.left), top: Math.max(a.top, b.top),
+		right: Math.min(a.right, b.right), bottom: Math.min(a.bottom, b.bottom),
+	};
+}
+const isEmpty = (r) => r.right <= r.left || r.bottom <= r.top;
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--grid', '--a', '--b', '--result'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	// Room for the edge numbers at the top and the left, and the edge labels at the right and the bottom.
+	cell = Math.max(4, Math.floor(Math.min((W - 28 - 56) / FieldW, (H - 34) / FieldH)));
+	ox = Math.round(28 + (W - 28 - 56 - FieldW * cell) / 2);
+	oy = Math.round(24 + (H - 34 - FieldH * cell) / 2);
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+const X = (x) => ox + x * cell;
+const Y = (y) => oy + y * cell;
+
+function withAlpha(color, alpha) {
+	// colors are #rrggbb
+	const n = parseInt(color.slice(1), 16);
+	return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+function drawRect(r, color) {
+	ctx.fillStyle = withAlpha(color, 0.18);
+	ctx.fillRect(X(r.left), Y(r.top), (r.right - r.left) * cell, (r.bottom - r.top) * cell);
+	ctx.strokeStyle = color;
+	ctx.lineWidth = 2;
+	ctx.strokeRect(X(r.left) + 1, Y(r.top) + 1, (r.right - r.left) * cell - 2, (r.bottom - r.top) * cell - 2);
+	// The resize handle in the bottom-right corner.
+	ctx.fillStyle = color;
+	const s = Math.max(6, cell * 0.35);
+	ctx.fillRect(X(r.right) - s - 2, Y(r.bottom) - s - 2, s, s);
+}
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg'];
+	ctx.fillRect(0, 0, W, H);
+
+	const { a, b } = rects;
+	const r = intersect(a, b);
+	const empty = isEmpty(r);
+
+	// The pixels: one square per pixel, with the edge numbers along the top and the left.
+	ctx.strokeStyle = colors['--grid'];
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	for (let x = 0; x <= FieldW; ++x) { ctx.moveTo(X(x) + 0.5, Y(0)); ctx.lineTo(X(x) + 0.5, Y(FieldH)); }
+	for (let y = 0; y <= FieldH; ++y) { ctx.moveTo(X(0), Y(y) + 0.5); ctx.lineTo(X(FieldW), Y(y) + 0.5); }
+	ctx.stroke();
+	ctx.fillStyle = colors['--muted'];
+	ctx.font = '11px system-ui, sans-serif';
+	const step = cell < 16 ? 2 : 1;
+	ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+	for (let x = 0; x <= FieldW; x += step) ctx.fillText(x, X(x), Y(0) - 4);
+	ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+	for (let y = 0; y <= FieldH; y += step) ctx.fillText(y, X(0) - 6, Y(y));
+
+	drawRect(a, colors['--a']);
+	drawRect(b, colors['--b']);
+
+	// The intersection: its pixels, and its four edges as dashed lines across the field.
+	if (!empty) {
+		ctx.fillStyle = withAlpha(colors['--result'], 0.45);
+		ctx.fillRect(X(r.left), Y(r.top), (r.right - r.left) * cell, (r.bottom - r.top) * cell);
+	}
+	ctx.strokeStyle = colors['--result'];
+	ctx.lineWidth = 2;
+	ctx.setLineDash([6, 4]);
+	ctx.beginPath();
+	for (const x of [r.left, r.right]) { ctx.moveTo(X(x), Y(0)); ctx.lineTo(X(x), Y(FieldH)); }
+	for (const y of [r.top, r.bottom]) { ctx.moveTo(X(0), Y(y)); ctx.lineTo(X(FieldW), Y(y)); }
+	ctx.stroke();
+	ctx.setLineDash([]);
+
+	// The labels of the dashed edges, at the bottom and the right of the field.
+	ctx.fillStyle = colors['--result'];
+	ctx.font = '600 11px system-ui, sans-serif';
+	ctx.textBaseline = 'top'; ctx.textAlign = 'center';
+	ctx.fillText('left', X(r.left), Y(FieldH) + 3);
+	ctx.fillText('right', X(r.right), Y(FieldH) + 3 + (Math.abs(r.right - r.left) * cell < 34 ? 12 : 0));
+	ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+	ctx.fillText('top', X(FieldW) + 4, Y(r.top) - (Math.abs(r.bottom - r.top) * cell < 16 ? 6 : 0));
+	ctx.fillText('bottom', X(FieldW) + 4, Y(r.bottom) + (Math.abs(r.bottom - r.top) * cell < 16 ? 6 : 0));
+
+	showCode(a, b, r, empty);
+}
+
+const fmt = (r, cls) => `<span class="${cls}">{ ${r.left}, ${r.top}, ${r.right}, ${r.bottom} }</span>`;
+function showCode(a, b, r, empty) {
+	const w = r.right - r.left, h = r.bottom - r.top;
+	const size = empty
+		? `<span class="m">empty: width ${w}, height ${h}</span>`
+		: `<span class="m">${w} × ${h} = ${w * h} pixels</span>`;
+	// One <div> per line, one outer <span> per piece that must stay together.
+	const line = (...pieces) => `<div>${pieces.map((p) => `<span>${p}</span>`).join('')}</div>`;
+	code.innerHTML =
+		line(`<span class="a">a</span> = ${fmt(a, 'a')}`, `<span class="b">b</span> = ${fmt(b, 'b')}`,
+			`<span class="m">// { left, top, right, bottom }</span>`) +
+		line(`Intersect(a, b) = ${fmt(r, 'r')}`, size) +
+		line(`<span class="m">left = max(${a.left}, ${b.left}) = ${r.left}</span>`,
+			`<span class="m">top = max(${a.top}, ${b.top}) = ${r.top}</span>`,
+			`<span class="m">right = min(${a.right}, ${b.right}) = ${r.right}</span>`,
+			`<span class="m">bottom = min(${a.bottom}, ${b.bottom}) = ${r.bottom}</span>`);
+}
+
+// ---- Dragging: move a rectangle, or resize it with its bottom-right corner ----
+let drag = null;
+function cellAt(e) {
+	const rc = canvas.getBoundingClientRect();
+	return { x: (e.clientX - rc.left - ox) / cell, y: (e.clientY - rc.top - oy) / cell };
+}
+function hit(p) {
+	for (const name of ['b', 'a']) { // b is drawn on top
+		const r = rects[name];
+		const nearCorner = Math.abs(p.x - r.right) < 0.6 && Math.abs(p.y - r.bottom) < 0.6;
+		if (nearCorner) return { name, mode: 'resize' };
+		if (p.x >= r.left && p.x < r.right && p.y >= r.top && p.y < r.bottom) return { name, mode: 'move' };
+	}
+	return null;
+}
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+canvas.addEventListener('pointerdown', (e) => {
+	const p = cellAt(e);
+	const h = hit(p);
+	if (!h) return;
+	const r = rects[h.name];
+	drag = { ...h, start: p, orig: { ...r } };
+	canvas.setPointerCapture(e.pointerId);
+	canvas.style.cursor = h.mode === 'resize' ? 'nwse-resize' : 'grabbing';
+});
+canvas.addEventListener('pointermove', (e) => {
+	const p = cellAt(e);
+	if (!drag) {
+		const h = hit(p);
+		canvas.style.cursor = !h ? 'default' : h.mode === 'resize' ? 'nwse-resize' : 'grab';
+		return;
+	}
+	const r = rects[drag.name], o = drag.orig;
+	const dx = Math.round(p.x - drag.start.x), dy = Math.round(p.y - drag.start.y);
+	if (drag.mode === 'move') {
+		const w = o.right - o.left, h = o.bottom - o.top;
+		r.left = clamp(o.left + dx, 0, FieldW - w); r.top = clamp(o.top + dy, 0, FieldH - h);
+		r.right = r.left + w; r.bottom = r.top + h;
+	} else {
+		r.right = clamp(o.right + dx, r.left + 1, FieldW);
+		r.bottom = clamp(o.bottom + dy, r.top + 1, FieldH);
+	}
+	draw();
+});
+const endDrag = () => { drag = null; canvas.style.cursor = 'default'; };
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+
+applyTheme();
+resize();
+</script>
+</body>
+</html>

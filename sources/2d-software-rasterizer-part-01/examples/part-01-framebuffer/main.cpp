@@ -51,7 +51,7 @@ int main()
                 const float green = v;
                 const float blue = 0.5f + 0.5f * std::sin(2.0f * time - (u + v) * std::numbers::pi_v<float>);
 
-                pixels[y, x] = rast::Color{ ToByte(red), ToByte(green), ToByte(blue) };
+                pixels[x, y] = rast::Color{ ToByte(red), ToByte(green), ToByte(blue) };
             }
         }
 

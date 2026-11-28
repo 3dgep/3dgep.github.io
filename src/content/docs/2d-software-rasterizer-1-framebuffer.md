@@ -252,19 +252,25 @@ You could write `pixels[y * width + x]` everywhere, but it's easy to swap `x` an
 
 `Surface.hpp` starts by naming the views that we use:
 
-```cpp source="2d-software-rasterizer-part-01/rast/include/rast/Surface.hpp#L1-L14"
+```cpp source="2d-software-rasterizer-part-01/rast/include/rast/Surface.hpp#L1-L15"
 ```
 
-`std::dextents<int, 2>` means two dimensions, with sizes that are only known at run time (the `d` is for *dynamic*), indexed with an `int`. The first dimension is the row and the second is the column, so you index a `PixelView` as `pixels[y, x]`. This is the same order as the formula above. The last index is the one that changes fastest in memory. (`std::mdspan` calls this layout `std::layout_right`, and it's the default.) The comma in `pixels[y, x]` is C++23's *multidimensional subscript operator*. Before C++23, `operator[]` could only take one argument. `ConstPixelView` is the read-only version, for code that only reads the pixels.
+`std::dextents<int, 2>` means two dimensions, with sizes that are only known at run time (the `d` is for *dynamic*), indexed with an `int`. The first dimension is the column `x` and the second is the row `y`, so you index a `PixelView` as `pixels[x, y]`, the same order as in a texture lookup in a shader. The comma is C++23's *multidimensional subscript operator*. Before C++23, `operator[]` could only take one argument.
+
+The third template argument, the *layout*, decides where `pixels[x, y]` is in memory. `std::mdspan`'s default layout is `std::layout_right`, where the right-most index changes fastest in memory. With that layout, you would have to write `pixels[y, x]` to get row-major memory. We use `std::layout_left` instead, where the left-most index changes fastest. Going from `pixels[x, y]` to `pixels[x + 1, y]` moves one pixel forward in memory, and going to `pixels[x, y + 1]` moves a whole row (`width` pixels) forward. That's exactly the formula above, so the memory is still stored row by row. Only the order of the indices is different. `ConstPixelView` is the read-only version, for code that only reads the pixels.
+
+:::caution[x first, but rows first]
+`pixels[x, y]` puts `x` first, but in memory the pixels are still stored one row after the other. So a loop over all pixels must still have `y` in the outer loop and `x` in the inner loop, to go through memory from front to back. (In matrix terms, `std::layout_left` is called *column-major*. For an image, the "columns" of that matrix are our rows, which is why the name sounds like the opposite of what we're doing.)
+:::
 
 We use `int` for the indices instead of `std::size_t`. Starting in the next part, we work with coordinates that can be negative or fall outside of the screen, and signed integers make that arithmetic much less surprising.
 
 The `Surface` class owns the pixels and hands out views of them:
 
-```cpp source="2d-software-rasterizer-part-01/rast/include/rast/Surface.hpp#L16-L40"
+```cpp source="2d-software-rasterizer-part-01/rast/include/rast/Surface.hpp#L17-L41"
 ```
 
-The pixels are stored in a `std::vector<Color>`, which frees its memory by itself. `Pixels()` makes a new view every time it's called, from the vector's data and the surface's height and width (in that order, rows first). Making a view costs almost nothing, and it means that a view can never point to memory that has been moved. If a `Surface` is copied or moved, the next call to `Pixels()` points to the right place. The views are only valid as long as the surface exists, the same as a pointer.
+The pixels are stored in a `std::vector<Color>`, which frees its memory by itself. `Pixels()` makes a new view every time it's called, from the vector's data and the surface's width and height (in that order, the same order as the indices). Making a view costs almost nothing, and it means that a view can never point to memory that has been moved. If a `Surface` is copied or moved, the next call to `Pixels()` points to the right place. The views are only valid as long as the surface exists, the same as a pointer.
 
 `Data()` returns all the pixels as a `std::span`, one row after the other. That's useful when the position of a pixel doesn't matter, for example to fill the whole surface with one color.
 
@@ -457,7 +463,7 @@ The main loop runs until the window is closed:
 ```cpp source="2d-software-rasterizer-part-01/examples/part-01-framebuffer/main.cpp#L37-L62"
 ```
 
-Every frame, `time` is the number of seconds since the start, as a `float`. Then we visit every pixel of the surface, row by row. That's the same order as the pixels are stored in memory, so the CPU reads and writes memory from front to back, which is the fastest way to go through it.
+Every frame, `time` is the number of seconds since the start, as a `float`. Then we visit every pixel of the surface, row by row, with `y` in the outer loop. That's the same order as the pixels are stored in memory, so the CPU reads and writes memory from front to back, which is the fastest way to go through it.
 
 For every pixel, `u` and `v` are its position as a fraction of the width and the height. They are 0 at the top-left pixel and 1 at the bottom-right pixel. Red follows `u`, so the surface gets redder to the right. Green follows `v`, so it gets greener towards the bottom. The bottom-right corner, which has both, is yellow. Blue is a wave:
 
@@ -467,7 +473,7 @@ $$
 
 The sine goes from -1 to 1, so $b$ goes from 0 to 1. Along a diagonal line, where $u + v$ is the same, all pixels have the same amount of blue. As time goes on, the stripes of blue move towards the bottom-right corner, and a new stripe starts every $\pi$ seconds.
 
-Finally, `pixels[y, x]` stores the color in the surface, and `Present` shows it in the window.
+Finally, `pixels[x, y]` stores the color in the surface, and `Present` shows it in the window.
 
 The result looks like this. (This is the same program, built for the web with the `web` preset.)
 

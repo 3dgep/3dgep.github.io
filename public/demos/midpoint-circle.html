@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Midpoint Circle</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--grid: #262c39;
+		--line: #d6dae3;
+		--center: #5fb8ff;
+		--radius: #e8a23c;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		--grid: #e2e5ec;
+		--line: #23262e;
+		--center: #1f6fc2;
+		--radius: #b86a00;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+	#bar { display: flex; align-items: flex-start; gap: 10px 14px; padding: 6px 10px; border-top: 1px solid var(--border); background: var(--panel); }
+	.group { display: flex; align-items: center; gap: 4px; flex: none; }
+	button {
+		font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border);
+		border-radius: 5px; padding: 3px 8px; cursor: pointer; user-select: none;
+	}
+	button:hover { border-color: var(--accent); }
+	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+	/* Always four lines high (the last two are for the hovered pixel), so the grid doesn't change size.
+	   The lines wrap between their pieces, never inside one, so there is no horizontal scroll bar. */
+	#info { flex: 1; min-width: 0; min-height: 6em; font: 12.5px/1.5 ui-monospace, Consolas, 'Cascadia Mono', monospace; }
+	#info > div { display: flex; flex-wrap: wrap; column-gap: 2.2ch; }
+	#info > div > span { white-space: pre; }
+	.m { color: var(--muted); } .c { color: var(--center); } .r { color: var(--radius); }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { align-self: flex-end; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="A grid of pixels with a circle whose center is on the corner between four pixels. Drag the center or the handle on the circle to change it. In outline mode, the eighth of the circle that the midpoint algorithm walks is drawn strongly, and its seven mirror images in other colors; in fill mode, every row of the disc is one span. Hover over a pixel for its step and decision variable."></canvas>
+	</div>
+	<div id="bar">
+		<div class="group" role="group" aria-label="Mode">
+			<button id="outline" type="button" aria-pressed="true">outline</button>
+			<button id="fill" type="button" aria-pressed="false">fill</button>
+		</div>
+		<div id="info" aria-live="polite"></div>
+		<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+	</div>
+</div>
+<script>
+'use strict';
+// A field of FieldW x FieldH pixels. The center is a grid corner: the corner at the top-left of pixel (cx, cy).
+const FieldW = 30, FieldH = 18;
+const params = new URLSearchParams(location.search);
+let center = { x: 15, y: 9 };
+let radius = Math.min(12, Math.max(1, Number(params.get('r')) || 7));
+let mode = params.get('mode') === 'fill' ? 'fill' : 'outline';
+let hover = null;
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const info = document.getElementById('info');
+let W = 1, H = 1, DPR = 1, cell = 1, ox = 0, oy = 0;
+
+// The mirror image of an offset: the pixel a columns right of the center mirrors to a + 1 columns left of it.
+const mirror = (a) => -1 - a;
+
+// The outline, exactly as WalkCircleOutline: every step (a, b) of the walked eighth, and its mirror images.
+// Each pixel gets the step that drew it and the eighth (0 to 7) it belongs to; eighth 0 is the walked one.
+function outline(r) {
+	const pixels = [];
+	let a = 0, b = r - 1, d = 2 - 4 * r, step = 0;
+	while (a <= b) {
+		const images = [[a, b], [mirror(a), b], [a, mirror(b)], [mirror(a), mirror(b)]];
+		if (a !== b) images.push([b, a], [mirror(b), a], [b, mirror(a)], [mirror(b), mirror(a)]);
+		images.forEach(([i, j], k) => pixels.push({ x: center.x + i, y: center.y + j, step, a, b, d, eighth: k }));
+		const before = d;
+		++a; d += 8 * a;
+		const stepDown = d >= 0;
+		if (stepDown) { d -= 8 * b; --b; }
+		pixels.filter((p) => p.step === step).forEach((p) => { p.next = before + 8 * a; p.stepDown = stepDown; });
+		++step;
+	}
+	return pixels;
+}
+
+// The disc, exactly as FillCircle: one span per row, for the rows below the center and their mirror images above it.
+function fill(r) {
+	const spans = [];
+	let w = r - 1, d = 2 - 4 * r;
+	for (let b = 0; b < r; ++b) {
+		while (d >= 0) { d -= 8 * w; --w; }
+		for (const row of [center.y + b, center.y + mirror(b)])
+			spans.push({ y: row, left: center.x - 1 - w, right: center.x + w + 1, b, w, d });
+		d += 8 * (b + 1);
+	}
+	return spans;
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {}, dark = true;
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	const theme = currentTheme();
+	dark = theme === 'dark';
+	document.documentElement.dataset.theme = theme;
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--grid', '--line', '--center', '--radius'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+const eighthHues = [140, 200, 240, 280, 320, 20, 45, 90];
+const hue = (h, alpha, l) => `hsla(${h}, ${dark ? 65 : 60}%, ${l ?? (dark ? 60 : 42)}%, ${alpha})`;
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	cell = Math.max(4, Math.floor(Math.min((W - 16) / FieldW, (H - 16) / FieldH)));
+	ox = Math.round((W - FieldW * cell) / 2);
+	oy = Math.round((H - FieldH * cell) / 2);
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+const X = (x) => ox + x * cell;
+const Y = (y) => oy + y * cell;
+const inField = (x, y) => x >= 0 && x < FieldW && y >= 0 && y < FieldH;
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg'];
+	ctx.fillRect(0, 0, W, H);
+
+	ctx.save();
+	ctx.beginPath(); ctx.rect(X(0), Y(0), FieldW * cell, FieldH * cell); ctx.clip();
+
+	if (mode === 'outline') {
+		for (const p of outline(radius)) {
+			if (!inField(p.x, p.y)) continue;
+			ctx.fillStyle = hue(eighthHues[p.eighth], p.eighth === 0 ? 0.95 : 0.55);
+			ctx.fillRect(X(p.x) + 1, Y(p.y) + 1, cell - 1, cell - 1);
+		}
+	} else {
+		for (const s of fill(radius)) {
+			ctx.fillStyle = hue(s.b % 2 ? 200 : 140, 0.55);
+			ctx.fillRect(X(s.left) + 1, Y(s.y) + 1, (s.right - s.left) * cell - 1, cell - 1);
+		}
+	}
+
+	// The pixel grid.
+	ctx.strokeStyle = colors['--grid'];
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	for (let x = 0; x <= FieldW; ++x) { ctx.moveTo(X(x) + 0.5, Y(0)); ctx.lineTo(X(x) + 0.5, Y(FieldH)); }
+	for (let y = 0; y <= FieldH; ++y) { ctx.moveTo(X(0), Y(y) + 0.5); ctx.lineTo(X(FieldW), Y(y) + 0.5); }
+	ctx.stroke();
+
+	// The bounding box, the true circle, and the lines through the center that mirror the pixels.
+	ctx.strokeStyle = colors['--muted'];
+	ctx.setLineDash([3, 4]);
+	ctx.strokeRect(X(center.x - radius) + 0.5, Y(center.y - radius) + 0.5, 2 * radius * cell, 2 * radius * cell);
+	ctx.beginPath();
+	ctx.moveTo(X(center.x), Y(0)); ctx.lineTo(X(center.x), Y(FieldH));
+	ctx.moveTo(X(0), Y(center.y)); ctx.lineTo(X(FieldW), Y(center.y));
+	ctx.stroke();
+	ctx.setLineDash([]);
+	ctx.strokeStyle = colors['--line'];
+	ctx.lineWidth = 1.5;
+	ctx.beginPath(); ctx.arc(X(center.x), Y(center.y), radius * cell, 0, Math.PI * 2); ctx.stroke();
+	ctx.restore();
+
+	// The handles: the center (a grid corner) and the radius (on the right of the circle).
+	ctx.fillStyle = colors['--center'];
+	ctx.beginPath(); ctx.arc(X(center.x), Y(center.y), Math.max(4, cell * 0.22), 0, Math.PI * 2); ctx.fill();
+	ctx.fillStyle = colors['--radius'];
+	ctx.beginPath(); ctx.arc(X(center.x + radius), Y(center.y), Math.max(4, cell * 0.22), 0, Math.PI * 2); ctx.fill();
+
+	if (hover) {
+		ctx.strokeStyle = colors['--text'];
+		ctx.lineWidth = 1.5;
+		ctx.strokeRect(X(hover.x) + 0.5, Y(hover.y) + 0.5, cell, cell);
+	}
+	showInfo();
+}
+
+const line = (...pieces) => `<div>${pieces.map((p) => `<span>${p}</span>`).join('')}</div>`;
+const eighthNames = ['the walked eighth', 'mirrored left', 'mirrored up', 'mirrored left and up',
+	'mirrored across the diagonal', 'across the diagonal, left', 'across the diagonal, up', 'across the diagonal, left and up'];
+function showInfo() {
+	let html = line(`<span class="c">center</span> = (${center.x}, ${center.y})`, `<span class="r">radius</span> = ${radius}`,
+		`<span class="m">bounds = { ${center.x - radius}, ${center.y - radius}, ${center.x + radius}, ${center.y + radius} }, ${2 * radius} × ${2 * radius}</span>`);
+	let detail1 = '<span class="m">hover over a pixel for its step</span>', detail2 = '';
+	if (mode === 'outline') {
+		const pixels = outline(radius);
+		const steps = pixels.length ? pixels[pixels.length - 1].step + 1 : 0;
+		html += line(`<span class="m">${steps} steps in one eighth, ${pixels.length} pixels in the whole outline</span>`);
+		const p = hover && pixels.find((q) => q.x === hover.x && q.y === hover.y);
+		if (p) {
+			detail1 = `<span style="color:${hue(eighthHues[p.eighth], 1)}">step ${p.step}, pixel (a, b) = (${p.a}, ${p.b}), ${eighthNames[p.eighth]}</span>`;
+			detail2 = `<span class="m">d = ${p.d}; next column: d = ${p.d} + ${8 * (p.a + 1)} = ${p.next}${p.stepDown ? ` ≥ 0, so b - 1` : ' < 0, b stays'}</span>`;
+		} else if (hover) detail1 = `<span class="m">pixel (${hover.x}, ${hover.y}) is not part of the outline</span>`;
+	} else {
+		const spans = fill(radius);
+		const count = spans.reduce((n, s) => n + s.right - s.left, 0);
+		html += line(`<span class="m">${spans.length} rows, one span each, ${count} pixels</span>`);
+		const s = hover && spans.find((q) => q.y === hover.y && hover.x >= q.left && hover.x < q.right);
+		if (s) {
+			detail1 = `<span style="color:${hue(s.b % 2 ? 200 : 140, 1)}">row b = ${s.b}${s.y < center.y ? ' (mirrored above the center)' : ''}: span [${s.left}, ${s.right}), ${s.right - s.left} pixels</span>`;
+			detail2 = `<span class="m">w = ${s.w}: d = ${s.d} < 0, the outermost pixel of the row is inside</span>`;
+		} else if (hover) detail1 = `<span class="m">pixel (${hover.x}, ${hover.y}) is not inside the circle</span>`;
+	}
+	info.innerHTML = html + line(detail1) + line(detail2);
+}
+
+// ---- Buttons ----
+const buttons = { outline: document.getElementById('outline'), fill: document.getElementById('fill') };
+function setMode(m) {
+	mode = m;
+	for (const [k, b] of Object.entries(buttons)) b.setAttribute('aria-pressed', String(k === m));
+	draw();
+}
+for (const [k, b] of Object.entries(buttons)) b.addEventListener('click', () => setMode(k));
+
+// ---- Dragging: the center snaps to grid corners, the radius to whole pixels ----
+let drag = null;
+function pointAt(e) {
+	const rc = canvas.getBoundingClientRect();
+	return { x: (e.clientX - rc.left - ox) / cell, y: (e.clientY - rc.top - oy) / cell };
+}
+function handleAt(p) {
+	if (Math.hypot(p.x - (center.x + radius), p.y - center.y) < 0.6) return 'radius';
+	if (Math.hypot(p.x - center.x, p.y - center.y) < 0.6) return 'center';
+	return null;
+}
+canvas.addEventListener('pointerdown', (e) => {
+	drag = handleAt(pointAt(e));
+	if (!drag) return;
+	canvas.setPointerCapture(e.pointerId);
+	canvas.style.cursor = 'grabbing';
+});
+canvas.addEventListener('pointermove', (e) => {
+	const p = pointAt(e);
+	if (drag === 'center') {
+		center = { x: Math.min(FieldW - 1, Math.max(1, Math.round(p.x))), y: Math.min(FieldH - 1, Math.max(1, Math.round(p.y))) };
+	} else if (drag === 'radius') {
+		radius = Math.min(12, Math.max(1, Math.round(Math.hypot(p.x - center.x, p.y - center.y))));
+	} else {
+		canvas.style.cursor = handleAt(p) ? 'grab' : 'default';
+	}
+	const px = Math.floor(p.x), py = Math.floor(p.y);
+	hover = drag || !inField(px, py) ? null : { x: px, y: py };
+	draw();
+});
+canvas.addEventListener('pointerleave', () => { if (!drag) { hover = null; draw(); } });
+const endDrag = () => { drag = null; canvas.style.cursor = 'default'; };
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+
+setMode(mode);
+applyTheme();
+resize();
+</script>
+</body>
+</html>

@@ -281,7 +281,7 @@ The example of part 3. Click the demo first, so that it gets the keys. <kbd>F1</
 
 ## What's Next
 
-We can draw lines in every direction now, and clip them without changing them. In part 4, we draw circles. The *midpoint circle algorithm* uses the same idea as Bresenham's algorithm, an error term that decides between two pixels with integers only. And a circle is symmetric in eight ways, so we only have to compute an eighth of it.
+We can draw lines in every direction now, and clip them without changing them. In [part 4](/2d-software-rasterizer-4-circles/), we draw circles. The *midpoint circle algorithm* uses the same idea as Bresenham's algorithm, an error term that decides between two pixels with integers only. And a circle is symmetric in eight ways, so we only have to compute an eighth of it.
 
 ## References
 

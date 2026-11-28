@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Line Octants</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--grid: #262c39;
+		--line: #d6dae3;
+		--p0: #5fb8ff;
+		--p1: #e8a23c;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		--grid: #e2e5ec;
+		--line: #23262e;
+		--p0: #1f6fc2;
+		--p1: #b86a00;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+	#bar { display: flex; align-items: flex-start; gap: 10px 14px; padding: 6px 10px; border-top: 1px solid var(--border); background: var(--panel); }
+	button {
+		flex: none; font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border);
+		border-radius: 5px; padding: 3px 8px; cursor: pointer; user-select: none;
+	}
+	button:hover { border-color: var(--accent); }
+	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+	/* The info lines wrap between their pieces, never inside one, so there is no horizontal scroll bar. */
+	/* Always at least three lines high, so the grid doesn't change size when the text gets shorter. */
+	#info { flex: 1; min-width: 0; min-height: 4.5em; font: 12.5px/1.5 ui-monospace, Consolas, 'Cascadia Mono', monospace; }
+	#info > div { display: flex; flex-wrap: wrap; column-gap: 2.2ch; }
+	#info > div > span { white-space: pre; }
+	.m { color: var(--muted); } .p0 { color: var(--p0); } .p1 { color: var(--p1); }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { align-self: flex-end; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="A grid of pixels with p0 in the middle and eight colored wedges around it, one for each octant. Drag p1 around p0: the octant that p1 is in is highlighted, and the line's pixels are drawn in its color."></canvas>
+	</div>
+	<div id="bar">
+		<button id="sweep" type="button" aria-pressed="false">sweep</button>
+		<div id="info" aria-live="polite"></div>
+		<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+	</div>
+</div>
+<script>
+'use strict';
+// A field of FieldW x FieldH pixels with p0 in the middle. y goes down, like on the surface.
+const FieldW = 27, FieldH = 15;
+const p0 = { x: 13, y: 7 };
+let p1 = { x: 22, y: 3 };
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const info = document.getElementById('info');
+let W = 1, H = 1, DPR = 1, cell = 1, ox = 0, oy = 0;
+
+// One color per octant, in the order of the wedges (clockwise on the screen, starting at the right).
+const octantHues = [210, 250, 290, 330, 10, 40, 100, 160];
+
+// The values that DrawLine computes, exactly as in the C++ code.
+function describe(p0, p1) {
+	const dx = p1.x - p0.x, dy = p1.y - p0.y;
+	const xMajor = Math.abs(dx) >= Math.abs(dy);
+	return {
+		dx, dy, xMajor,
+		dMajor: Math.abs(xMajor ? dx : dy), dMinor: Math.abs(xMajor ? dy : dx),
+		majorSign: (xMajor ? dx : dy) < 0 ? -1 : 1, minorSign: (xMajor ? dy : dx) < 0 ? -1 : 1,
+	};
+}
+
+// The wedge (0 to 7) of an octant: wedge 0 is right and down, then clockwise in 45 degree steps.
+function wedgeOf(d) {
+	const sx = d.xMajor ? d.majorSign : d.minorSign, sy = d.xMajor ? d.minorSign : d.majorSign;
+	if (sx > 0 && sy > 0) return d.xMajor ? 0 : 1;
+	if (sx < 0 && sy > 0) return d.xMajor ? 3 : 2;
+	if (sx < 0 && sy < 0) return d.xMajor ? 4 : 5;
+	return d.xMajor ? 7 : 6;
+}
+
+// The octant of each wedge, described as DrawLine sees it.
+const wedges = [
+	{ xMajor: true, sx: 1, sy: 1 }, { xMajor: false, sx: 1, sy: 1 }, { xMajor: false, sx: -1, sy: 1 }, { xMajor: true, sx: -1, sy: 1 },
+	{ xMajor: true, sx: -1, sy: -1 }, { xMajor: false, sx: -1, sy: -1 }, { xMajor: false, sx: 1, sy: -1 }, { xMajor: true, sx: 1, sy: -1 },
+];
+const arrow = (axis, sign) => axis === 'x' ? (sign > 0 ? '→' : '←') : (sign > 0 ? '↓' : '↑');
+// A label like "x→ y↓": the major axis first, with the directions of both steps.
+function wedgeLabel(w) {
+	return w.xMajor ? `x${arrow('x', w.sx)} y${arrow('y', w.sy)}` : `y${arrow('y', w.sy)} x${arrow('x', w.sx)}`;
+}
+
+function bresenham(p0, p1) {
+	const d = describe(p0, p1);
+	let major = d.xMajor ? p0.x : p0.y, minor = d.xMajor ? p0.y : p0.x, error = -d.dMajor;
+	const pixels = [];
+	for (let step = 0; step < d.dMajor; ++step) {
+		pixels.push(d.xMajor ? { x: major, y: minor } : { x: minor, y: major });
+		major += d.majorSign;
+		error += 2 * d.dMinor;
+		if (error >= 0) { minor += d.minorSign; error -= 2 * d.dMajor; }
+	}
+	return pixels;
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {}, dark = true;
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	const theme = currentTheme();
+	dark = theme === 'dark';
+	document.documentElement.dataset.theme = theme;
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--grid', '--line', '--p0', '--p1'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+const hue = (i, alpha) => `hsla(${octantHues[i]}, ${dark ? 70 : 65}%, ${dark ? 62 : 42}%, ${alpha})`;
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	cell = Math.max(4, Math.floor(Math.min((W - 16) / FieldW, (H - 16) / FieldH)));
+	ox = Math.round((W - FieldW * cell) / 2);
+	oy = Math.round((H - FieldH * cell) / 2);
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+const X = (x) => ox + x * cell;
+const Y = (y) => oy + y * cell;
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg'];
+	ctx.fillRect(0, 0, W, H);
+
+	const d = describe(p0, p1);
+	const current = d.dMajor === 0 ? -1 : wedgeOf(d);
+	const cx = X(p0.x + 0.5), cy = Y(p0.y + 0.5);
+	const radius = Math.hypot(FieldW, FieldH) * cell;
+
+	// The eight wedges, clipped to the field. The current one is stronger.
+	ctx.save();
+	ctx.beginPath(); ctx.rect(X(0), Y(0), FieldW * cell, FieldH * cell); ctx.clip();
+	for (let i = 0; i < 8; ++i) {
+		ctx.beginPath();
+		ctx.moveTo(cx, cy);
+		ctx.arc(cx, cy, radius, (i * Math.PI) / 4, ((i + 1) * Math.PI) / 4);
+		ctx.closePath();
+		ctx.fillStyle = hue(i, i === current ? 0.28 : 0.09);
+		ctx.fill();
+	}
+	// The axes and the diagonals that separate the octants.
+	ctx.strokeStyle = colors['--muted'];
+	ctx.lineWidth = 1;
+	ctx.setLineDash([3, 4]);
+	ctx.beginPath();
+	for (let i = 0; i < 4; ++i) {
+		const a = (i * Math.PI) / 4;
+		ctx.moveTo(cx - Math.cos(a) * radius, cy - Math.sin(a) * radius);
+		ctx.lineTo(cx + Math.cos(a) * radius, cy + Math.sin(a) * radius);
+	}
+	ctx.stroke();
+	ctx.setLineDash([]);
+	ctx.restore();
+
+	// The pixel grid.
+	ctx.strokeStyle = colors['--grid'];
+	ctx.beginPath();
+	for (let x = 0; x <= FieldW; ++x) { ctx.moveTo(X(x) + 0.5, Y(0)); ctx.lineTo(X(x) + 0.5, Y(FieldH)); }
+	for (let y = 0; y <= FieldH; ++y) { ctx.moveTo(X(0), Y(y) + 0.5); ctx.lineTo(X(FieldW), Y(y) + 0.5); }
+	ctx.stroke();
+
+	// The label of every wedge, in the middle of its angle.
+	ctx.font = `600 ${Math.max(10, Math.min(13, cell * 0.5))}px ui-monospace, Consolas, monospace`;
+	ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+	const labelRadius = Math.min(FieldW, FieldH) * cell * 0.42;
+	for (let i = 0; i < 8; ++i) {
+		const a = ((i + 0.5) * Math.PI) / 4;
+		ctx.fillStyle = hue(i, i === current ? 1 : 0.75);
+		ctx.fillText(wedgeLabel(wedges[i]), cx + Math.cos(a) * labelRadius * 1.45, cy + Math.sin(a) * labelRadius);
+	}
+
+	// The line's pixels, in the color of its octant.
+	for (const p of bresenham(p0, p1)) {
+		ctx.fillStyle = current >= 0 ? hue(current, 0.85) : colors['--muted'];
+		ctx.fillRect(X(p.x) + 1, Y(p.y) + 1, cell - 1, cell - 1);
+	}
+	ctx.strokeStyle = colors['--line'];
+	ctx.lineWidth = 1.5;
+	ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(X(p1.x + 0.5), Y(p1.y + 0.5)); ctx.stroke();
+
+	// The end points: p0 is drawn, p1 (dashed) is not.
+	for (const [name, p] of [['p0', p0], ['p1', p1]]) {
+		ctx.strokeStyle = colors['--' + name];
+		ctx.lineWidth = 2.5;
+		ctx.setLineDash(name === 'p1' ? [4, 3] : []);
+		ctx.strokeRect(X(p.x) + 1.5, Y(p.y) + 1.5, cell - 3, cell - 3);
+		ctx.setLineDash([]);
+		ctx.fillStyle = colors['--' + name];
+		ctx.beginPath(); ctx.arc(X(p.x + 0.5), Y(p.y + 0.5), Math.max(3, cell * 0.16), 0, Math.PI * 2); ctx.fill();
+	}
+
+	showInfo(d, current);
+}
+
+const line = (...pieces) => `<div>${pieces.map((p) => `<span>${p}</span>`).join('')}</div>`;
+const sign = (s) => (s > 0 ? '+1' : '-1');
+function showInfo(d, current) {
+	let html = line(`<span class="p0">p0</span> = (${p0.x}, ${p0.y})`, `<span class="p1">p1</span> = (${p1.x}, ${p1.y})`,
+		`<span class="m">dx = ${d.dx}, dy = ${d.dy}</span>`);
+	if (current < 0) {
+		info.innerHTML = html + line(`<span class="m">p1 = p0: the line has no pixels</span>`);
+		return;
+	}
+	const w = wedges[current];
+	html += line(`<span style="color:${hue(current, 1)}">xMajor = ${d.xMajor}</span>`,
+		`majorSign = ${sign(d.majorSign)} <span class="m">(${arrow(d.xMajor ? 'x' : 'y', d.majorSign)})</span>`,
+		`minorSign = ${sign(d.minorSign)} <span class="m">(${arrow(d.xMajor ? 'y' : 'x', d.minorSign)})</span>`,
+		`dMajor = ${d.dMajor}, dMinor = ${d.dMinor}`);
+	// The edge cases: exactly on a diagonal or an axis.
+	const notes = [];
+	if (Math.abs(d.dx) === Math.abs(d.dy)) notes.push('|dx| = |dy|: a diagonal counts as x-major (>=)');
+	if (d.dMinor === 0) notes.push(`d${d.xMajor ? 'y' : 'x'} = 0: the minor sign is +1, but the line never steps along it`);
+	html += line(`<span class="m">${notes.length ? notes.join('; ') : wedgeLabel(w).replace(/ /, ' with minor steps ') + ' (major axis first)'}</span>`);
+	info.innerHTML = html;
+}
+
+// ---- Dragging p1, and the sweep around p0 ----
+let drag = false;
+function pixelAt(e) {
+	const rc = canvas.getBoundingClientRect();
+	return { x: Math.floor((e.clientX - rc.left - ox) / cell), y: Math.floor((e.clientY - rc.top - oy) / cell) };
+}
+const clampToField = (p) => ({ x: Math.min(FieldW - 1, Math.max(0, p.x)), y: Math.min(FieldH - 1, Math.max(0, p.y)) });
+canvas.addEventListener('pointerdown', (e) => {
+	const p = pixelAt(e);
+	if (p.x < 0 || p.x >= FieldW || p.y < 0 || p.y >= FieldH) return;
+	stopSweep();
+	drag = true;
+	p1 = clampToField(p);
+	canvas.setPointerCapture(e.pointerId);
+	canvas.style.cursor = 'grabbing';
+	draw();
+});
+canvas.addEventListener('pointermove', (e) => {
+	if (!drag) return;
+	p1 = clampToField(pixelAt(e));
+	draw();
+});
+const endDrag = () => { drag = false; canvas.style.cursor = 'crosshair'; };
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+canvas.style.cursor = 'crosshair';
+
+const sweepButton = document.getElementById('sweep');
+let sweepFrame = 0, sweepStart = 0;
+function stopSweep() {
+	cancelAnimationFrame(sweepFrame);
+	sweepFrame = 0;
+	sweepButton.setAttribute('aria-pressed', 'false');
+}
+function sweep(time) {
+	if (!sweepStart) sweepStart = time;
+	const a = ((time - sweepStart) / 8000) * Math.PI * 2; // once around in 8 seconds
+	p1 = clampToField({ x: p0.x + Math.round(Math.cos(a) * 11), y: p0.y + Math.round(Math.sin(a) * 6.4) });
+	draw();
+	sweepFrame = requestAnimationFrame(sweep);
+}
+sweepButton.addEventListener('click', () => {
+	if (sweepFrame) { stopSweep(); return; }
+	sweepStart = 0;
+	sweepButton.setAttribute('aria-pressed', 'true');
+	sweepFrame = requestAnimationFrame(sweep);
+});
+
+applyTheme();
+resize();
+</script>
+</body>
+</html>

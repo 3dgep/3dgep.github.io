@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Line Rasterization</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--grid: #262c39;
+		--line: #d6dae3;
+		--bresenham: #56d364;
+		--dda: #ff7b72;
+		--both: #8b93a5;
+		--p0: #5fb8ff;
+		--p1: #e8a23c;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		--grid: #e2e5ec;
+		--line: #23262e;
+		--bresenham: #1a7f37;
+		--dda: #cf222e;
+		--both: #8b93a5;
+		--p0: #1f6fc2;
+		--p1: #b86a00;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+	#bar { display: flex; align-items: flex-start; gap: 10px 14px; padding: 6px 10px; border-top: 1px solid var(--border); background: var(--panel); }
+	.group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; flex: none; }
+	button {
+		font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border);
+		border-radius: 5px; padding: 3px 8px; cursor: pointer; user-select: none;
+	}
+	button:hover { border-color: var(--accent); }
+	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+	/* The info lines wrap between their pieces, never inside one, so there is no horizontal scroll bar. */
+	/* Always four lines high (the last two are for the hovered pixel), so the grid doesn't change size. */
+	#info { flex: 1; min-width: 0; min-height: 6em; font: 12.5px/1.5 ui-monospace, Consolas, 'Cascadia Mono', monospace; }
+	#info > div { display: flex; flex-wrap: wrap; column-gap: 2.2ch; }
+	#info > div > span { white-space: pre; }
+	.m { color: var(--muted); } .g { color: var(--bresenham); } .r { color: var(--dda); }
+	.p0 { color: var(--p0); } .p1 { color: var(--p1); }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { align-self: flex-end; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="A grid of pixels with a line between two points, p0 and p1, that can be dragged. The pixels that Bresenham's algorithm or the DDA draw for the line are filled. Hover over a pixel to see its step and Bresenham's error term."></canvas>
+	</div>
+	<div id="bar">
+		<div class="group" role="group" aria-label="Algorithm">
+			<button id="bresenham" type="button" aria-pressed="true">Bresenham</button>
+			<button id="dda" type="button" aria-pressed="false">DDA</button>
+			<button id="compare" type="button" aria-pressed="false">compare</button>
+		</div>
+		<div id="info" aria-live="polite"></div>
+		<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+	</div>
+</div>
+<script>
+'use strict';
+// A field of FieldW x FieldH pixels. Points are pixel coordinates; the ideal line goes through the pixel centers.
+const FieldW = 22, FieldH = 13;
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const info = document.getElementById('info');
+let W = 1, H = 1, DPR = 1, cell = 1, ox = 0, oy = 0;
+
+// The URL can set the mode and the end points: ?mode=compare&p0=1,11&p1=21,1
+const params = new URLSearchParams(location.search);
+function pointParam(name, fallback) {
+	const v = (params.get(name) || '').split(',').map(Number);
+	const ok = v.length === 2 && v.every(Number.isInteger);
+	return ok ? { x: Math.min(FieldW - 1, Math.max(0, v[0])), y: Math.min(FieldH - 1, Math.max(0, v[1])) } : fallback;
+}
+const points = { p0: pointParam('p0', { x: 2, y: 9 }), p1: pointParam('p1', { x: 19, y: 3 }) };
+let mode = params.get('mode') || 'bresenham';
+let hover = null; // the pixel under the mouse
+
+// ---- The algorithms, exactly as in the C++ code ----
+
+// Bresenham, half-open: one pixel per step along the major axis, steps 0 to dMajor - 1.
+function bresenham(p0, p1) {
+	const dx = p1.x - p0.x, dy = p1.y - p0.y;
+	const xMajor = Math.abs(dx) >= Math.abs(dy);
+	const dMajor = Math.abs(xMajor ? dx : dy), dMinor = Math.abs(xMajor ? dy : dx);
+	const sMajor = (xMajor ? dx : dy) < 0 ? -1 : 1, sMinor = (xMajor ? dy : dx) < 0 ? -1 : 1;
+	let major = xMajor ? p0.x : p0.y, minor = xMajor ? p0.y : p0.x;
+	let error = -dMajor;
+	const pixels = [];
+	for (let step = 0; step < dMajor; ++step) {
+		const x = xMajor ? major : minor, y = xMajor ? minor : major;
+		pixels.push({ x, y, step, error });
+		major += sMajor;
+		error += 2 * dMinor;
+		if (error >= 0) { minor += sMinor; error -= 2 * dMajor; }
+	}
+	return { pixels, xMajor, dMajor, dMinor, sMajor, sMinor, dx, dy };
+}
+
+// std::lround: round half away from zero.
+const lround = (v) => Math.sign(v) * Math.floor(Math.abs(v) + 0.5);
+// The DDA with 32-bit floats (Math.fround), like the example.
+function dda(p0, p1) {
+	const dx = p1.x - p0.x, dy = p1.y - p0.y;
+	const steps = Math.max(Math.abs(dx), Math.abs(dy));
+	const pixels = [];
+	if (steps === 0) return pixels;
+	const stepX = Math.fround(dx / steps), stepY = Math.fround(dy / steps);
+	let x = Math.fround(p0.x), y = Math.fround(p0.y);
+	for (let i = 0; i < steps; ++i) {
+		pixels.push({ x: lround(x), y: lround(y), step: i, fx: x, fy: y });
+		x = Math.fround(x + stepX);
+		y = Math.fround(y + stepY);
+	}
+	return pixels;
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--muted', '--grid', '--line', '--bresenham', '--dda', '--both', '--p0', '--p1'])
+		colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	cell = Math.max(4, Math.floor(Math.min((W - 36) / FieldW, (H - 30) / FieldH)));
+	ox = Math.round(28 + (W - 36 - FieldW * cell) / 2);
+	oy = Math.round(22 + (H - 30 - FieldH * cell) / 2);
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+const X = (x) => ox + x * cell;
+const Y = (y) => oy + y * cell;
+function withAlpha(color, alpha) {
+	const n = parseInt(color.slice(1), 16);
+	return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+function fillPixel(p, color, alpha) {
+	ctx.fillStyle = withAlpha(color, alpha);
+	ctx.fillRect(X(p.x) + 1, Y(p.y) + 1, cell - 1, cell - 1);
+}
+
+function draw() {
+	if (!colors['--bg']) return;
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg'];
+	ctx.fillRect(0, 0, W, H);
+
+	// The pixel grid, with coordinates along the top and the left.
+	ctx.strokeStyle = colors['--grid'];
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	for (let x = 0; x <= FieldW; ++x) { ctx.moveTo(X(x) + 0.5, Y(0)); ctx.lineTo(X(x) + 0.5, Y(FieldH)); }
+	for (let y = 0; y <= FieldH; ++y) { ctx.moveTo(X(0), Y(y) + 0.5); ctx.lineTo(X(FieldW), Y(y) + 0.5); }
+	ctx.stroke();
+	ctx.fillStyle = colors['--muted'];
+	ctx.font = '11px system-ui, sans-serif';
+	const step = cell < 16 ? 2 : 1;
+	ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+	for (let x = 0; x < FieldW; x += step) ctx.fillText(x, X(x + 0.5), Y(0) - 3);
+	ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+	for (let y = 0; y < FieldH; y += step) ctx.fillText(y, X(0) - 5, Y(y + 0.5));
+
+	const { p0, p1 } = points;
+	const b = bresenham(p0, p1);
+	const d = dda(p0, p1);
+
+	// The pixels of the line.
+	if (mode === 'compare') {
+		const key = (p) => p.x + ',' + p.y;
+		const inB = new Set(b.pixels.map(key)), inD = new Set(d.map(key));
+		for (const p of b.pixels) fillPixel(p, inD.has(key(p)) ? colors['--both'] : colors['--bresenham'], inD.has(key(p)) ? 0.45 : 0.75);
+		for (const p of d) if (!inB.has(key(p))) fillPixel(p, colors['--dda'], 0.75);
+	} else {
+		const list = mode === 'dda' ? d : b.pixels;
+		const color = mode === 'dda' ? colors['--dda'] : colors['--bresenham'];
+		for (const p of list) fillPixel(p, color, 0.55);
+	}
+
+	// The ideal line, from pixel center to pixel center.
+	ctx.strokeStyle = colors['--line'];
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	ctx.moveTo(X(p0.x + 0.5), Y(p0.y + 0.5));
+	ctx.lineTo(X(p1.x + 0.5), Y(p1.y + 0.5));
+	ctx.stroke();
+
+	// The end points: p0 is drawn, p1 (dashed) is not.
+	for (const [name, p] of Object.entries(points)) {
+		ctx.strokeStyle = colors['--' + name];
+		ctx.lineWidth = 2.5;
+		ctx.setLineDash(name === 'p1' ? [4, 3] : []);
+		ctx.strokeRect(X(p.x) + 1.5, Y(p.y) + 1.5, cell - 3, cell - 3);
+		ctx.setLineDash([]);
+		ctx.fillStyle = colors['--' + name];
+		ctx.beginPath(); ctx.arc(X(p.x + 0.5), Y(p.y + 0.5), Math.max(3, cell * 0.16), 0, Math.PI * 2); ctx.fill();
+		ctx.font = '600 12px system-ui, sans-serif';
+		ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+		ctx.fillText(name, X(p.x + 1) + 2, Y(p.y) + 2);
+	}
+
+	// The hovered pixel.
+	if (hover) {
+		ctx.strokeStyle = colors['--text'];
+		ctx.lineWidth = 1.5;
+		ctx.strokeRect(X(hover.x) + 0.5, Y(hover.y) + 0.5, cell, cell);
+	}
+
+	showInfo(b, d);
+}
+
+function direction(b) {
+	const h = b.dx > 0 ? 'right' : b.dx < 0 ? 'left' : '';
+	const v = b.dy > 0 ? 'down' : b.dy < 0 ? 'up' : '';
+	return [h, v].filter(Boolean).join(' and ') || 'nowhere';
+}
+
+const line = (...pieces) => `<div>${pieces.map((p) => `<span>${p}</span>`).join('')}</div>`;
+function showInfo(b, d) {
+	const { p0, p1 } = points;
+	let html = line(
+		`<span class="p0">p0</span> = (${p0.x}, ${p0.y})`, `<span class="p1">p1</span> = (${p1.x}, ${p1.y})`,
+		`<span class="m">${b.dMajor} pixels, p1 is not drawn</span>`);
+	html += line(
+		`${b.xMajor ? 'x' : 'y'}-major`, `<span class="m">going ${direction(b)}</span>`,
+		`<span class="m">dMajor = ${b.dMajor}, dMinor = ${b.dMinor}</span>`);
+
+	// The hovered pixel, on two lines of its own: Bresenham's step and error, and the DDA's step.
+	let bresenhamDetail = '<span class="m">hover over a pixel of the line for its step</span>';
+	let ddaDetail = '';
+	if (hover) {
+		const bp = mode !== 'dda' && b.pixels.find((p) => p.x === hover.x && p.y === hover.y);
+		const dp = mode !== 'bresenham' && d.find((p) => p.x === hover.x && p.y === hover.y);
+		if (bp) {
+			const next = bp.error + 2 * b.dMinor;
+			bresenhamDetail = `<span class="g">Bresenham step ${bp.step}: error = ${bp.error} → ${next}</span>` +
+				`<span class="m">${next >= 0 ? ', minor step' : ', no minor step'}</span>`;
+		}
+		if (dp)
+			ddaDetail = `<span class="r">DDA step ${dp.step}: (${+dp.fx.toFixed(3)}, ${+dp.fy.toFixed(3)}) rounds to (${dp.x}, ${dp.y})</span>`;
+		if (!bp && !dp)
+			bresenhamDetail = `<span class="m">pixel (${hover.x}, ${hover.y}) is not part of the line</span>`;
+		else if (!bp)
+			bresenhamDetail = ddaDetail, ddaDetail = '';
+	}
+	html += line(bresenhamDetail) + line(ddaDetail);
+	info.innerHTML = html;
+}
+
+// ---- Buttons ----
+const buttons = { bresenham: document.getElementById('bresenham'), dda: document.getElementById('dda'), compare: document.getElementById('compare') };
+function setMode(m) {
+	mode = m in buttons ? m : 'bresenham';
+	for (const [k, b] of Object.entries(buttons)) b.setAttribute('aria-pressed', String(k === mode));
+	draw();
+}
+for (const [k, b] of Object.entries(buttons)) b.addEventListener('click', () => setMode(k));
+
+// ---- Dragging the end points ----
+let drag = null;
+function pixelAt(e) {
+	const rc = canvas.getBoundingClientRect();
+	return { x: Math.floor((e.clientX - rc.left - ox) / cell), y: Math.floor((e.clientY - rc.top - oy) / cell) };
+}
+const inField = (p) => p.x >= 0 && p.x < FieldW && p.y >= 0 && p.y < FieldH;
+function pointAt(p) {
+	for (const name of ['p1', 'p0']) if (points[name].x === p.x && points[name].y === p.y) return name;
+	return null;
+}
+canvas.addEventListener('pointerdown', (e) => {
+	const name = pointAt(pixelAt(e));
+	if (!name) return;
+	drag = name;
+	canvas.setPointerCapture(e.pointerId);
+	canvas.style.cursor = 'grabbing';
+});
+canvas.addEventListener('pointermove', (e) => {
+	const p = pixelAt(e);
+	if (drag) {
+		points[drag] = { x: Math.min(FieldW - 1, Math.max(0, p.x)), y: Math.min(FieldH - 1, Math.max(0, p.y)) };
+	} else {
+		canvas.style.cursor = pointAt(p) ? 'grab' : 'default';
+	}
+	hover = inField(p) ? p : null;
+	draw();
+});
+canvas.addEventListener('pointerleave', () => { if (!drag) { hover = null; draw(); } });
+const endDrag = () => { drag = null; canvas.style.cursor = 'default'; };
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+
+setMode(mode);
+applyTheme();
+resize();
+</script>
+</body>
+</html>

@@ -142,6 +142,9 @@
 .sl-markdown-content iframe.embed-sound-position { aspect-ratio: auto; height: 480px; min-height: 0; }
 /* 2D Software Rasterizer part 2: the intersection of two rectangles. */
 .sl-markdown-content iframe.embed-rect-intersect { aspect-ratio: auto; height: 460px; min-height: 0; }
+/* 2D Software Rasterizer part 3: the pixels of a line. */
+.sl-markdown-content iframe.embed-line-rasterization { aspect-ratio: auto; height: 470px; min-height: 0; }
+.sl-markdown-content iframe.embed-line-octants { aspect-ratio: auto; height: 470px; min-height: 0; }
 
 
 /* Theme-specific images: <img class="light-only"> / <img class="dark-only"> (e.g. the GitHub mark). */

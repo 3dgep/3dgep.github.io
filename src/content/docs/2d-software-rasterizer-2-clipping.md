@@ -40,9 +40,9 @@ $$
 [x, x + 1) \times [y, y + 1)
 $$
 
-from its top-left corner at $(x, y)$ up to, but not including, the next pixel. Its center is at $(x + 0.5, y + 0.5)$. We don't need the centers yet, but in part 5 they decide which pixels a triangle covers, and drawing triangles without gaps or overlaps depends on it.
+from its top-left corner at $(x, y)$ up to, but not including, the next pixel. Its center is at $(x + 0.5, y + 0.5)$ [\[1\]](#cite-1). We don't need the centers yet, but in part 5 they decide which pixels a triangle covers [\[2\]](#cite-2), and drawing triangles without gaps or overlaps depends on it.
 
-The second space is the space of the window. The mouse is reported in *window pixels*, but our example opens a window that is twice as large as the surface, adds black bars when the shape doesn't match, and can go fullscreen. So the mouse at window position (300, 200) might be over surface pixel (130, 85), or over a black bar, outside the surface. We have to convert one space to the other before we can use the mouse to draw. In part 9, we add a third space, the *world*, where a 2D camera decides which part of a larger scene ends up on the surface.
+The second space is the space of the window. The mouse is reported in *window pixels*, but our example opens a window that is twice as large as the surface, adds black bars when the shape doesn't match, and can go fullscreen. So the mouse at window position (300, 200) might be over surface pixel (130, 85), or over a black bar, outside the surface. We have to convert one space to the other before we can use the mouse to draw [\[3\]](#cite-3). In part 9, we add a third space, the *world*, where a 2D camera decides which part of a larger scene ends up on the surface.
 
 ## Rectangles
 
@@ -51,14 +51,14 @@ Our first shape is the rectangle, and we also use rectangles to describe areas o
 ```cpp source="2d-software-rasterizer-part-02/rast/include/rast/Rect.hpp#L1-L15"
 ```
 
-A `Point` is a position in the surface's coordinate space, so it uses `int`s, like the pixel coordinates. The defaulted `operator==` compares both coordinates.
+A `Point` is a position in the surface's coordinate space, so it uses `int`s, like the pixel coordinates. The defaulted `operator==` compares both coordinates [\[4\]](#cite-4).
 
 The rectangle stores its four edges:
 
 ```cpp source="2d-software-rasterizer-part-02/rast/include/rast/Rect.hpp#L17-L30"
 ```
 
-The edges are *half-open*. The `left` column and the `top` row are part of the rectangle, but the `right` column and the `bottom` row are not. They are the first column and row just outside it. That's the same idea as the pixel squares above, and as `begin` and `end` of a C++ range, where `end` points just past the last element.
+The edges are *half-open* [\[5\]](#cite-5). The `left` column and the `top` row are part of the rectangle, but the `right` column and the `bottom` row are not. They are the first column and row just outside it. That's the same idea as the pixel squares above, and as `begin` and `end` of a C++ range, where `end` points just past the last element.
 
 Half-open edges save a lot of `+ 1`s and `- 1`s. The width is simply `right - left`, a rectangle that starts at `x` with width `w` ends at `x + w` (which is what `FromSize` does), and two rectangles that touch, like `{ 0, 0, 10, 10 }` and `{ 10, 0, 20, 10 }`, share an edge value without sharing a single pixel. When we later fill rectangles with transparent colors, a pixel that's drawn twice would be blended twice, so that matters.
 
@@ -74,13 +74,13 @@ Clipping comes down to one question, which pixels are inside two rectangles at t
 ```cpp source="2d-software-rasterizer-part-02/rast/include/rast/Rect.hpp#L46-L56"
 ```
 
-A pixel is inside both rectangles when it's to the right of both left edges, so the left edge of the overlap is the larger of the two. The same goes for the top edges. And it must be to the left of both right edges, so the right edge of the overlap is the smaller of the two, and the same for the bottom. When the rectangles don't overlap, this gives a rectangle whose right edge is left of its left edge (or whose bottom is above its top), which `IsEmpty` recognizes. So the caller only has to check `IsEmpty`, and never needs a special case.
+A pixel is inside both rectangles when it's to the right of both left edges, so the left edge of the overlap is the larger of the two [\[6\]](#cite-6). The same goes for the top edges. And it must be to the left of both right edges, so the right edge of the overlap is the smaller of the two [\[7\]](#cite-7), and the same for the bottom. When the rectangles don't overlap, this gives a rectangle whose right edge is left of its left edge (or whose bottom is above its top), which `IsEmpty` recognizes. So the caller only has to check `IsEmpty`, and never needs a special case.
 
 Try it below. Drag the rectangles `a` and `b` to move them, or drag their bottom-right corners to change their size. The green pixels are the intersection, and the dashed lines are its four edges. Pull the rectangles apart, and the `left` and `right` edges (or the `top` and `bottom` edges) cross each other, which gives the empty intersection a negative width (or height).
 
 <iframe class="embed embed-demo embed-rect-intersect" src="/demos/rect-intersect.html" title="A grid of pixels with two rectangles, a and b, that can be moved and resized. The pixels inside both are the intersection, and the code below the grid shows Intersect(a, b) with the max and min of every edge." loading="lazy" allowfullscreen></iframe>
 
-All of this is `constexpr`, so the file ends with a few tests that run while it compiles:
+All of this is `constexpr`, so the file ends with a few tests that run while it compiles [\[8\]](#cite-8) [\[9\]](#cite-9):
 
 ```cpp source="2d-software-rasterizer-part-02/rast/include/rast/Rect.hpp#L58-L62"
 ```
@@ -108,15 +108,15 @@ The surface uses `Rect` for a new function, and gets a function to clear it:
 ```cpp source="2d-software-rasterizer-part-02/rast/src/Surface.cpp#L18-L21"
 ```
 
-You could clear the surface with two loops over `x` and `y`, like the gradient in part 1. But the position of a pixel doesn't matter when every pixel gets the same color. `std::ranges::fill` writes the color to every element of the vector, from the front to the back, and there's nothing else in the loop. That's a loop that compilers recognize. In a release build, they turn it into instructions that store 16 or 32 bytes (4 or 8 pixels) at a time.
+You could clear the surface with two loops over `x` and `y`, like the gradient in part 1. But the position of a pixel doesn't matter when every pixel gets the same color. `std::ranges::fill` writes the color to every element of the vector [\[10\]](#cite-10), from the front to the back, and there's nothing else in the loop. That's a loop that compilers recognize. In a release build, they turn it into instructions that store 16 or 32 bytes (4 or 8 pixels) at a time [\[11\]](#cite-11).
 
-You may know `memset`, which fills memory with one byte. It's fast, but it can only clear the surface to a color whose four bytes are the same. That works for `0x00000000` (transparent black) and `0xFFFFFFFF` (opaque white), but not for opaque black, `0xFF000000`. `std::ranges::fill` works for every color, and it's just as fast.
+You may know `memset` [\[12\]](#cite-12), which fills memory with one byte. It's fast, but it can only clear the surface to a color whose four bytes are the same. That works for `0x00000000` (transparent black) and `0xFFFFFFFF` (opaque white), but not for opaque black, `0xFF000000`. `std::ranges::fill` works for every color, and it's just as fast.
 
 ## Why Clip?
 
-Before we draw rectangles, let's see what goes wrong when a rectangle is partly outside the surface. Say the surface is 640 pixels wide, and we write to `pixels[-5, 10]`. `std::mdspan` doesn't check its indices (just like `operator[]` of `std::vector` doesn't), so it computes the index $10 \cdot 640 - 5$, which is the fifth pixel from the *end* of row 9. So the left part of the rectangle shows up at the right edge of the surface, one row higher. At the top or the bottom, it's worse. `pixels[100, -1]` is before the first pixel of the vector, and `pixels[100, 360]` is after the last one. Writing there is *undefined behavior*. It may crash, but it may also quietly overwrite other variables of your program.
+Before we draw rectangles, let's see what goes wrong when a rectangle is partly outside the surface. Say the surface is 640 pixels wide, and we write to `pixels[-5, 10]`. `std::mdspan` doesn't check its indices (just like `operator[]` of `std::vector` doesn't) [\[13\]](#cite-13) [\[14\]](#cite-14), so it computes the index $10 \cdot 640 - 5$, which is the fifth pixel from the *end* of row 9. So the left part of the rectangle shows up at the right edge of the surface, one row higher. At the top or the bottom, it's worse. `pixels[100, -1]` is before the first pixel of the vector, and `pixels[100, 360]` is after the last one. Writing there is *undefined behavior* [\[15\]](#cite-15). It may crash, but it may also quietly overwrite other variables of your program.
 
-So every pixel that we write must be inside the surface. Keeping it there is called *clipping*. There are two ways to do it. We can check every pixel just before we write it, or we can make the shape smaller before we draw it, so that it fits on the surface. We'll see both, in a class that does all our drawing from now on.
+So every pixel that we write must be inside the surface. Keeping it there is called *clipping* [\[16\]](#cite-16). There are two ways to do it. We can check every pixel just before we write it, or we can make the shape smaller before we draw it, so that it fits on the surface. We'll see both, in a class that does all our drawing from now on.
 
 ## The Rasterizer
 
@@ -145,7 +145,7 @@ Then come the functions that draw, and the members:
 ```cpp source="2d-software-rasterizer-part-02/rast/include/rast/Rasterizer.hpp#L32-L48"
 ```
 
-`Clear` sets every pixel that may be drawn to one color, `SetPixel` sets one pixel, and `FillRect` and `DrawRect` draw a filled rectangle and the outline of one. The scissor rectangle is a `std::optional<Rect>`, because there doesn't have to be one.
+`Clear` sets every pixel that may be drawn to one color, `SetPixel` sets one pixel, and `FillRect` and `DrawRect` draw a filled rectangle and the outline of one. The scissor rectangle is a `std::optional<Rect>` [\[17\]](#cite-17), because there doesn't have to be one.
 
 ### Rasterizer.cpp
 
@@ -170,7 +170,7 @@ The clip rectangle comes from the scissor rectangle and the color target:
 ```cpp source="2d-software-rasterizer-part-02/rast/src/Rasterizer.cpp#L33-L44"
 ```
 
-When the clip rectangle covers the whole color target, `Surface::Clear` clears it with one `std::ranges::fill`. Otherwise, only the clip rectangle is cleared, with `FillRect`. This is also how a GPU clears a render target with a scissor rectangle in OpenGL.
+When the clip rectangle covers the whole color target, `Surface::Clear` clears it with one `std::ranges::fill`. Otherwise, only the clip rectangle is cleared, with `FillRect`. This is also how a GPU clears a render target with a scissor rectangle in OpenGL [\[18\]](#cite-18).
 
 `SetPixel` clips the easy way, by checking the pixel:
 
@@ -205,7 +205,7 @@ The other way is to clip the rectangle before we draw it:
 
 The intersection of the rectangle and the clip rectangle is exactly the set of pixels that we may draw. Every pixel inside it is inside the surface, so the loops don't need to check anything. When the intersection is empty, the function returns before it touches a single pixel, however large the rectangle is.
 
-The pixels of one row of the rectangle are next to each other in memory, so we fill each row with `std::fill_n`, which writes `Width()` copies of the color starting at the first pixel of the row. That's the same loop as in `Surface::Clear`, and compilers turn it into the same fast instructions.
+The pixels of one row of the rectangle are next to each other in memory, so we fill each row with `std::fill_n` [\[19\]](#cite-19), which writes `Width()` copies of the color starting at the first pixel of the row. That's the same loop as in `Surface::Clear`, and compilers turn it into the same fast instructions.
 
 This is the most important idea of this part. Clip a shape once, before you draw it, so that the loops that visit the pixels don't have to check anything. The loops are where the time goes, because they run once for every pixel. Every shape in this series is drawn this way.
 
@@ -218,7 +218,7 @@ The top and bottom rows are as wide as the rectangle. The left and right columns
 
 ## The Scissor Rectangle
 
-The clip rectangle limits drawing to the color target, but sometimes you want to limit it to a smaller area. A user interface may have a panel with a list that scrolls, and the items that scroll out of the panel must be cut off at its edge. A split-screen game draws each player's view into its own half of the screen. GPUs have a *scissor rectangle* for this, and so does our rasterizer. It's set with `SetScissor`, and from then on, `ClipRect` is the part of the color target that's inside the scissor rectangle.
+The clip rectangle limits drawing to the color target, but sometimes you want to limit it to a smaller area. A user interface may have a panel with a list that scrolls, and the items that scroll out of the panel must be cut off at its edge. A split-screen game draws each player's view into its own half of the screen. GPUs have a *scissor rectangle* for this [\[20\]](#cite-20) [\[21\]](#cite-21), and so does our rasterizer. It's set with `SetScissor`, and from then on, `ClipRect` is the part of the color target that's inside the scissor rectangle.
 
 Because every function clips to `ClipRect`, the scissor rectangle works for everything at once. `FillRect`, `DrawRect`, `SetPixel` and `Clear` don't have any code for the scissor rectangle, and the lines, circles and triangles of the coming parts won't either. They clip to `ClipRect`, and that's all.
 
@@ -229,7 +229,7 @@ The example uses the mouse as a spotlight, so the program needs to know where th
 ```cpp source="2d-software-rasterizer-part-02/rast/include/rast/Window.hpp#L21-L29"
 ```
 
-The values of the `Key` enumerators are SDL's *key codes* for the same keys. That way, the `Window` can turn an SDL key code into a `Key` with a `static_cast`, and the program never needs to include SDL. For now, `Key` only has the four keys that the debug overlays use. We add more keys when an example needs them.
+The values of the `Key` enumerators are SDL's *key codes* for the same keys [\[22\]](#cite-22) [\[23\]](#cite-23). That way, the `Window` can turn an SDL key code into a `Key` with a `static_cast`, and the program never needs to include SDL. For now, `Key` only has the four keys that the debug overlays use. We add more keys when an example needs them.
 
 `Window.hpp` also includes `Rect.hpp` (for `Point`) and `<vector>`. The window gets two new functions:
 
@@ -266,16 +266,16 @@ At the start of every frame, the list of pressed keys is cleared. Then every key
 ```cpp source="2d-software-rasterizer-part-02/rast/src/Window.cpp#L210-L213"
 ```
 
-`std::ranges::contains` is new in C++23. It returns `true` if the range has an element that's equal to the value.
+`std::ranges::contains` is new in C++23 [\[24\]](#cite-24). It returns `true` if the range has an element that's equal to the value.
 
 `MousePosition` converts the mouse from window coordinates to surface coordinates:
 
 ```cpp source="2d-software-rasterizer-part-02/rast/src/Window.cpp#L215-L230"
 ```
 
-`SDL_GetMouseState` returns the position of the mouse in window coordinates, as `float`s. In part 1, we used `SDL_SetRenderLogicalPresentation` to scale the surface to the window and add the black bars. `SDL_RenderCoordinatesFromWindow` undoes exactly that conversion, so it gives us the position in surface pixels, even when the window has been resized or is fullscreen.
+`SDL_GetMouseState` returns the position of the mouse in window coordinates [\[25\]](#cite-25), as `float`s. In part 1, we used `SDL_SetRenderLogicalPresentation` to scale the surface to the window and add the black bars. `SDL_RenderCoordinatesFromWindow` undoes exactly that conversion [\[26\]](#cite-26), so it gives us the position in surface pixels, even when the window has been resized or is fullscreen.
 
-The result is a position like (130.75, 85.5), inside pixel (130, 85). To find that pixel, we round down with `std::floor`. A `static_cast<int>` would round *towards zero*, which is the same for positive numbers, but not for negative ones. The mouse at $x = -0.5$, over the black bar just left of the surface, is in the pixel column $-1$, but a `static_cast` would say column 0. The position can be outside the surface, and that's fine. Everything that we draw with it is clipped.
+The result is a position like (130.75, 85.5), inside pixel (130, 85). To find that pixel, we round down with `std::floor` [\[27\]](#cite-27). A `static_cast<int>` would round *towards zero*, which is the same for positive numbers, but not for negative ones. The mouse at $x = -0.5$, over the black bar just left of the surface, is in the pixel column $-1$, but a `static_cast` would say column 0. The position can be outside the surface, and that's fine. Everything that we draw with it is clipped.
 
 ## The Example
 
@@ -291,7 +291,7 @@ Each rectangle follows a path that's described by a few numbers:
 ```cpp source="2d-software-rasterizer-part-02/examples/part-02-clipping/main.cpp#L17-L37"
 ```
 
-A rectangle moves around the center of its path, `rangeX` pixels to the left and right and `rangeY` pixels up and down. Most of the ranges are large enough to move the rectangles partly or completely off the surface. The red rectangle, for example, is centered at $x = 320$ and moves 330 pixels to each side, so at the far left, its center is at $x = -10$. Their colors are named constants of `Color`, from [part 1](/2d-software-rasterizer-1-framebuffer/#named-colors). `std::array` deduces the number of rectangles from the list.
+A rectangle moves around the center of its path, `rangeX` pixels to the left and right and `rangeY` pixels up and down. Most of the ranges are large enough to move the rectangles partly or completely off the surface. The red rectangle, for example, is centered at $x = 320$ and moves 330 pixels to each side, so at the far left, its center is at $x = -10$. Their colors are named constants of `Color`, from [part 1](/2d-software-rasterizer-1-framebuffer/#named-colors). `std::array` deduces the number of rectangles from the list [\[28\]](#cite-28) [\[29\]](#cite-29).
 
 `RectAt` computes where a rectangle is at a moment in time:
 
@@ -300,7 +300,7 @@ A rectangle moves around the center of its path, `rangeX` pixels to the left and
 
 The sine and the cosine both go from -1 to 1, so `x` and `y` stay within the range around the center. Because the horizontal and the vertical speeds are different, the rectangles don't move in a straight line, but in a curve that keeps changing.
 
-Then the position is rounded to a whole pixel. `std::lround` rounds to the nearest whole number, also for negative numbers, while a `static_cast<int>` rounds towards zero. With a `static_cast`, every position from $x = -0.99$ to $x = 0.99$ would end up at pixel 0, a range twice as wide as for any other pixel. The rectangle would stop for a moment every time it crosses 0, which only happens near the left and top edges of the surface, exactly where we're testing the clipping.
+Then the position is rounded to a whole pixel. `std::lround` rounds to the nearest whole number [\[30\]](#cite-30), also for negative numbers, while a `static_cast<int>` rounds towards zero. With a `static_cast`, every position from $x = -0.99$ to $x = 0.99$ would end up at pixel 0, a range twice as wide as for any other pixel. The rectangle would stop for a moment every time it crosses 0, which only happens near the left and top edges of the surface, exactly where we're testing the clipping.
 
 The example draws the scene twice, once in darker colors:
 
@@ -351,4 +351,66 @@ The example of part 2. Press <kbd>F1</kbd> to show the scissor rectangle (click 
 
 ## What's Next
 
-Every pixel that we draw now goes through the clip rectangle, so we can't write outside the surface anymore. In part 3, we draw our first shape that isn't a rectangle, the line. We compare two classic algorithms, the *DDA* with floating-point numbers and *Bresenham's algorithm* with only integers, and make them work in all eight directions that a line can go.
+Every pixel that we draw now goes through the clip rectangle, so we can't write outside the surface anymore. In [part 3](/2d-software-rasterizer-3-lines/), we draw our first shape that isn't a rectangle, the line. We compare two classic algorithms, the *DDA* with floating-point numbers and *Bresenham's algorithm* with only integers, and make them work in all eight directions that a line can go.
+
+## References
+
+<span id="cite-1"></span>\[1\] Microsoft, “Coordinate Systems (Direct3D 10)”, Microsoft Learn, 2026. \[Online\]. Available: [https://learn.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-coordinates](https://learn.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-coordinates). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-2"></span>\[2\] Microsoft, “Rasterization Rules”, Microsoft Learn, 2026. \[Online\]. Available: [https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-rasterizer-stage-rules](https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-rasterizer-stage-rules). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-3"></span>\[3\] SDL, “SDL_SetRenderLogicalPresentation”, SDL3 Wiki, 2026. \[Online\]. Available: [https://wiki.libsdl.org/SDL3/SDL_SetRenderLogicalPresentation](https://wiki.libsdl.org/SDL3/SDL_SetRenderLogicalPresentation). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-4"></span>\[4\] cppreference.com, “Default comparisons”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/language/default_comparisons](https://en.cppreference.com/w/cpp/language/default_comparisons). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-5"></span>\[5\] E. W. Dijkstra, “Why numbering should start at zero (EWD831)”, 1982. \[Online\]. Available: [https://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD831.html](https://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD831.html). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-6"></span>\[6\] cppreference.com, “std::max”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/algorithm/max](https://en.cppreference.com/w/cpp/algorithm/max). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-7"></span>\[7\] cppreference.com, “std::min”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/algorithm/min](https://en.cppreference.com/w/cpp/algorithm/min). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-8"></span>\[8\] cppreference.com, “constexpr specifier”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/language/constexpr](https://en.cppreference.com/w/cpp/language/constexpr). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-9"></span>\[9\] cppreference.com, “static_assert declaration”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/language/static_assert](https://en.cppreference.com/w/cpp/language/static_assert). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-10"></span>\[10\] cppreference.com, “std::ranges::fill”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/algorithm/ranges/fill](https://en.cppreference.com/w/cpp/algorithm/ranges/fill). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-11"></span>\[11\] Microsoft, “Auto-Parallelization and Auto-Vectorization”, Microsoft Learn, 2026. \[Online\]. Available: [https://learn.microsoft.com/en-us/cpp/parallel/auto-parallelization-and-auto-vectorization](https://learn.microsoft.com/en-us/cpp/parallel/auto-parallelization-and-auto-vectorization). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-12"></span>\[12\] cppreference.com, “std::memset”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/string/byte/memset](https://en.cppreference.com/w/cpp/string/byte/memset). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-13"></span>\[13\] cppreference.com, “std::mdspan”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/container/mdspan](https://en.cppreference.com/w/cpp/container/mdspan). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-14"></span>\[14\] cppreference.com, “std::vector”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/container/vector](https://en.cppreference.com/w/cpp/container/vector). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-15"></span>\[15\] cppreference.com, “Undefined behavior”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/language/ub](https://en.cppreference.com/w/cpp/language/ub). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-16"></span>\[16\] J. D. Foley, A. van Dam, S. K. Feiner and J. F. Hughes, Computer Graphics: Principles and Practice, 2nd ed. in C. Reading, MA: Addison-Wesley, 1996.
+
+<span id="cite-17"></span>\[17\] cppreference.com, “std::optional”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/utility/optional](https://en.cppreference.com/w/cpp/utility/optional). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-18"></span>\[18\] Khronos Group, “glClear”, OpenGL 4 Reference Pages, 2026. \[Online\]. Available: [https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClear.xhtml](https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClear.xhtml). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-19"></span>\[19\] cppreference.com, “std::fill_n”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/algorithm/fill_n](https://en.cppreference.com/w/cpp/algorithm/fill_n). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-20"></span>\[20\] Khronos Group, “glScissor”, OpenGL 4 Reference Pages, 2026. \[Online\]. Available: [https://registry.khronos.org/OpenGL-Refpages/gl4/html/glScissor.xhtml](https://registry.khronos.org/OpenGL-Refpages/gl4/html/glScissor.xhtml). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-21"></span>\[21\] Microsoft, “ID3D12GraphicsCommandList::RSSetScissorRects method”, Microsoft Learn, 2026. \[Online\]. Available: [https://learn.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-rssetscissorrects](https://learn.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-rssetscissorrects). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-22"></span>\[22\] cppreference.com, “Enumeration declaration”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/language/enum](https://en.cppreference.com/w/cpp/language/enum). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-23"></span>\[23\] SDL, “SDL_Keycode”, SDL3 Wiki, 2026. \[Online\]. Available: [https://wiki.libsdl.org/SDL3/SDL_Keycode](https://wiki.libsdl.org/SDL3/SDL_Keycode). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-24"></span>\[24\] cppreference.com, “std::ranges::contains”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/algorithm/ranges/contains](https://en.cppreference.com/w/cpp/algorithm/ranges/contains). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-25"></span>\[25\] SDL, “SDL_GetMouseState”, SDL3 Wiki, 2026. \[Online\]. Available: [https://wiki.libsdl.org/SDL3/SDL_GetMouseState](https://wiki.libsdl.org/SDL3/SDL_GetMouseState). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-26"></span>\[26\] SDL, “SDL_RenderCoordinatesFromWindow”, SDL3 Wiki, 2026. \[Online\]. Available: [https://wiki.libsdl.org/SDL3/SDL_RenderCoordinatesFromWindow](https://wiki.libsdl.org/SDL3/SDL_RenderCoordinatesFromWindow). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-27"></span>\[27\] cppreference.com, “std::floor”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/numeric/math/floor](https://en.cppreference.com/w/cpp/numeric/math/floor). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-28"></span>\[28\] cppreference.com, “std::array”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/container/array](https://en.cppreference.com/w/cpp/container/array). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-29"></span>\[29\] cppreference.com, “Class template argument deduction (CTAD)”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/language/class_template_argument_deduction](https://en.cppreference.com/w/cpp/language/class_template_argument_deduction). \[Accessed: 28- Nov- 2026\].
+
+<span id="cite-30"></span>\[30\] cppreference.com, “std::round, std::lround, std::llround”, cppreference.com, 2026. \[Online\]. Available: [https://en.cppreference.com/w/cpp/numeric/math/round](https://en.cppreference.com/w/cpp/numeric/math/round). \[Accessed: 28- Nov- 2026\].

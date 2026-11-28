@@ -266,7 +266,7 @@ The example of part 5. Click the demo first, so that it gets the keys. <kbd>F2</
 
 ## What's Next
 
-Our triangles have one color. In part 6, we give each vertex its own color, and blend the colors smoothly across the triangle with *barycentric coordinates*. As it turns out, they're the three edge functions that we already compute, divided by the area.
+Our triangles have one color. In [part 6](/2d-software-rasterizer-6-barycentric/), we give each vertex its own color, and blend the colors smoothly across the triangle with *barycentric coordinates*. As it turns out, they're the three edge functions that we already compute, divided by the area.
 
 ## References
 

@@ -29,11 +29,11 @@ struct MovingRect
 };
 
 constexpr std::array movingRects = {
-    MovingRect{ 200, 110, 320.0f, 90.0f, 330.0f, 40.0f, 0.7f, 1.3f, rast::Color{ 0xE0, 0x50, 0x50 } },
-    MovingRect{ 140, 140, 320.0f, 180.0f, 120.0f, 230.0f, 1.1f, 0.8f, rast::Color{ 0x50, 0xC0, 0x60 } },
-    MovingRect{ 260, 80, 320.0f, 280.0f, 360.0f, 60.0f, 0.5f, 1.7f, rast::Color{ 0x50, 0x80, 0xE0 } },
-    MovingRect{ 120, 200, 480.0f, 180.0f, 250.0f, 200.0f, 0.9f, 0.6f, rast::Color{ 0xF0, 0xA0, 0x30 } },
-    MovingRect{ 90, 90, 160.0f, 200.0f, 220.0f, 180.0f, 1.5f, 1.0f, rast::Color{ 0xB0, 0x60, 0xD0 } },
+    MovingRect{ 200, 110, 320.0f, 90.0f, 330.0f, 40.0f, 0.7f, 1.3f, rast::Color::Tomato },
+    MovingRect{ 140, 140, 320.0f, 180.0f, 120.0f, 230.0f, 1.1f, 0.8f, rast::Color::MediumSeaGreen },
+    MovingRect{ 260, 80, 320.0f, 280.0f, 360.0f, 60.0f, 0.5f, 1.7f, rast::Color::RoyalBlue },
+    MovingRect{ 120, 200, 480.0f, 180.0f, 250.0f, 200.0f, 0.9f, 0.6f, rast::Color::Orange },
+    MovingRect{ 90, 90, 160.0f, 200.0f, 220.0f, 180.0f, 1.5f, 1.0f, rast::Color::MediumOrchid },
 };
 
 // The rectangle's position at a moment in time.
@@ -58,7 +58,7 @@ rast::Color Dim(rast::Color color)
 
 void DrawScene(rast::Rasterizer& rasterizer, float time, bool dimmed)
 {
-    const rast::Color outline{ 0xFF, 0xFF, 0xFF };
+    const rast::Color outline = rast::Color::White;
 
     for (const MovingRect& moving : movingRects)
     {
@@ -97,21 +97,21 @@ int main()
 
         // First the whole surface, dimmed.
         rasterizer.ResetScissor();
-        rasterizer.Clear(rast::Color{ 0x18, 0x18, 0x20 });
+        rasterizer.Clear(Dim(rast::Color::DarkSlateGray));
         DrawScene(rasterizer, time, true);
 
         // Then the spotlight: only the pixels inside the scissor rectangle change.
         const rast::Point mouse = window->MousePosition();
         const rast::Rect spotlight = rast::Rect::FromSize(mouse.x - 100, mouse.y - 75, 200, 150);
         rasterizer.SetScissor(spotlight);
-        rasterizer.Clear(rast::Color{ 0x38, 0x38, 0x48 });
+        rasterizer.Clear(rast::Color::DarkSlateGray);
         DrawScene(rasterizer, time, false);
 
         // A debug overlay: the outline of the scissor rectangle.
         if (showScissor)
         {
             rasterizer.ResetScissor();
-            rasterizer.DrawRect(spotlight, rast::Color{ 0xFF, 0xE0, 0x00 });
+            rasterizer.DrawRect(spotlight, rast::Color::Yellow);
         }
 
         window->Present(surface);

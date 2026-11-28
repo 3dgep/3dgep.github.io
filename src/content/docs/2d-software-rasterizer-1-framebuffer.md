@@ -213,7 +213,7 @@ Written in hexadecimal, a color looks like `0xAARRGGBB`, with two hex digits per
 ```cpp source="2d-software-rasterizer-part-01/rast/include/rast/Color.hpp#L1-L22"
 ```
 
-The comment above the struct repeats the table, so you don't have to look it up when you read the code. The only member is `argb`, the packed integer, and a default `Color` is opaque black. The constructor that takes a `std::uint32_t` is `explicit`, so a plain number never turns into a color by accident. You have to write `Color{ 0xFFFF0000 }`.
+The comment above the struct repeats the bit layout, so you don't have to look it up when you read the code. The only member is `argb`, the packed integer, and a default `Color` is opaque black. The constructor that takes a `std::uint32_t` is `explicit`, so a plain number never turns into a color by accident. You have to write `Color{ 0xFFFF0000 }`.
 
 Most of the time, you will make a color from its channels:
 
@@ -224,14 +224,14 @@ Each channel is converted to a 32-bit integer first, and then shifted to its pla
 
 Reading a channel back does the opposite:
 
-```cpp source="2d-software-rasterizer-part-01/rast/include/rast/Color.hpp#L31-L37"
+```cpp source="2d-software-rasterizer-part-01/rast/include/rast/Color.hpp#L31-L36"
 ```
 
 To read red, we shift it back down 16 bits, so that it's in the lowest byte. The `static_cast<std::uint8_t>` then keeps only that lowest byte, and drops alpha, which is still above it. That's why we don't need a mask like `& 0xFF` here. The defaulted `operator==` compares two colors by comparing their `argb` members.
 
 Everything in `Color` is `constexpr`, so the compiler can check it while it compiles:
 
-```cpp source="2d-software-rasterizer-part-01/rast/include/rast/Color.hpp#L39-L46"
+```cpp source="2d-software-rasterizer-part-01/rast/include/rast/Color.hpp#L64-L69"
 ```
 
 The first `static_assert` checks that a `Color` is exactly 4 bytes, with no padding. We rely on that later, when we copy the whole surface into a texture in one go. The other two are tests of the packing and unpacking. If you get a shift wrong, the code doesn't compile.
@@ -239,6 +239,45 @@ The first `static_assert` checks that a `Color` is exactly 4 bytes, with no padd
 :::note[Bytes in memory]
 `ARGB8888` describes the bits of a 32-bit integer, not the order of the bytes in memory. On a little-endian CPU (every x86 and almost every ARM CPU), the least significant byte comes first, so the bytes of a pixel are stored as blue, green, red, alpha. SDL calls this a *packed* pixel format. As long as we only read and write whole `std::uint32_t` values, the byte order doesn't matter, and that's what `Color` does.
 :::
+
+### Named Colors
+
+Code like `Color{ 0x64, 0x95, 0xED }` is hard to read. You have to decode the numbers to know which color it is. So `Color` has named constants, like `Color::Red` and `Color::CornflowerBlue`. The names are the 148 color keywords of CSS, the language that styles web pages, so you can look up any of them in your browser's color picker or on a page like MDN's [list of named colors](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color). There is one extra constant, `Color::Transparent`, with all four channels at 0.
+
+The constants are declared inside the struct, below `operator==`. This is the start of the list (the full list is in `Color.hpp`):
+
+```cpp title="Color.hpp"
+    // Named colors: Transparent, and the 148 color keywords of CSS (like CornflowerBlue).
+    // They are declared here and defined below the struct, because a struct
+    // is incomplete until its closing brace, and a constexpr variable needs a complete type.
+    static const Color Transparent;
+    static const Color
+        AliceBlue, AntiqueWhite, Aqua, Aquamarine, Azure, Beige, Bisque, Black, BlanchedAlmond,
+        Blue, BlueViolet, Brown, BurlyWood, CadetBlue, Chartreuse, Chocolate, Coral, CornflowerBlue,
+        // ...
+};
+```
+
+A `static` data member belongs to the struct, not to each color, so there is only one `Color::Red` in the whole program. You would like to write `static constexpr Color Red{ 0xFF, 0x00, 0x00 };` here, but that doesn't compile. Inside its own definition, until the closing brace, `Color` is an *incomplete type*. The compiler doesn't know its size or its constructors yet, so it can't make a `constexpr` `Color` there. That's why the constants are only *declared* in the struct, with `static const`, and each declaration can name many constants at once.
+
+Below the struct, where `Color` is complete, each constant is *defined*:
+
+```cpp title="Color.hpp"
+// The values of the named colors.
+inline constexpr Color Color::Transparent         { 0x00000000 };
+inline constexpr Color Color::AliceBlue           { 0xF0, 0xF8, 0xFF };
+inline constexpr Color Color::AntiqueWhite        { 0xFA, 0xEB, 0xD7 };
+inline constexpr Color Color::Aqua                { 0x00, 0xFF, 0xFF };
+inline constexpr Color Color::Aquamarine          { 0x7F, 0xFF, 0xD4 };
+// ...
+
+static_assert(Color::CornflowerBlue == Color{ 0xFF6495ED });
+static_assert(Color::Transparent.A() == 0);
+```
+
+The definition may add `constexpr`, so the constants can be used at compile time, like in the `static_assert`s at the end. `inline` allows the definitions to be in a header. Every `.cpp` file that includes `Color.hpp` sees the same definitions, and `inline` tells the linker that they are all the same variable, instead of reporting it as defined more than once. Transparent uses the constructor that takes the packed `0xAARRGGBB` value, because it's the only one with an alpha of 0. All the others are opaque.
+
+Watch out for `Color::Green`. In CSS, `green` is a dark green (`0x008000`), and the pure green with the green channel at 255 is called `Lime`. In the same way, `Gray` (`0x808080`) is darker than `DarkGray` (`0xA9A9A9`). The names come from the colors of the X Window System of the 1980s, and they're not always logical, but they are what every web developer knows.
 
 ## The Surface
 

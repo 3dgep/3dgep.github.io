@@ -291,7 +291,7 @@ Each rectangle follows a path that's described by a few numbers:
 ```cpp source="2d-software-rasterizer-part-02/examples/part-02-clipping/main.cpp#L17-L37"
 ```
 
-A rectangle moves around the center of its path, `rangeX` pixels to the left and right and `rangeY` pixels up and down. Most of the ranges are large enough to move the rectangles partly or completely off the surface. The red rectangle, for example, is centered at $x = 320$ and moves 330 pixels to each side, so at the far left, its center is at $x = -10$. `std::array` deduces the number of rectangles from the list.
+A rectangle moves around the center of its path, `rangeX` pixels to the left and right and `rangeY` pixels up and down. Most of the ranges are large enough to move the rectangles partly or completely off the surface. The red rectangle, for example, is centered at $x = 320$ and moves 330 pixels to each side, so at the far left, its center is at $x = -10$. Their colors are named constants of `Color`, from [part 1](/2d-software-rasterizer-1-framebuffer/#named-colors). `std::array` deduces the number of rectangles from the list.
 
 `RectAt` computes where a rectangle is at a moment in time:
 
@@ -328,14 +328,14 @@ The first half of the main loop draws the whole scene, dimmed:
 ```cpp source="2d-software-rasterizer-part-02/examples/part-02-clipping/main.cpp#L89-L101"
 ```
 
-<kbd>F1</kbd> switches the overlay on and off. Then the scissor rectangle is removed, so that the clip rectangle is the whole surface. `Clear` clears the whole surface to a dark blue gray with `Surface::Clear`, and `DrawScene` draws the dimmed rectangles over it.
+<kbd>F1</kbd> switches the overlay on and off. Then the scissor rectangle is removed, so that the clip rectangle is the whole surface. `Clear` clears the whole surface to a dimmed `DarkSlateGray` with `Surface::Clear`, and `DrawScene` draws the dimmed rectangles over it.
 
 The second half draws the spotlight:
 
 ```cpp source="2d-software-rasterizer-part-02/examples/part-02-clipping/main.cpp#L103-L121"
 ```
 
-The spotlight is a 200 by 150 pixel rectangle, centered on the mouse. It becomes the scissor rectangle, so from now on, only the pixels inside the spotlight change. `Clear` fills only the spotlight with a lighter background, because the clip rectangle is smaller than the surface now. Then `DrawScene` draws the same scene again, in full color. Every rectangle is clipped to the spotlight, so you only see the bright rectangles inside it.
+The spotlight is a 200 by 150 pixel rectangle, centered on the mouse. It becomes the scissor rectangle, so from now on, only the pixels inside the spotlight change. `Clear` fills only the spotlight with `DarkSlateGray`, the same background without the dimming, because the clip rectangle is smaller than the surface now. Then `DrawScene` draws the same scene again, in full color. Every rectangle is clipped to the spotlight, so you only see the bright rectangles inside it.
 
 When the overlay is on, the scissor rectangle is removed again, and `DrawRect` draws the outline of the spotlight in yellow. It has to be drawn without the scissor rectangle. The outline is inside the spotlight, so it would be drawn anyway, but an overlay should never depend on the state that it's showing.
 

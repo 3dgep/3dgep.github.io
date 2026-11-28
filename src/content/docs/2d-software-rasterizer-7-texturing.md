@@ -59,7 +59,7 @@ $$
 
 and the same for $v$, with the height of the texture. This is *nearest-neighbor sampling* [\[5\]](#cite-5), because the texel that $u$ falls in is the texel whose center is nearest to $u$. The center of texel $i$ is at $u = \frac{i + 0.5}{w}$, halfway between its edges. That matches our pixels, whose centers are at $x + 0.5$.
 
-When a texture is drawn at its own size, with its edges on the edges of the pixels, every pixel center lands exactly on a texel center, and every pixel gets exactly one texel. When it's drawn larger, several pixels get the same texel, and the texels become visible squares. For pixel art, that's exactly what we want. For photos, it looks blocky, and in part 11 we'll blend the four nearest texels instead, with *bilinear filtering*.
+When a texture is drawn at its own size, with its edges on the edges of the pixels, every pixel center lands exactly on a texel center, and every pixel gets exactly one texel. When it's drawn larger, several pixels get the same texel, and the texels become visible squares. For pixel art, that's exactly what we want. For photos, it looks blocky, and in part 12 we'll blend the four nearest texels instead, with *bilinear filtering*.
 
 ### Address Modes
 
@@ -127,7 +127,7 @@ stb_image gives us 4 bytes per pixel, in the order red, green, blue, alpha. Our 
 
 ## Samplers
 
-The rules for sampling a texture are kept in a *sampler*, like in Direct3D and Vulkan. A sampler has nothing to do with any particular texture, so one sampler can sample many textures. Our sampler only has address modes for now. In part 11, it gets a filter too.
+The rules for sampling a texture are kept in a *sampler*, like in Direct3D and Vulkan. A sampler has nothing to do with any particular texture, so one sampler can sample many textures. Our sampler only has address modes for now. In part 12, it gets a filter too.
 
 `Sampler.hpp` starts with the address modes:
 
@@ -383,7 +383,7 @@ The address mode is printed when it changes:
 ```cpp source="2d-software-rasterizer-part-07/examples/part-07-texturing/main.cpp#L147-L159"
 ```
 
-`ToString` returns the name of an address mode. We don't have text on the surface yet (that's part 10), so the example prints the name to the console.
+`ToString` returns the name of an address mode. We don't have text on the surface yet (that's part 11), so the example prints the name to the console.
 
 ### Setting Up
 
@@ -476,7 +476,7 @@ The example of part 7. Click the demo first, so that it gets the keys. <kbd>F1</
 
 ## What's Next
 
-Our triangles can show images now, and with the alpha test, sprites can have holes. But the alpha test only knows two kinds of pixels, the ones that are drawn and the ones that aren't. In part 8, we'll blend colors instead, so that sprites can have soft edges, and shapes can be half transparent. We'll see why *premultiplied alpha* makes blending easier, and why blending in sRGB numbers looks wrong.
+Our triangles can show images now, and with the alpha test, sprites can have holes. But the alpha test only knows two kinds of pixels, the ones that are drawn and the ones that aren't. In [part 8](/2d-software-rasterizer-8-blending/), we'll blend colors instead, so that sprites can have soft edges, and shapes can be half transparent. We'll see why *premultiplied alpha* makes blending easier, and why blending in sRGB numbers looks wrong.
 
 ## References
 

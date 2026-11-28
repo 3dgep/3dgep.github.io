@@ -129,7 +129,7 @@ The class starts with its *color target*:
 ```cpp source="2d-software-rasterizer-part-02/rast/include/rast/Rasterizer.hpp#L1-L22"
 ```
 
-The color target is the surface that holds the colors of the pixels that we draw. On a GPU, you would call it a *render target*. We call it the *color* target, because later in the series a rasterizer can have more targets. Part 11 draws into a larger surface and scales it down for smoother edges, and then the color target is that larger surface.
+The color target is the surface that holds the colors of the pixels that we draw. On a GPU, you would call it a *render target*. We call it the *color* target, because later in the series a rasterizer can have more targets. Part 12 draws into a larger surface and scales it down for smoother edges, and then the color target is that larger surface.
 
 The `Rasterizer` doesn't own the surface. It only stores a pointer to it, and the surface must stay alive as long as the `Rasterizer` draws into it. The constructor takes a reference, because a rasterizer always needs a color target. A reference can't be null, so the caller can't forget it. But the member is a pointer, because `SetColorTarget` must be able to point it to another surface, and a reference member can never change what it refers to.
 

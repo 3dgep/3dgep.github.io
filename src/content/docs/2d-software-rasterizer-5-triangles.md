@@ -182,7 +182,7 @@ Edge $i$ is the edge *opposite* vertex $i$, so `e0` goes from $v_1$ to $v_2$, `e
 
 All three edges start at the center of the top-left pixel of the box. For every row, `w0`, `w1` and `w2` start at the values for the first pixel of the row. For every pixel, the test is three comparisons, and moving to the next pixel is three additions. After each row, the start values move down a row.
 
-This loop is simple, and it's already quite fast, but it visits every pixel of the bounding box. For a thin diagonal triangle, most of those are outside [\[17\]](#cite-17). In the second half of the series, we test whole blocks of pixels at once, and skip the blocks that are completely outside, and in part 16, we test several pixels with one instruction.
+This loop is simple, and it's already quite fast, but it visits every pixel of the bounding box. For a thin diagonal triangle, most of those are outside [\[17\]](#cite-17). In the second half of the series, we test whole blocks of pixels at once, and skip the blocks that are completely outside, and in part 17, we test several pixels with one instruction.
 
 ## The Example
 

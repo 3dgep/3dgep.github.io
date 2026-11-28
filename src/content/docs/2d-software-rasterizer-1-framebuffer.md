@@ -459,7 +459,7 @@ Fullscreen takes two small functions:
 
 `SDL_SetWindowFullscreen` switches the window between fullscreen and a normal window [\[76\]](#cite-76). By default, SDL uses *borderless fullscreen*. The window covers the screen at the desktop's resolution, and the monitor doesn't switch to another video mode, so it's quick and doesn't make the screen flicker. Our surface stays the same size, and the letterboxing in `Present` scales it up to fit. `IsFullscreen` checks the `SDL_WINDOW_FULLSCREEN` flag of the window [\[77\]](#cite-77). In the browser, fullscreen makes the canvas cover the whole screen.
 
-Without text on the screen (that comes in part 10), it's hard to tell whether VSync is on, so the window shows it in its title bar, together with the frame rate. `Present` counts the frames at its end:
+Without text on the screen (that comes in part 11), it's hard to tell whether VSync is on, so the window shows it in its title bar, together with the frame rate. `Present` counts the frames at its end:
 
 ```cpp source="2d-software-rasterizer-part-01/rast/src/Window.cpp#L152-L163"
 ```

@@ -36,7 +36,7 @@ The first rule is that the line has exactly one pixel for every step along its l
 
 The second rule is that in every column (or row, for a line whose major axis is `y`), we pick the pixel whose center is closest to the line [\[1\]](#cite-1). As in part 2, the pixel at `(x, y)` covers the square from $(x, y)$ to $(x + 1, y + 1)$, so its center is at $(x + 0.5, y + 0.5)$. If both end points are pixel centers, then the line goes through the centers too, and in every column, we only have to round the line's `y` to the nearest whole number.
 
-Our lines go from one pixel to another, so both end points are whole numbers. Lines with end points between pixels come back in part 11, with *anti-aliasing*.
+Our lines go from one pixel to another, so both end points are whole numbers. Lines with end points between pixels come back in part 12, with *anti-aliasing*.
 
 ## The DDA
 

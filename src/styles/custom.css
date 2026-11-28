@@ -155,6 +155,8 @@
 /* 2D Software Rasterizer part 7: texture sampling, and pixel art that stays sharp when it's scaled up. */
 .sl-markdown-content iframe.embed-texture-sampling { aspect-ratio: auto; height: 480px; min-height: 0; }
 .sl-markdown-content img.pixel-art { image-rendering: pixelated; width: 100%; height: auto; }
+/* 2D Software Rasterizer part 8: alpha blending. */
+.sl-markdown-content iframe.embed-alpha-blending { aspect-ratio: auto; height: 560px; min-height: 0; }
 
 
 /* Theme-specific images: <img class="light-only"> / <img class="dark-only"> (e.g. the GitHub mark). */

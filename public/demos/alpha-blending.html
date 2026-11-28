@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Alpha Blending</title>
+<style>
+	:root {
+		--bg: #0f1218;
+		--panel: #171b24;
+		--border: #2c3342;
+		--text: #d6dae3;
+		--muted: #8b93a5;
+		--accent: #7aa2f7;
+		--input: #1c2130;
+		--hot: #ffd866;
+		color-scheme: dark;
+	}
+	:root[data-theme='light'] {
+		--bg: #f7f8fa;
+		--panel: #ffffff;
+		--border: #d5d9e2;
+		--text: #23262e;
+		--muted: #5d6474;
+		--accent: #2f5bd3;
+		--input: #eef0f5;
+		--hot: #d4380d;
+		color-scheme: light;
+	}
+	* { box-sizing: border-box; }
+	html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+	#app { display: flex; flex-direction: column; height: 100%; }
+	#view { position: relative; flex: 1; min-height: 0; }
+	canvas { display: block; width: 100%; height: 100%; touch-action: none; image-rendering: pixelated; }
+	#bar { display: flex; flex-direction: column; gap: 4px; padding: 6px 10px; border-top: 1px solid var(--border); background: var(--panel); }
+	#controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+	#bottomRow { display: flex; align-items: flex-end; gap: 10px; }
+	.row { display: flex; gap: 4px; align-items: center; }
+	button {
+		font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border);
+		border-radius: 5px; padding: 1px 7px; cursor: pointer; user-select: none;
+	}
+	button:hover { border-color: var(--accent); }
+	button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+	label { display: flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; }
+	input[type='range'] { width: 90px; accent-color: var(--accent); }
+	select { font: inherit; color: var(--text); background: var(--input); border: 1px solid var(--border); border-radius: 5px; padding: 1px 2px; }
+	input[type='color'] { width: 26px; height: 20px; padding: 0; border: 1px solid var(--border); border-radius: 4px; background: none; }
+	.num { display: inline-block; width: 3ch; text-align: right; font: 12px ui-monospace, Consolas, monospace; color: var(--text); }
+	/* Always four lines high, so the drawing doesn't change size. Lines wrap between pieces, never inside one. */
+	#info { flex: 1; min-width: 0; height: 6em; overflow: hidden; font: 12.5px/1.5 ui-monospace, Consolas, 'Cascadia Mono', monospace; }
+	#info > div { display: flex; flex-wrap: wrap; column-gap: 2.2ch; align-items: center; }
+	#info > div > span { white-space: pre; }
+	.m { color: var(--muted); } .hot { color: var(--hot); }
+	.swatch { display: inline-block; width: 1.6em; height: 1em; border-radius: 3px; border: 1px solid var(--border); vertical-align: middle; }
+	/* A small signature at the right end of the bar: this demo was made with Claude. */
+	.made-by { align-self: flex-end; flex: none; width: 18px; height: 18px; opacity: 0.35; transition: opacity 0.3s; }
+	.made-by:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="app">
+	<div id="view">
+		<canvas id="canvas" role="img"
+			aria-label="A checkerboard with two overlapping translucent rectangles, the bottom layer and the top layer, and below them a strip from white to black, where black is blended over white with an alpha that goes from 0 on the left to 1 on the right. Hovering a pixel shows how its color was blended."></canvas>
+	</div>
+	<div id="bar">
+		<div id="controls">
+			<label>blend state <select id="preset"></select></label>
+			<label>source · <select id="srcBlend"></select></label>
+			<select id="blendOp" aria-label="Blend operation"></select>
+			<label>destination · <select id="destBlend"></select></label>
+			<div class="row" role="group" aria-label="Format of the color target">
+				<button type="button" data-format="Unorm" aria-pressed="true">Unorm</button>
+				<button type="button" data-format="UnormSrgb" aria-pressed="false">UnormSrgb</button>
+			</div>
+			<label>top <input id="topColor" type="color" value="#00bfff" /> <input id="topAlpha" type="range" min="0" max="255" value="128" /> <span id="topAlphaText" class="num"></span></label>
+			<label>bottom <input id="bottomColor" type="color" value="#ffd700" /> <input id="bottomAlpha" type="range" min="0" max="255" value="160" /> <span id="bottomAlphaText" class="num"></span></label>
+		</div>
+		<div id="bottomRow">
+			<div id="info" aria-live="polite"></div>
+			<img class="made-by" src="/images/claude-logo.svg" alt="Made with Claude" title="Made with Claude" />
+		</div>
+	</div>
+</div>
+<script>
+'use strict';
+// ---- Blending, exactly like Blend.cpp ----
+const divideBy255 = (x) => { x += 128; return (x + (x >> 8)) >> 8; };
+const decode = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+const encode = (l) => (l <= 0.0031308 ? 12.92 * l : 1.055 * Math.pow(l, 1 / 2.4) - 0.055);
+const f32 = Math.fround;
+const DecodeTable = Array.from({ length: 256 }, (_, i) => f32(decode(i / 255)));
+const EncodeTable = Array.from({ length: 4096 }, (_, i) => Math.floor(encode(i / 4095) * 255 + 0.5));
+const linearToSrgb = (v) => EncodeTable[Math.floor(Math.min(1, Math.max(0, v)) * 4095 + 0.5)];
+
+// The factors and operations of BlendState, and its presets (color factors; alpha always uses One, InvSrcAlpha, Add).
+const Factors = ['Zero', 'One', 'SrcColor', 'InvSrcColor', 'SrcAlpha', 'InvSrcAlpha', 'DestColor', 'InvDestColor', 'DestAlpha', 'InvDestAlpha'];
+const Ops = ['Add', 'Subtract', 'ReverseSubtract', 'Min', 'Max'];
+const Presets = {
+	AlphaBlend: { src: 'SrcAlpha', dst: 'InvSrcAlpha', op: 'Add' },
+	PremultipliedAlpha: { src: 'One', dst: 'InvSrcAlpha', op: 'Add' },
+	Additive: { src: 'SrcAlpha', dst: 'One', op: 'Add' },
+	Multiply: { src: 'DestColor', dst: 'Zero', op: 'Add' },
+	Screen: { src: 'One', dst: 'InvSrcColor', op: 'Add' },
+};
+const AlphaState = { src: 'One', dst: 'InvSrcAlpha', op: 'Add' };
+
+// c = { s, d, sa, da }: the channel of the source and the destination, and both alphas. one is 255 or 1.
+function factor(f, c, one) {
+	switch (f) {
+		case 'Zero': return 0;
+		case 'One': return one;
+		case 'SrcColor': return c.s;
+		case 'InvSrcColor': return one - c.s;
+		case 'SrcAlpha': return c.sa;
+		case 'InvSrcAlpha': return one - c.sa;
+		case 'DestColor': return c.d;
+		case 'InvDestColor': return one - c.d;
+		case 'DestAlpha': return c.da;
+		default: return one - c.da; // InvDestAlpha
+	}
+}
+function blendBytes(c, st) {
+	const s = c.s * factor(st.src, c, 255), d = c.d * factor(st.dst, c, 255);
+	switch (st.op) {
+		case 'Add': return divideBy255(Math.min(s + d, 255 * 255));
+		case 'Subtract': return s > d ? divideBy255(s - d) : 0;
+		case 'ReverseSubtract': return d > s ? divideBy255(d - s) : 0;
+		case 'Min': return Math.min(c.s, c.d);
+		default: return Math.max(c.s, c.d);
+	}
+}
+function blendLinear(c, st) {
+	const s = f32(c.s * factor(st.src, c, 1)), d = f32(c.d * factor(st.dst, c, 1));
+	switch (st.op) {
+		case 'Add': return linearToSrgb(s + d);
+		case 'Subtract': return linearToSrgb(s - d);
+		case 'ReverseSubtract': return linearToSrgb(d - s);
+		case 'Min': return linearToSrgb(Math.min(c.s, c.d));
+		default: return linearToSrgb(Math.max(c.s, c.d));
+	}
+}
+// Colors are [r, g, b, a] bytes.
+function blend(src, dst, st, format) {
+	const sa = src[3], da = dst[3];
+	const alpha = blendBytes({ s: sa, d: da, sa, da }, AlphaState);
+	const rgb = [0, 1, 2].map((i) => (format === 'Unorm'
+		? blendBytes({ s: src[i], d: dst[i], sa, da }, st)
+		: blendLinear({ s: DecodeTable[src[i]], d: DecodeTable[dst[i]], sa: f32(sa / 255), da: f32(da / 255) }, st)));
+	return [...rgb, alpha];
+}
+function premultiply(c, format) {
+	const a = c[3];
+	const rgb = c.slice(0, 3).map((v) => (format === 'Unorm' ? divideBy255(v * a) : linearToSrgb(DecodeTable[v] * (a / 255))));
+	return [...rgb, a];
+}
+
+// ---- The scene: a small surface of 160 x 100 pixels, scaled up ----
+const SW = 160, SH = 100;
+const Bottom = { left: 18, top: 10, right: 98, bottom: 62 };
+const Top = { left: 62, top: 28, right: 142, bottom: 76 };
+const Strip = { left: 10, top: 84, right: 150, bottom: 96 };
+let state = { ...Presets.AlphaBlend }, format = 'Unorm';
+const isPremultiplied = () => state.src === 'One' && state.dst === 'InvSrcAlpha' && state.op === 'Add';
+let hover = null;
+const inside = (r, x, y) => x >= r.left && x < r.right && y >= r.top && y < r.bottom;
+const hexToRgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+
+// The steps that give the pixel (x, y) its color, so the info can explain them.
+function pixel(x, y) {
+	const steps = [];
+	let color = (Math.floor(x / 10) + Math.floor(y / 10)) % 2 === 0 ? [220, 220, 220, 255] : [169, 169, 169, 255];
+	if (inside(Strip, x, y)) {
+		const a = Math.round(((x - Strip.left) / (Strip.right - Strip.left - 1)) * 255);
+		const white = [255, 255, 255, 255];
+		const black = [0, 0, 0, a];
+		const src = isPremultiplied() ? premultiply(black, format) : black;
+		const result = blend(src, white, state, format);
+		steps.push({ name: 'black', straight: black, src, dst: white, result });
+		return { color: result, steps };
+	}
+	for (const [layer, rect, colorInput, alphaInput] of [['bottom', Bottom, bottomColor, bottomAlpha], ['top', Top, topColor, topAlpha]]) {
+		if (!inside(rect, x, y)) continue;
+		const straight = [...hexToRgb(colorInput.value), Number(alphaInput.value)];
+		const src = isPremultiplied() ? premultiply(straight, format) : straight;
+		const result = blend(src, color, state, format);
+		steps.push({ name: layer, straight, src, dst: color, result });
+		color = result;
+	}
+	return { color, steps };
+}
+
+// ---- Theme (follows the embedding page) ----
+let colors = {};
+function currentTheme() {
+	try {
+		const t = window.parent !== window && window.parent.document.documentElement.dataset.theme;
+		if (t === 'light' || t === 'dark') return t;
+	} catch {}
+	return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+	document.documentElement.dataset.theme = currentTheme();
+	const cs = getComputedStyle(document.documentElement);
+	for (const k of ['--bg', '--text', '--hot']) colors[k] = cs.getPropertyValue(k).trim();
+	draw();
+}
+try {
+	if (window.parent !== window) new MutationObserver(applyTheme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+} catch {}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const info = document.getElementById('info');
+const surface = document.createElement('canvas');
+surface.width = SW; surface.height = SH;
+const sctx = surface.getContext('2d');
+let W = 1, H = 1, DPR = 1, scale = 1, ox = 0, oy = 0;
+
+function resize() {
+	const r = canvas.getBoundingClientRect();
+	W = Math.max(1, r.width); H = Math.max(1, r.height); DPR = window.devicePixelRatio || 1;
+	canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+	scale = Math.max(1, Math.min((W - 16) / SW, (H - 12) / SH));
+	ox = (W - SW * scale) / 2; oy = (H - SH * scale) / 2;
+	draw();
+}
+new ResizeObserver(resize).observe(canvas);
+
+function draw() {
+	if (!colors['--bg']) return;
+	const img = sctx.createImageData(SW, SH);
+	for (let y = 0; y < SH; ++y)
+		for (let x = 0; x < SW; ++x) {
+			const c = pixel(x, y).color;
+			const i = (y * SW + x) * 4;
+			img.data[i] = c[0]; img.data[i + 1] = c[1]; img.data[i + 2] = c[2]; img.data[i + 3] = 255;
+		}
+	sctx.putImageData(img, 0, 0);
+	ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+	ctx.fillStyle = colors['--bg'];
+	ctx.fillRect(0, 0, W, H);
+	ctx.imageSmoothingEnabled = false;
+	ctx.drawImage(surface, ox, oy, SW * scale, SH * scale);
+	if (hover) {
+		ctx.strokeStyle = colors['--hot'];
+		ctx.lineWidth = 2;
+		ctx.strokeRect(ox + hover.x * scale - 1, oy + hover.y * scale - 1, scale + 2, scale + 2);
+	}
+	showInfo();
+}
+
+const line = (...pieces) => `<div>${pieces.map((x) => `<span>${x}</span>`).join('')}</div>`;
+const rgba = (c) => `(${c.join(', ')})`;
+const sw = (c) => `<span class="swatch" style="background:rgb(${c.slice(0, 3).join(',')})"></span>`;
+function showInfo() {
+	const f = {
+		Add: `result = source · ${state.src} + destination · ${state.dst}`,
+		Subtract: `result = source · ${state.src} − destination · ${state.dst}`,
+		ReverseSubtract: `result = destination · ${state.dst} − source · ${state.src}`,
+		Min: 'result = min(source, destination)',
+		Max: 'result = max(source, destination)',
+	}[state.op];
+	const where = format === 'Unorm' ? 'with the bytes' : 'in linear light';
+	if (!hover) {
+		info.innerHTML = line('<span class="m">hover over a pixel to see how it was blended</span>')
+			+ line(`<span class="m">${f}</span>`, `<span class="m">${where}</span>`)
+			+ line('<span class="m">the strip blends black over white,</span>', '<span class="m">with a from 0 to 1</span>')
+			+ line('');
+		return;
+	}
+	const { steps } = pixel(hover.x, hover.y);
+	if (!steps.length) {
+		info.innerHTML = line(`<span class="hot">pixel (${hover.x}, ${hover.y})</span>`, '<span class="m">only the checkerboard</span>')
+			+ line(`<span class="m">${f}</span>`, `<span class="m">${where}</span>`) + line('') + line('');
+		return;
+	}
+	let html = line(`<span class="hot">pixel (${hover.x}, ${hover.y})</span>`, `<span class="m">${f}, ${where}</span>`);
+	for (const s of steps) {
+		html += line(`${s.name} ${sw(s.src)} ${rgba(s.src)}`, `over ${sw(s.dst)} ${rgba(s.dst)}`, `= ${sw(s.result)} ${rgba(s.result)}`);
+	}
+	const last = steps[steps.length - 1];
+	html += line(isPremultiplied()
+		? `<span class="m">premultiplied from ${rgba(last.straight)}, a = ${last.src[3]} / 255</span>`
+		: `<span class="m">a = ${last.src[3]} / 255 = ${(last.src[3] / 255).toFixed(3)}</span>`);
+	info.innerHTML = html;
+}
+
+// ---- Controls ----
+const formatButtons = [...document.querySelectorAll('[data-format]')];
+formatButtons.forEach((b) => b.addEventListener('click', () => {
+	format = b.dataset.format;
+	formatButtons.forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+	draw();
+}));
+const presetSelect = document.getElementById('preset');
+const srcSelect = document.getElementById('srcBlend'), dstSelect = document.getElementById('destBlend'), opSelect = document.getElementById('blendOp');
+const fill = (select, names) => { select.innerHTML = names.map((n) => `<option>${n}</option>`).join(''); };
+fill(presetSelect, [...Object.keys(Presets), 'custom']);
+fill(srcSelect, Factors); fill(dstSelect, Factors); fill(opSelect, Ops);
+// Shows the state in the menus; the preset menu says "custom" when no preset matches.
+function showState() {
+	srcSelect.value = state.src; dstSelect.value = state.dst; opSelect.value = state.op;
+	const match = Object.keys(Presets).find((k) => Presets[k].src === state.src && Presets[k].dst === state.dst && Presets[k].op === state.op);
+	presetSelect.value = match ?? 'custom';
+	draw();
+}
+presetSelect.addEventListener('change', () => { if (Presets[presetSelect.value]) state = { ...Presets[presetSelect.value] }; showState(); });
+srcSelect.addEventListener('change', () => { state.src = srcSelect.value; showState(); });
+dstSelect.addEventListener('change', () => { state.dst = dstSelect.value; showState(); });
+opSelect.addEventListener('change', () => { state.op = opSelect.value; showState(); });
+const topColor = document.getElementById('topColor'), topAlpha = document.getElementById('topAlpha');
+const bottomColor = document.getElementById('bottomColor'), bottomAlpha = document.getElementById('bottomAlpha');
+function updateAlphaText() {
+	document.getElementById('topAlphaText').textContent = topAlpha.value;
+	document.getElementById('bottomAlphaText').textContent = bottomAlpha.value;
+	draw();
+}
+for (const input of [topColor, topAlpha, bottomColor, bottomAlpha]) input.addEventListener('input', updateAlphaText);
+
+canvas.addEventListener('pointermove', (e) => {
+	const rc = canvas.getBoundingClientRect();
+	const x = Math.floor((e.clientX - rc.left - ox) / scale), y = Math.floor((e.clientY - rc.top - oy) / scale);
+	hover = x >= 0 && y >= 0 && x < SW && y < SH ? { x, y } : null;
+	draw();
+});
+canvas.addEventListener('pointerleave', () => { hover = null; draw(); });
+
+applyTheme();
+updateAlphaText();
+showState();
+resize();
+</script>
+</body>
+</html>
